@@ -1,17 +1,17 @@
 import { useEffect, useState } from "react";
 import { invoke } from "@tauri-apps/api/core";
+import { WebviewWindow } from "@tauri-apps/api/window";
+import { listen } from "@tauri-apps/api/event";
 
 type Product = {
   name: string;
   expiry_days: number;
-  picture?: string | null; // Could be URL or base64 string
+  picture?: string | null;
 };
 
 export default function ProductManagementPane() {
   const [products, setProducts] = useState<Product[]>([]);
-  const [newProduct, setNewProduct] = useState({ name: "", expiry_days: 0 });
 
-  // Load products from DB
   const fetchProducts = async () => {
     const result = await invoke("get_all_products");
     setProducts(result as Product[]);
@@ -19,14 +19,29 @@ export default function ProductManagementPane() {
 
   useEffect(() => {
     fetchProducts();
+
+    // 👂 Listen for save events from the product-form window
+    const unlisten = listen("product_saved", () => {
+      fetchProducts();
+    });
+
+    return () => {
+      unlisten.then((f) => f());
+    };
   }, []);
 
-  const handleAdd = async () => {
-    if (!newProduct.name) return;
+  const openAddProductWindow = () => {
+    new WebviewWindow("product_form", {
+      url: "/product-form?mode=add",
+    });
+  };
 
-    await invoke("add_product", { product: newProduct });
-    setNewProduct({ name: "", expiry_days: 0 });
-    fetchProducts();
+  const openEditProductWindow = (product: Product) => {
+    new WebviewWindow("product_form", {
+      url: `/product-form?mode=edit&name=${encodeURIComponent(
+        product.name
+      )}&expiry_days=${product.expiry_days}`,
+    });
   };
 
   const handleDelete = async (name: string) => {
@@ -61,6 +76,7 @@ export default function ProductManagementPane() {
               <td>{p.name}</td>
               <td>{p.expiry_days}</td>
               <td>
+                <button onClick={() => openEditProductWindow(p)}>编辑</button>{" "}
                 <button onClick={() => handleDelete(p.name)}>删除</button>
               </td>
             </tr>
@@ -69,22 +85,7 @@ export default function ProductManagementPane() {
       </table>
 
       <h3>添加产品</h3>
-      <input
-        placeholder="名称"
-        value={newProduct.name}
-        onChange={(e) =>
-          setNewProduct({ ...newProduct, name: e.target.value })
-        }
-      />
-      <input
-        type="number"
-        placeholder="有效期天数"
-        value={newProduct.expiry_days}
-        onChange={(e) =>
-          setNewProduct({ ...newProduct, expiry_days: parseInt(e.target.value) })
-        }
-      />
-      <button onClick={handleAdd}>添加</button>
+      <button onClick={openAddProductWindow}>新建产品</button>
     </div>
   );
 }
