@@ -31,19 +31,23 @@ body {
   transition: background-color 0.2s ease;
 }
 
+/* Hover - light grey */
 .sidebar button:hover {
-  background-color: #e8f0fe;
-  color: #1a73e8;
+  background-color: #f2f2f2;
+  color: #000;
 }
 
+/* Focus - light grey, no outline */
 .sidebar button:focus {
   outline: none;
-  background-color: #d2e3fc;
+  background-color: #e6e6e6;
+  color: #000;
 }
 
+/* Active (selected) - darker grey */
 .sidebar button.active {
-  background-color: #d2e3fc;
-  color: #1a73e8;
+  background-color: #ecececff;
+  color: #000;
   font-weight: 600;
 }
 
