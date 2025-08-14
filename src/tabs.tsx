@@ -1,9 +1,12 @@
+import ProductManagementPane from "./components/productManagementPane";
+
 export const tabs = [
   { key: "dataAnalysis", label: "数据分析" },
   { key: "addStock", label: "添加库存" },
   { key: "removeStock", label: "移除库存" },
   { key: "expiryWarnings", label: "过期预警" },
   { key: "transactionHistory", label: "交易历史" },
+  { key: "productManagement", label: "产品信息管理" },
 ];
 
 export const renderTabContent = (activeTab: string) => {
@@ -40,6 +43,8 @@ export const renderTabContent = (activeTab: string) => {
           </ul>
         </>
       );
+    case "productManagement":
+      return <ProductManagementPane />;
     default:
       return <h2>未知标签</h2>;
   }
