@@ -59,17 +59,17 @@ function App() {
   return (
     <div className="app-wrapper">
       <aside className="sidebar">
-        <button onClick={() => setActiveTab("dataAnalysis")}>
+        <button className={activeTab === "dataAnalysis" ? "active" : ""} onClick={() => setActiveTab("dataAnalysis")}>
           数据分析
         </button>
-        <button onClick={() => setActiveTab("addStock")}>添加库存</button>
-        <button onClick={() => setActiveTab("removeStock")}>
+        <button className={activeTab === "addStock" ? "active" : ""} onClick={() => setActiveTab("addStock")}>添加库存</button>
+        <button className={activeTab === "removeStock" ? "active" : ""} onClick={() => setActiveTab("removeStock")}>
           移除库存
         </button>
-        <button onClick={() => setActiveTab("expiryWarnings")}>
+        <button className={activeTab === "expiryWarnings" ? "active" : ""} onClick={() => setActiveTab("expiryWarnings")}>
           过期预警
         </button>
-        <button onClick={() => setActiveTab("transactionHistory")}>
+        <button className={activeTab === "transactionHistory" ? "active" : ""} onClick={() => setActiveTab("transactionHistory")}>
           交易历史
         </button>
       </aside>

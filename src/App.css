@@ -14,21 +14,20 @@ body {
   width: 160px; /* ⬅️ smaller sidebar */
   background-color: #ffffff;
   border-right: 1px solid #ddd;
-  padding: 1rem;
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
 }
 
 .sidebar button {
+  width: 100%;
+  padding: 0.75rem 1rem;
   background: none;
   border: none;
   color: #333;
-  padding: 0.5rem 0.75rem;
   text-align: left;
   font-size: 14px;
-  border-radius: 6px;
   cursor: pointer;
+  border-radius: 0;
   transition: background-color 0.2s ease;
 }
 
@@ -40,6 +39,12 @@ body {
 .sidebar button:focus {
   outline: none;
   background-color: #d2e3fc;
+}
+
+.sidebar button.active {
+  background-color: #d2e3fc;
+  color: #1a73e8;
+  font-weight: 600;
 }
 
 .content {
