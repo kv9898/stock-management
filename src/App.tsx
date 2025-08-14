@@ -1,50 +1,81 @@
 import { useState } from "react";
-import reactLogo from "./assets/react.svg";
-import { invoke } from "@tauri-apps/api/core";
 import "./App.css";
+import SidebarButton from "./components/sidebarButton";
+import { tabs, renderTabContent } from "./tabs";
 
 function App() {
-  const [greetMsg, setGreetMsg] = useState("");
-  const [name, setName] = useState("");
+  const [activeTab, setActiveTab] = useState("dataAnalysis");
 
-  async function greet() {
-    // Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
-    setGreetMsg(await invoke("greet", { name }));
-  }
+  const [stock, setStock] = useState<
+    Array<{ id: string; name: string; quantity: number; expiry: string }>
+  >([]);
+  const [transactions, setTransactions] = useState<
+    Array<{ id: string; type: "add" | "remove"; product: string; date: string }>
+  >([]);
+
+  const addStock = (product: {
+    name: string;
+    quantity: number;
+    expiry: string;
+  }) => {
+    const newStock = [...stock, { ...product, id: Math.random().toString() }];
+    setStock(newStock);
+    setTransactions([
+      ...transactions,
+      {
+        id: Math.random().toString(),
+        type: "add",
+        product: product.name,
+        date: new Date().toISOString(),
+      },
+    ]);
+  };
+
+  const removeStock = (id: string) => {
+    const product = stock.find((item) => item.id === id);
+    if (product) {
+      setStock(stock.filter((item) => item.id !== id));
+      setTransactions([
+        ...transactions,
+        {
+          id: Math.random().toString(),
+          type: "remove",
+          product: product.name,
+          date: new Date().toISOString(),
+        },
+      ]);
+    }
+  };
+
+  const getExpiryWarnings = () => {
+    const today = new Date();
+    return stock.filter((item) => {
+      const expiryDate = new Date(item.expiry);
+      const diffDays = Math.ceil(
+        (expiryDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24)
+      );
+      return diffDays <= 30;
+    });
+  };
 
   return (
-    <main className="container">
-      <h1>Welcome to Tauri + React</h1>
+    <div className="app-wrapper">
+      <aside className="sidebar">
+        {tabs.map((tab) => (
+          <SidebarButton
+            key={tab.key}
+            label={tab.label}
+            tabKey={tab.key}
+            activeTab={activeTab}
+            setActiveTab={setActiveTab}
+          />
+        ))}
+      </aside>
 
-      <div className="row">
-        <a href="https://vite.dev" target="_blank">
-          <img src="/vite.svg" className="logo vite" alt="Vite logo" />
-        </a>
-        <a href="https://tauri.app" target="_blank">
-          <img src="/tauri.svg" className="logo tauri" alt="Tauri logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <p>Click on the Tauri, Vite, and React logos to learn more.</p>
-
-      <form
-        className="row"
-        onSubmit={(e) => {
-          e.preventDefault();
-          greet();
-        }}
-      >
-        <input
-          id="greet-input"
-          onChange={(e) => setName(e.currentTarget.value)}
-          placeholder="Enter a name..."
-        />
-        <button type="submit">Greet</button>
-      </form>
-      <p>{greetMsg}</p>
-    </main>
+      <main className="content">
+        {renderTabContent(activeTab)}
+      </main>
+    </div>
   );
 }
 
