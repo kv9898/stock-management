@@ -1,6 +1,7 @@
 import { useState } from "react";
 import "./App.css";
 import SidebarButton from "./components/sidebarButton";
+import { tabs, renderTabContent } from "./tabs";
 
 function App() {
   const [activeTab, setActiveTab] = useState("dataAnalysis");
@@ -60,61 +61,19 @@ function App() {
   return (
     <div className="app-wrapper">
       <aside className="sidebar">
-        <SidebarButton label="数据分析" tabKey="dataAnalysis" activeTab={activeTab} setActiveTab={setActiveTab} />
-        <SidebarButton label="添加库存" tabKey="addStock" activeTab={activeTab} setActiveTab={setActiveTab} />
-        <SidebarButton label="移除库存" tabKey="removeStock" activeTab={activeTab} setActiveTab={setActiveTab} />
-        <SidebarButton label="过期预警" tabKey="expiryWarnings" activeTab={activeTab} setActiveTab={setActiveTab} />
-        <SidebarButton label="交易历史" tabKey="transactionHistory" activeTab={activeTab} setActiveTab={setActiveTab} />
+        {tabs.map((tab) => (
+          <SidebarButton
+            key={tab.key}
+            label={tab.label}
+            tabKey={tab.key}
+            activeTab={activeTab}
+            setActiveTab={setActiveTab}
+          />
+        ))}
       </aside>
 
       <main className="content">
-        {activeTab === "dataAnalysis" && (
-          <div>
-            <h2>数据分析</h2>
-            {/* Charts */}
-          </div>
-        )}
-
-        {activeTab === "addStock" && (
-          <div>
-            <h2>添加库存</h2>
-            {/* Form to add stock goes here */}
-          </div>
-        )}
-
-        {activeTab === "removeStock" && (
-          <div>
-            <h2>移出库存</h2>
-            {/* Form to remove stock */}
-          </div>
-        )}
-
-        {activeTab === "expiryWarnings" && (
-          <div>
-            <h2>过期预警</h2>
-            <ul>
-              {getExpiryWarnings().map((item) => (
-                <li key={item.id}>
-                  {item.name} - Expires on {item.expiry}
-                </li>
-              ))}
-            </ul>
-          </div>
-        )}
-
-        {activeTab === "transactionHistory" && (
-          <div>
-            <h2>交易历史</h2>
-            <ul>
-              {transactions.map((tx) => (
-                <li key={tx.id}>
-                  {tx.date}: {tx.type === "add" ? "Added" : "Removed"}{" "}
-                  {tx.product}
-                </li>
-              ))}
-            </ul>
-          </div>
-        )}
+        {renderTabContent(activeTab)}
       </main>
     </div>
   );
