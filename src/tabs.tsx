@@ -1,4 +1,4 @@
-import ProductManagementPane from "./components/productManagementPane";
+import ProductManagementPane from "./components/ProductManagement/productManagementPane";
 
 export const tabs = [
   { key: "dataAnalysis", label: "数据分析" },
