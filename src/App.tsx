@@ -1,5 +1,6 @@
 import { useState } from "react";
 import "./App.css";
+import SidebarButton from "./components/sidebarButton";
 
 function App() {
   const [activeTab, setActiveTab] = useState("dataAnalysis");
@@ -59,19 +60,11 @@ function App() {
   return (
     <div className="app-wrapper">
       <aside className="sidebar">
-        <button className={activeTab === "dataAnalysis" ? "active" : ""} onClick={() => setActiveTab("dataAnalysis")}>
-          数据分析
-        </button>
-        <button className={activeTab === "addStock" ? "active" : ""} onClick={() => setActiveTab("addStock")}>添加库存</button>
-        <button className={activeTab === "removeStock" ? "active" : ""} onClick={() => setActiveTab("removeStock")}>
-          移除库存
-        </button>
-        <button className={activeTab === "expiryWarnings" ? "active" : ""} onClick={() => setActiveTab("expiryWarnings")}>
-          过期预警
-        </button>
-        <button className={activeTab === "transactionHistory" ? "active" : ""} onClick={() => setActiveTab("transactionHistory")}>
-          交易历史
-        </button>
+        <SidebarButton label="数据分析" tabKey="dataAnalysis" activeTab={activeTab} setActiveTab={setActiveTab} />
+        <SidebarButton label="添加库存" tabKey="addStock" activeTab={activeTab} setActiveTab={setActiveTab} />
+        <SidebarButton label="移除库存" tabKey="removeStock" activeTab={activeTab} setActiveTab={setActiveTab} />
+        <SidebarButton label="过期预警" tabKey="expiryWarnings" activeTab={activeTab} setActiveTab={setActiveTab} />
+        <SidebarButton label="交易历史" tabKey="transactionHistory" activeTab={activeTab} setActiveTab={setActiveTab} />
       </aside>
 
       <main className="content">
