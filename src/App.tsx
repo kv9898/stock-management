@@ -59,7 +59,6 @@ function App() {
   return (
     <div className="app-wrapper">
       <aside className="sidebar">
-        <h2>📦 Stock Manager</h2>
         <button onClick={() => setActiveTab("dataAnalysis")}>
           数据分析
         </button>
