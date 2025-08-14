@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import { invoke } from "@tauri-apps/api/core";
-import { WebviewWindow } from "@tauri-apps/api/window";
-import { listen } from "@tauri-apps/api/event";
+import ProductFormModal from "./productFormModal"; // 👈 make sure this path is correct
 
 type Product = {
   name: string;
@@ -11,6 +10,9 @@ type Product = {
 
 export default function ProductManagementPane() {
   const [products, setProducts] = useState<Product[]>([]);
+  const [showModal, setShowModal] = useState(false);
+  const [modalMode, setModalMode] = useState<"add" | "edit">("add");
+  const [selectedProduct, setSelectedProduct] = useState<Product | undefined>();
 
   const fetchProducts = async () => {
     const result = await invoke("get_all_products");
@@ -19,29 +21,18 @@ export default function ProductManagementPane() {
 
   useEffect(() => {
     fetchProducts();
-
-    // 👂 Listen for save events from the product-form window
-    const unlisten = listen("product_saved", () => {
-      fetchProducts();
-    });
-
-    return () => {
-      unlisten.then((f) => f());
-    };
   }, []);
 
-  const openAddProductWindow = () => {
-    new WebviewWindow("product_form", {
-      url: "/product-form?mode=add",
-    });
+  const openAddModal = () => {
+    setModalMode("add");
+    setSelectedProduct(undefined);
+    setShowModal(true);
   };
 
-  const openEditProductWindow = (product: Product) => {
-    new WebviewWindow("product_form", {
-      url: `/product-form?mode=edit&name=${encodeURIComponent(
-        product.name
-      )}&expiry_days=${product.expiry_days}`,
-    });
+  const openEditModal = (product: Product) => {
+    setModalMode("edit");
+    setSelectedProduct(product);
+    setShowModal(true);
   };
 
   const handleDelete = async (name: string) => {
@@ -76,7 +67,7 @@ export default function ProductManagementPane() {
               <td>{p.name}</td>
               <td>{p.expiry_days}</td>
               <td>
-                <button onClick={() => openEditProductWindow(p)}>编辑</button>{" "}
+                <button onClick={() => openEditModal(p)}>编辑</button>{" "}
                 <button onClick={() => handleDelete(p.name)}>删除</button>
               </td>
             </tr>
@@ -85,7 +76,24 @@ export default function ProductManagementPane() {
       </table>
 
       <h3>添加产品</h3>
-      <button onClick={openAddProductWindow}>新建产品</button>
+      <button onClick={openAddModal}>新建产品</button>
+
+      {showModal && (
+        <ProductFormModal
+          mode={modalMode}
+          product={selectedProduct}
+          onClose={() => setShowModal(false)}
+          onSubmit={async (data) => {
+            if (modalMode === "add") {
+              await invoke("add_product", { product: data });
+            } else if (modalMode === "edit") {
+              await invoke("update_product", { product: data });
+            }
+            setShowModal(false);
+            fetchProducts();
+          }}
+        />
+      )}
     </div>
   );
 }
