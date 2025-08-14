@@ -61,45 +61,45 @@ function App() {
       <aside className="sidebar">
         <h2>📦 Stock Manager</h2>
         <button onClick={() => setActiveTab("dataAnalysis")}>
-          Data Analysis
+          数据分析
         </button>
-        <button onClick={() => setActiveTab("addStock")}>Add Stock</button>
+        <button onClick={() => setActiveTab("addStock")}>添加库存</button>
         <button onClick={() => setActiveTab("removeStock")}>
-          Remove Stock
+          移除库存
         </button>
         <button onClick={() => setActiveTab("expiryWarnings")}>
-          Expiry Warnings
+          过期预警
         </button>
         <button onClick={() => setActiveTab("transactionHistory")}>
-          Transaction History
+          交易历史
         </button>
       </aside>
 
       <main className="content">
         {activeTab === "dataAnalysis" && (
           <div>
-            <h2>Data Analysis</h2>
+            <h2>数据分析</h2>
             {/* Charts */}
           </div>
         )}
 
         {activeTab === "addStock" && (
           <div>
-            <h2>Add New Stock</h2>
+            <h2>添加库存</h2>
             {/* Form to add stock goes here */}
           </div>
         )}
 
         {activeTab === "removeStock" && (
           <div>
-            <h2>Remove Stock</h2>
+            <h2>移出库存</h2>
             {/* Form to remove stock */}
           </div>
         )}
 
         {activeTab === "expiryWarnings" && (
           <div>
-            <h2>Expiry Warnings</h2>
+            <h2>过期预警</h2>
             <ul>
               {getExpiryWarnings().map((item) => (
                 <li key={item.id}>
@@ -112,7 +112,7 @@ function App() {
 
         {activeTab === "transactionHistory" && (
           <div>
-            <h2>Transaction History</h2>
+            <h2>交易历史</h2>
             <ul>
               {transactions.map((tx) => (
                 <li key={tx.id}>
