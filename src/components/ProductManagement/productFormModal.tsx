@@ -3,7 +3,7 @@ import "./productFormModal.css";
 
 type Product = {
   name: string;
-  expiry_days: number;
+  shelf_life_days: number;
 };
 
 type ProductFormProps = {
@@ -20,21 +20,21 @@ export default function ProductFormModal({
   onClose,
 }: ProductFormProps) {
   const [name, setName] = useState("");
-  const [expiryDays, setExpiryDays] = useState(0);
+  const [shelfLifeDays, setshelfLifeDays] = useState(0);
 
   useEffect(() => {
     if (mode === "edit" && product) {
       setName(product.name);
-      setExpiryDays(product.expiry_days);
+      setshelfLifeDays(product.shelf_life_days);
     } else {
       setName("");
-      setExpiryDays(0);
+      setshelfLifeDays(0);
     }
   }, [mode, product]);
 
   const handleSubmit = () => {
     if (!name) return;
-    onSubmit({ name, expiry_days: expiryDays });
+    onSubmit({ name, shelf_life_days: shelfLifeDays });
     onClose();
   };
 
@@ -51,8 +51,8 @@ export default function ProductFormModal({
         <input
           type="number"
           placeholder="有效期（天）"
-          value={expiryDays}
-          onChange={(e) => setExpiryDays(parseInt(e.target.value))}
+          value={shelfLifeDays}
+          onChange={(e) => setshelfLifeDays(parseInt(e.target.value))}
         />
         <button onClick={handleSubmit}>
           {mode === "edit" ? "保存更改" : "添加产品"}
