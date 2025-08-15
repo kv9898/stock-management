@@ -61,7 +61,7 @@ pub async fn delete_product(name: String) -> Result<(), String> {
             // Check usage in Stock
             let stock_used = client
                 .execute(format!(
-                    "SELECT COUNT(*) as count FROM Stock WHERE product_name = '{}'",
+                    "SELECT COUNT(*) as count FROM Stock WHERE name = '{}'",
                     name.replace('\'', "''") // escape single quotes
                 ))
                 .await
