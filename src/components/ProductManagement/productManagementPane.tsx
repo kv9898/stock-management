@@ -52,7 +52,6 @@ export default function ProductManagementPane() {
 
   return (
     <div className="product-pane">
-      <h2>产品管理</h2>
 
       <div className="product-table-container">
         <table className="product-table">
@@ -86,7 +85,6 @@ export default function ProductManagementPane() {
       </div>
 
       <div className="footer-bar">
-        <h3>添加产品</h3>
         <button className="add-btn" onClick={openAddModal}>
           新建产品
         </button>
