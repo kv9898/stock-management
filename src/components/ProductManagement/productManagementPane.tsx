@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { invoke } from "@tauri-apps/api/core";
-import ProductFormModal from "./productFormModal"; // 👈 make sure this path is correct
+import ProductFormModal from "./productFormModal";
 
 type Product = {
   name: string;
