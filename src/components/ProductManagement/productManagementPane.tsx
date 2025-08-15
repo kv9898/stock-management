@@ -4,9 +4,10 @@ import ProductFormModal from "./productFormModal";
 
 import "./productManagementPane.css";
 
-type Product = {
+export type Product = {
   name: string;
   shelf_life_days: number;
+  picture: string | null;
 };
 
 export default function ProductManagementPane() {
