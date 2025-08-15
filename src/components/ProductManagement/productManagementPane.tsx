@@ -51,40 +51,46 @@ export default function ProductManagementPane() {
   };
 
   return (
-    <div>
+    <div className="product-pane">
       <h2>产品管理</h2>
 
-      <table className="product-table">
-        <thead>
-          <tr>
-            <th>名称</th>
-            <th>有效期（天）</th>
-            <th>操作</th>
-          </tr>
-        </thead>
-        <tbody>
-          {products.map((p) => (
-            <tr key={p.name} className="product-row">
-              <td>{p.name}</td>
-              <td>{p.shelf_life_days}</td>
-              <td>
-                <button className="action-btn" onClick={() => openEditModal(p)}>
-                  编辑
-                </button>
-                <button
-                  className="action-btn delete"
-                  onClick={() => handleDelete(p.name)}
-                >
-                  删除
-                </button>
-              </td>
+      <div className="product-table-container">
+        <table className="product-table">
+          <thead>
+            <tr>
+              <th>名称</th>
+              <th style={{ width: "120px" }}>有效期（天）</th>
+              <th style={{ width: "140px" }}>操作</th>
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {products.map((p) => (
+              <tr key={p.name} className="product-row">
+                <td className="name-cell">{p.name}</td>
+                <td>{p.shelf_life_days}</td>
+                <td>
+                  <button className="action-btn" onClick={() => openEditModal(p)}>
+                    编辑
+                  </button>
+                  <button
+                    className="action-btn delete"
+                    onClick={() => handleDelete(p.name)}
+                  >
+                    删除
+                  </button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
 
-      <h3>添加产品</h3>
-      <button onClick={openAddModal}>新建产品</button>
+      <div className="footer-bar">
+        <h3>添加产品</h3>
+        <button className="add-btn" onClick={openAddModal}>
+          新建产品
+        </button>
+      </div>
 
       {showModal && (
         <ProductFormModal
