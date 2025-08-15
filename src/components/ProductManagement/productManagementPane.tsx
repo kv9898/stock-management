@@ -37,7 +37,7 @@ export default function ProductManagementPane() {
   };
 
   const handleDelete = async (name: string) => {
-    const confirm = window.confirm("Are you sure? This will be permanent.");
+    const confirm = window.confirm(`确认删除商品：${name} 吗？ 删除后无法恢复！`);
     if (!confirm) return;
 
     const canDelete = await invoke("can_delete_product", { name });
