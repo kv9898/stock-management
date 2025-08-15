@@ -2,6 +2,8 @@ import { useEffect, useState } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import ProductFormModal from "./productFormModal";
 
+import "./productManagementPane.css";
+
 type Product = {
   name: string;
   shelf_life_days: number;
@@ -52,7 +54,7 @@ export default function ProductManagementPane() {
     <div>
       <h2>产品管理</h2>
 
-      <table style={{ width: "100%", borderCollapse: "collapse" }}>
+      <table className="product-table">
         <thead>
           <tr>
             <th>名称</th>
@@ -62,12 +64,19 @@ export default function ProductManagementPane() {
         </thead>
         <tbody>
           {products.map((p) => (
-            <tr key={p.name}>
+            <tr key={p.name} className="product-row">
               <td>{p.name}</td>
               <td>{p.shelf_life_days}</td>
               <td>
-                <button onClick={() => openEditModal(p)}>编辑</button>{" "}
-                <button onClick={() => handleDelete(p.name)}>删除</button>
+                <button className="action-btn" onClick={() => openEditModal(p)}>
+                  编辑
+                </button>
+                <button
+                  className="action-btn delete"
+                  onClick={() => handleDelete(p.name)}
+                >
+                  删除
+                </button>
               </td>
             </tr>
           ))}
