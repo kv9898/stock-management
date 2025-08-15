@@ -109,29 +109,14 @@ export default function ProductFormModal({
           {/* File chooser stays below */}
           <input type="file" accept="image/*" onChange={handleFileChange} />
         </div>
-        
-        <div style={{ display: "flex", justifyContent: "space-between", gap: "8px" }}>
-          <button
-            style={{
-              flex: 1,
-              padding: "8px",
-              textAlign: "center"
-            }}
-            onClick={handleSubmit}
-          >
+
+        <div className="modal-actions">
+          <button className="btn primary" onClick={handleSubmit}>
             {mode === "edit" ? "保存更改" : "添加产品"}
           </button>
-          <button
-            style={{
-              flex: 1,
-              padding: "8px",
-              textAlign: "center"
-            }}
-            onClick={onClose}
-          >
-            取消
-          </button>
+          <button className="btn" onClick={onClose}>取消</button>
         </div>
+        
       </div>
     </div>
   );

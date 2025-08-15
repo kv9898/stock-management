@@ -1,54 +1,141 @@
+/* --- Modal overlay --- */
 .modal-overlay {
   position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background-color: rgba(0, 0, 0, 0.4);
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.4); /* fine for both themes */
   display: flex;
   justify-content: center;
   align-items: center;
+  padding: 16px; /* small gutter on tiny screens */
 }
 
+/* --- Modal card --- */
 .modal-content {
-  background: #fff;
-  padding: 2rem;
+  background: var(--bg);
+  color: var(--text);
+  padding: 20px;
   border-radius: 12px;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.25);
+  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.28);
   display: flex;
   flex-direction: column;
   gap: 12px;
   width: 360px;
+  max-width: 100%;
 }
 
+/* Headings inherit text color */
+.modal-content h3 {
+  margin: 0 0 4px;
+  color: var(--text);
+}
+
+/* --- Inputs --- */
 input[type="text"],
 input[type="number"],
 input[type="file"] {
-  padding: 8px;
+  padding: 10px 12px;
   font-size: 15px;
-  border: 1px solid #ccc;
-  border-radius: 6px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
   width: 100%;
   box-sizing: border-box;
+  background-color: var(--bg);
+  color: var(--text);
 }
 
+/* Placeholder color that respects theme */
+input::placeholder {
+  color: var(--text);
+  opacity: 0.5; /* make it lighter/dimmer */
+}
+
+/* Disabled inputs look dim, not dark slabs */
+input:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* --- File input button (cross-browser) --- */
+input[type="file"]::file-selector-button {
+  background-color: var(--button-bg);
+  color: var(--button-text);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 6px 10px;
+  margin-right: 10px;
+  cursor: pointer;
+}
+input[type="file"]::file-selector-button:hover {
+  background-color: var(--button-hover);
+}
+
+/* --- Dropzone --- */
 .picture-upload {
-  border: 2px dashed #aaa;
+  border: 2px dashed var(--border);
   padding: 16px;
   text-align: center;
   border-radius: 8px;
   position: relative;
+  background-color: var(--bg);
+  color: var(--text);
 }
 
+.picture-upload.drag-over {
+  border-color: #3b82f6;          /* a11y-friendly blue */
+  background-color: color-mix(in srgb, #3b82f6 8%, var(--bg));
+}
+
+/* Preview above the selector */
 .picture-preview {
-  margin-top: 10px;
+  display: block;
+  margin: 0 0 12px 0;
   max-width: 100%;
   max-height: 150px;
   object-fit: contain;
   border-radius: 6px;
+  box-shadow: 0 0 0 1px var(--border) inset;
 }
 
-.picture-upload.drag-over {
-  border: 2px dashed #007bff;
-  background-color: #f0f8ff;
+/* --- Action row --- */
+.modal-actions {
+  display: flex;
+  gap: 10px;
+}
+
+/* Equal-width buttons; inherit theme colors */
+.modal-actions .btn {
+  flex: 1;
+  padding: 10px 12px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background-color: var(--button-bg);
+  color: var(--button-text);
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.15s ease, transform 0.02s ease;
+  text-align: center;
+}
+.modal-actions .btn:hover {
+  background-color: var(--button-hover);
+}
+.modal-actions .btn:active {
+  transform: translateY(1px);
+}
+
+/* Primary action can be slightly emphasized */
+.modal-actions .btn.primary {
+  background-color: #3b82f6;
+  color: white;
+  border-color: #3b82f6;
+}
+.modal-actions .btn.primary:hover {
+  background-color: #2f6fd6;
+}
+
+/* Optional: dark-specific fine-tuning */
+@media (prefers-color-scheme: dark) {
+  .modal-overlay { background-color: rgba(0, 0, 0, 0.55); }
+  .picture-upload.drag-over {
+    background-color: color-mix(in srgb, #3b82f6 14%, var(--bg));
+  }
 }
