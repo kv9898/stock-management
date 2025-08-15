@@ -59,6 +59,7 @@ export default function ProductManagementPane() {
             <tr>
               <th>名称</th>
               <th style={{ width: "120px" }}>有效期（天）</th>
+              <th style={{ width: "140px" }}>位置</th>
               <th style={{ width: "140px" }}>操作</th>
             </tr>
           </thead>
@@ -67,6 +68,7 @@ export default function ProductManagementPane() {
               <tr key={p.name} className="product-row">
                 <td className="name-cell">{p.name}</td>
                 <td>{p.shelf_life_days}</td>
+                <td>{p.location}</td>
                 <td>
                   <button
                     className="action-btn"
