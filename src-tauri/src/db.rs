@@ -2,19 +2,45 @@
 use anyhow::{anyhow, Result};
 use base64::{engine::general_purpose, Engine as _};
 use libsql_client::Config;
+use once_cell::sync::OnceCell;
 use std::collections::HashMap;
 use std::fs;
+use tauri::path::BaseDirectory;
+use tauri::{App, Manager};
+
+// Global, thread-safe, read-only once set
+pub static DB_TOKENS: OnceCell<(String, String)> = OnceCell::new();
+
+pub fn init_db_tokens(app: &App) -> Result<()> {
+    // Resolve bundled resource path
+    let path = app
+        .path()
+        .resolve("resources/tokens.json", BaseDirectory::Resource)
+        .map_err(|e| anyhow!(e.to_string()))?;
+
+    let content = fs::read_to_string(&path)?;
+    let parsed: HashMap<String, String> = serde_json::from_str(&content)?;
+    let url = parsed
+        .get("URL")
+        .ok_or_else(|| anyhow!("Missing URL"))?
+        .to_string();
+    let token = parsed
+        .get("token")
+        .ok_or_else(|| anyhow!("Missing token"))?
+        .to_string();
+
+    DB_TOKENS
+        .set((url, token))
+        .map_err(|_| anyhow!("DB tokens already set"))?;
+    Ok(())
+}
 
 pub async fn get_db_config() -> Result<Config> {
-    let file_content = fs::read_to_string("tokens.json")?;
-    let parsed: HashMap<String, String> = serde_json::from_str(&file_content)?;
+    let (url, token) = DB_TOKENS
+        .get()
+        .ok_or_else(|| anyhow!("DB tokens not initialized"))?;
 
-    let db_url = parsed.get("URL").ok_or_else(|| anyhow!("Missing db_url"))?;
-    let auth_token = parsed
-        .get("token")
-        .ok_or_else(|| anyhow!("Missing auth_token"))?;
-
-    let config = Config::new(db_url.as_str())?.with_auth_token(auth_token);
+    let config = Config::new(url.as_str())?.with_auth_token(token);
     Ok(config)
 }
 
