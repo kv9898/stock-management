@@ -50,8 +50,6 @@ export default function ProductManagementPane() {
     const q = search.trim();
     let list = products;
 
-    console.log(`Filtering products with query: "${q}"`);
-
     if (q) {
       const enriched = products.map(product => ({
           product,
@@ -64,8 +62,6 @@ export default function ProductManagementPane() {
 
       list = matches.map(m => m.product);
     }
-
-    console.log(`Filtered products count: ${list.length}`);
 
     // Always sort alphabetically by name
     return [...list].sort((a, b) =>
