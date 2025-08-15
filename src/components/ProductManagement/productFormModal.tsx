@@ -100,12 +100,16 @@ export default function ProductFormModal({
           onDrop={handleDrop}
           ref={dropRef}
         >
-          <p>拖拽图片到此处或选择文件</p>
-          <input type="file" accept="image/*" onChange={handleFileChange} />
+          {/* Show image when present; otherwise show the prompt */}
           {picture && (
-            <img src={picture} alt="Preview" className="picture-preview" />
+            <img src={picture} alt="预览图" className="picture-preview" />
           )}
+          {!picture && <p className="drop-hint">拖拽图片到此处或选择文件</p>}
+
+          {/* File chooser stays below */}
+          <input type="file" accept="image/*" onChange={handleFileChange} />
         </div>
+        
         <div style={{ display: "flex", justifyContent: "space-between", gap: "8px" }}>
           <button
             style={{
