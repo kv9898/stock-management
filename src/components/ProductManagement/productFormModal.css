@@ -47,3 +47,8 @@ input[type="file"] {
   object-fit: contain;
   border-radius: 6px;
 }
+
+.picture-upload.drag-over {
+  border: 2px dashed #007bff;
+  background-color: #f0f8ff;
+}

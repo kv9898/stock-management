@@ -19,36 +19,40 @@ export default function ProductFormModal({
   const [name, setName] = useState("");
   const [shelfLifeDays, setShelfLifeDays] = useState(0);
   const [picture, setPicture] = useState<string | null>(null);
+  const [dragOver, setDragOver] = useState(false);
   const dropRef = useRef<HTMLDivElement | null>(null);
 
-useEffect(() => {
-  if (mode === "edit" && product) {
-    (async () => {
-      const result = await invoke<Product>("get_product", {
-        name: product.name,
-        shelf_life_days: product.shelf_life_days,
-      });
-      setName(result.name);
-      setShelfLifeDays(result.shelf_life_days);
-      setPicture(result.picture || null);
-    })();
-  } else {
-    setName("");
-    setShelfLifeDays(0);
-    setPicture(null);
-  }
-}, [mode, product]);
+  useEffect(() => {
+    if (mode === "edit" && product) {
+      (async () => {
+        const result = await invoke<Product>("get_product", {
+          name: product.name,
+          shelf_life_days: product.shelf_life_days,
+        });
+        setName(result.name);
+        setShelfLifeDays(result.shelf_life_days);
+        setPicture(result.picture || null);
+      })();
+    } else {
+      setName("");
+      setShelfLifeDays(0);
+      setPicture(null);
+    }
+  }, [mode, product]);
 
   const handleFile = (file: File) => {
+    console.log("File selected");
     const reader = new FileReader();
     reader.onload = () => {
-      setPicture(reader.result as string); // base64 string
+      setPicture(reader.result as string); // base64
     };
     reader.readAsDataURL(file);
   };
 
   const handleDrop = (e: React.DragEvent) => {
+    console.log("File dropped");
     e.preventDefault();
+    setDragOver(false);
     if (e.dataTransfer.files.length > 0) {
       handleFile(e.dataTransfer.files[0]);
     }
@@ -68,7 +72,7 @@ useEffect(() => {
 
   return (
     <div className="modal-overlay">
-      <div className="modal-content" onDragOver={(e) => e.preventDefault()} onDrop={handleDrop}>
+      <div className="modal-content">
         <h3>{mode === "edit" ? "编辑产品" : "添加产品"}</h3>
 
         <input
@@ -85,7 +89,16 @@ useEffect(() => {
           onChange={(e) => setShelfLifeDays(parseInt(e.target.value))}
         />
 
-        <div className="picture-upload" ref={dropRef}>
+        <div
+          className={`picture-upload ${dragOver ? "drag-over" : ""}`}
+          onDragOver={(e) => {
+            e.preventDefault();
+            setDragOver(true);
+          }}
+          onDragLeave={() => setDragOver(false)}
+          onDrop={handleDrop}
+          ref={dropRef}
+        >
           <p>拖拽图片到此处或选择文件</p>
           <input type="file" accept="image/*" onChange={handleFileChange} />
           {picture && (
