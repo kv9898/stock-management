@@ -1,7 +1,7 @@
 use anyhow::Result;
+use base64::{engine::general_purpose, Engine as _};
 use libsql_client::Client;
 use serde::{Deserialize, Serialize};
-use tauri::utils::config_v1::ShellAllowedArg;
 use tokio::task;
 
 use crate::db::get_db_config;
@@ -86,9 +86,9 @@ pub async fn get_product(name: String, shelf_life_days: Option<i64>) -> Result<P
                 .map_err(|e| e.to_string())?;
 
             let picture = row
-                .try_column::<&str>("picture")
+                .try_column::<&[u8]>("picture")
                 .ok()
-                .map(|s| s.to_string()); // Optional field
+                .map(|bytes| general_purpose::STANDARD.encode(bytes));
 
             // Optional validation
             if let Some(expected_days) = shelf_life_days {
