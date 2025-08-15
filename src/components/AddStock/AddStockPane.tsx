@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import fuzzaldrin from "fuzzaldrin-plus";
+import { v4 as uuidv4 } from 'uuid';
 
 import type { Product } from "../../types/product";
 
@@ -12,10 +13,6 @@ type Row = {
   totalPrice: number | null;
 };
 
-function uid() {
-  return Math.random().toString(36).slice(2, 10);
-}
-
 // safe numeric parser: "" -> null, valid -> number
 function parseNum(s: string): number | null {
   if (s.trim() === "") return null;
@@ -25,7 +22,7 @@ function parseNum(s: string): number | null {
 
 export default function AddStockPane() {
   const [products, setProducts] = useState<Product[]>([]);
-  const [rows, setRows] = useState<Row[]>([{ id: uid(), product: "", qty: null, unitPrice: null, totalPrice: null }]);
+  const [rows, setRows] = useState<Row[]>([{ id: uuidv4(), product: "", qty: null, unitPrice: null, totalPrice: null }]);
   const [recordAsTxn, setRecordAsTxn] = useState<boolean>(true);
   const [searchFocusId, setSearchFocusId] = useState<string | null>(null);
 
@@ -54,7 +51,7 @@ export default function AddStockPane() {
     setRows(rs => rs.map(r => (r.id === id ? updater({ ...r }) : r)));
   };
 
-  const addRow = () => setRows(rs => [...rs, { id: uid(), product: "", qty: null, unitPrice: null, totalPrice: null }]);
+  const addRow = () => setRows(rs => [...rs, { id: uuidv4(), product: "", qty: null, unitPrice: null, totalPrice: null }]);
   const removeRow = (id: string) => setRows(rs => (rs.length === 1 ? rs : rs.filter(r => r.id !== id)));
 
   // Keep prices consistent:
@@ -112,7 +109,7 @@ export default function AddStockPane() {
     try {
       await invoke("add_stock_batch", { items: payload });
       // clear on success
-      setRows([{ id: uid(), product: "", qty: null, unitPrice: null, totalPrice: null }]);
+      setRows([{ id: uuidv4(), product: "", qty: null, unitPrice: null, totalPrice: null }]);
       alert("入库成功！");
     } catch (e: any) {
       alert(e?.toString?.() ?? "提交失败");
