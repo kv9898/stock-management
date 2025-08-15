@@ -6,7 +6,7 @@ import "./productFormModal.css";
 
 type ProductFormProps = {
   mode: "add" | "edit";
-  product?: string;
+  product?: Product;
   onSubmit: (data: Product) => void;
   onClose: () => void;
 };
@@ -22,8 +22,8 @@ export default function ProductFormModal({
 
   useEffect(() => {
     if (mode === "edit" && product) {
-      setName(product);
-      setshelfLifeDays(0);
+      setName(product.name);
+      setshelfLifeDays(product.shelf_life_days);
     } else {
       setName("");
       setshelfLifeDays(0);
