@@ -1,0 +1,112 @@
+.product-pane {
+  font-family: system-ui, sans-serif;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  box-sizing: border-box;
+}
+
+.product-table-container {
+  flex: 1;
+  overflow-y: auto;
+  background-color: var(--bg);
+  border-radius: 8px;
+  box-shadow: 0 0 4px rgba(0, 0, 0, 0.05);
+  padding: 8px;
+  margin-bottom: 12px;
+}
+
+.product-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 15px;
+  color: var(--text);
+  background-color: var(--bg);
+}
+
+.product-table th,
+.product-table td {
+  padding: 12px 10px;
+  border-bottom: 1px solid var(--border);
+  text-align: left;
+  white-space: nowrap;
+}
+
+.product-table th {
+  font-weight: 600;
+  background-color: var(--bg);
+  border-bottom: 2px solid var(--border);
+}
+
+.product-table td.name-cell {
+  max-width: 600px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.product-row:hover {
+  background-color: var(--row-hover);
+  transition: background-color 0.2s ease-in-out;
+}
+
+.action-btn,
+.add-btn {
+  background-color: var(--button-bg);
+  border: none;
+  border-radius: 6px;
+  padding: 6px 12px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: background-color 0.2s;
+  color: var(--button-text);
+}
+
+.action-btn:hover,
+.add-btn:hover {
+  background-color: var(--button-hover);
+}
+
+.action-btn.delete {
+  color: #b00020;
+}
+
+.action-btn.delete:hover {
+  background-color: #ffe5e5;
+}
+
+.footer-bar {
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+  gap: 12px;
+  padding-top: 8px;
+}
+
+/* Light Theme Defaults */
+:root {
+  --bg: white;
+  --text: #333;
+  --border: #e5e5e5;
+  --row-hover: #f9f9f9;
+  --button-bg: #f0f0f0;
+  --button-hover: #e0e0e0;
+  --button-text: black;
+}
+
+/* Dark Theme Overrides */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #1e1e1e;
+    --text: #e0e0e0;
+    --border: #555;
+    --row-hover: #2a2a2a;
+    --button-bg: #444;
+    --button-hover: #555;
+    --button-text: #fff;
+  }
+
+  .action-btn.delete:hover {
+    background-color: #5a0000;
+  }
+}
