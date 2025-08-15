@@ -1,11 +1,8 @@
 import { useState, useEffect } from "react";
-import "./productFormModal.css";
 
-type Product = {
-  name: string;
-  shelf_life_days: number;
-  picture: string | null;
-};
+import { Product } from "./productManagementPane";
+
+import "./productFormModal.css";
 
 type ProductFormProps = {
   mode: "add" | "edit";
