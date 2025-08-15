@@ -5,7 +5,6 @@ import ProductFormModal from "./productFormModal"; // 👈 make sure this path i
 type Product = {
   name: string;
   expiry_days: number;
-  picture?: string | null;
 };
 
 export default function ProductManagementPane() {
