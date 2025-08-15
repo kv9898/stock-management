@@ -8,6 +8,7 @@ export type Product = {
   name: string;
   shelf_life_days: number | null;
   picture: string | null;
+  location: string | null;
 };
 
 export default function ProductManagementPane() {
@@ -60,6 +61,7 @@ export default function ProductManagementPane() {
               <th>名称</th>
               <th style={{ width: "120px" }}>有效期（天）</th>
               <th style={{ width: "140px" }}>位置</th>
+              <th style={{ width: "120px" }}>图片</th>
               <th style={{ width: "140px" }}>操作</th>
             </tr>
           </thead>
@@ -69,6 +71,7 @@ export default function ProductManagementPane() {
                 <td className="name-cell">{p.name}</td>
                 <td>{p.shelf_life_days}</td>
                 <td>{p.location}</td>
+                <td>{p.picture ? "√" : ""}</td>
                 <td>
                   <button
                     className="action-btn"
