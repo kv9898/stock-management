@@ -41,7 +41,6 @@ export default function ProductFormModal({
   }, [mode, product]);
 
   const handleFile = (file: File) => {
-    console.log("File selected");
     const reader = new FileReader();
     reader.onload = () => {
       setPicture(reader.result as string); // base64
@@ -50,7 +49,6 @@ export default function ProductFormModal({
   };
 
   const handleDrop = (e: React.DragEvent) => {
-    console.log("File dropped");
     e.preventDefault();
     setDragOver(false);
     if (e.dataTransfer.files.length > 0) {
