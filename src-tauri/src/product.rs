@@ -1,6 +1,7 @@
 use anyhow::Result;
 use libsql_client::Client;
 use serde::{Deserialize, Serialize};
+use tauri::utils::config_v1::ShellAllowedArg;
 use tokio::task;
 
 use crate::db::get_db_config;
@@ -44,6 +45,66 @@ pub async fn get_all_products() -> Result<Vec<Product>, String> {
             }
 
             Ok(products)
+        })
+    })
+    .await
+    .map_err(|e| e.to_string())?
+}
+
+#[tauri::command]
+pub async fn get_product(name: String, shelf_life_days: Option<i64>) -> Result<Product, String> {
+    task::spawn_blocking(move || {
+        let rt = tokio::runtime::Runtime::new().unwrap();
+        rt.block_on(async {
+            let config = get_db_config().await.map_err(|e| e.to_string())?;
+            let client = Client::from_config(config)
+                .await
+                .map_err(|e| e.to_string())?;
+
+            // Escape name to avoid SQL injection
+            let escaped_name = name.replace('\'', "''");
+
+            let query = format!(
+                "SELECT name, shelf_life_days, picture FROM Product WHERE name = '{}'",
+                escaped_name
+            );
+
+            let result = client.execute(query).await.map_err(|e| e.to_string())?;
+
+            let row = result
+                .rows
+                .get(0)
+                .ok_or_else(|| format!("未找到产品：{}", name))?;
+
+            let actual_name = row
+                .try_column::<&str>("name")
+                .map_err(|e| e.to_string())?
+                .to_string();
+
+            let actual_shelf_life_days = row
+                .try_column::<i64>("shelf_life_days")
+                .map_err(|e| e.to_string())?;
+
+            let picture = row
+                .try_column::<&str>("picture")
+                .ok()
+                .map(|s| s.to_string()); // Optional field
+
+            // Optional validation
+            if let Some(expected_days) = shelf_life_days {
+                if expected_days != actual_shelf_life_days {
+                    return Err(format!(
+                        "有效期不匹配：传入为 {}，但数据库为 {}。",
+                        expected_days, actual_shelf_life_days
+                    ));
+                }
+            }
+
+            Ok(Product {
+                name: actual_name,
+                shelf_life_days: actual_shelf_life_days,
+                picture,
+            })
         })
     })
     .await
