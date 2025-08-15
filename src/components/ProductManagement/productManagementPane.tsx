@@ -4,7 +4,7 @@ import ProductFormModal from "./productFormModal"; // 👈 make sure this path i
 
 type Product = {
   name: string;
-  expiry_days: number;
+  shelf_life_days: number;
 };
 
 export default function ProductManagementPane() {
@@ -64,7 +64,7 @@ export default function ProductManagementPane() {
           {products.map((p) => (
             <tr key={p.name}>
               <td>{p.name}</td>
-              <td>{p.expiry_days}</td>
+              <td>{p.shelf_life_days}</td>
               <td>
                 <button onClick={() => openEditModal(p)}>编辑</button>{" "}
                 <button onClick={() => handleDelete(p.name)}>删除</button>
