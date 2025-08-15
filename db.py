@@ -28,7 +28,8 @@ create_table_sql = """
 CREATE TABLE IF NOT EXISTS Product (
     name TEXT PRIMARY KEY NOT NULL,
     shelf_life_days INTEGER,
-    picture BLOB
+    picture BLOB,
+    location TEXT
 );
 """
 await client.execute(create_table_sql)
