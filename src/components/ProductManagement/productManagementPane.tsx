@@ -3,14 +3,8 @@ import { invoke } from "@tauri-apps/api/core";
 import { filter } from "fuzzaldrin-plus";
 
 import ProductFormModal from "./productFormModal";
+import type { Product } from "../../types/product";
 import "./productManagementPane.css";
-
-export type Product = {
-  name: string;
-  shelf_life_days: number | null;
-  picture: string | null;
-  location: string | null;
-};
 
 export default function ProductManagementPane() {
   const [products, setProducts] = useState<Product[]>([]);

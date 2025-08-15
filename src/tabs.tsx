@@ -1,4 +1,5 @@
 import ProductManagementPane from "./components/ProductManagement/productManagementPane";
+import AddStockPane from "./components/AddStock/AddStockPane";
 
 export const tabs = [
   { key: "dataAnalysis", label: "数据分析" },
@@ -14,7 +15,7 @@ export const renderTabContent = (activeTab: string) => {
     case "dataAnalysis":
       return <h2>数据分析</h2>;
     case "addStock":
-      return <h2>添加库存</h2>;
+      return <AddStockPane />;
     case "removeStock":
       return <h2>移出库存</h2>;
     case "expiryWarnings":
