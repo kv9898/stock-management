@@ -22,6 +22,7 @@ export default function ProductFormModal({
   const [shelfLifeDays, setShelfLifeDays] = useState<number | null>(null);
   const [picture, setPicture] = useState<string | null>(null); // Raw base64 payload for backend
   const [pictureURL, setPictureURL] = useState<string | null>(null); // Data URL for <img src=...>
+  const [location, setLocation] = useState<string | null>(null); // Not used in this modal but can be extended
   const [dragOver, setDragOver] = useState(false);
   const dropRef = useRef<HTMLDivElement | null>(null);
 
@@ -34,6 +35,7 @@ export default function ProductFormModal({
         });
         setName(result.name);
         setShelfLifeDays(result.shelf_life_days);
+        setLocation(result.location);
 
         // result.picture is RAW base64 (per your backend) or null
         setPicture(result.picture ?? null);
@@ -44,6 +46,7 @@ export default function ProductFormModal({
       setShelfLifeDays(null);
       setPicture(null);
       setPictureURL(null);
+      setLocation(null);
     }
   }, [mode, product]);
 
@@ -77,7 +80,7 @@ export default function ProductFormModal({
 
   const handleSubmit = () => {
     if (!name) return;
-    onSubmit({ name, shelf_life_days: shelfLifeDays, picture }); // send RAW base64
+    onSubmit({ name, shelf_life_days: shelfLifeDays, picture, location }); // send RAW base64
     onClose();
   };
 
@@ -100,6 +103,16 @@ export default function ProductFormModal({
           onChange={(e) => {
             const value = e.target.value;
             setShelfLifeDays(value === "" ? null : parseInt(value, 10));
+          }}
+        />
+
+        <label htmlFor="shelf-life">位置</label>
+        <input
+          id="location"
+          value={location ?? ""}
+          onChange={(e) => {
+            const value = e.target.value;
+            setLocation(value === "" ? null : value);
           }}
         />
 
