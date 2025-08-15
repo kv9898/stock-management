@@ -49,3 +49,11 @@ pub fn to_sql_null_or_blob_hex(base64_opt: &Option<String>) -> Result<String, St
         }
     }
 }
+
+pub fn to_sql_null_or_string(v: &Option<String>) -> String {
+    match v.as_deref() {
+        None => "NULL".to_string(),
+        Some(s) if s.trim().is_empty() => "NULL".to_string(),
+        Some(s) => format!("'{}'", sql_quote(s)),
+    }
+}

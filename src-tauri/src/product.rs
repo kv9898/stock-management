@@ -4,13 +4,16 @@ use libsql_client::Client;
 use serde::{Deserialize, Serialize};
 use tokio::task;
 
-use crate::db::{get_db_config, sql_quote, to_sql_null_or_blob_hex, to_sql_null_or_int};
+use crate::db::{
+    get_db_config, sql_quote, to_sql_null_or_blob_hex, to_sql_null_or_int, to_sql_null_or_string,
+};
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Product {
     pub name: String,
     pub shelf_life_days: Option<i64>,
     pub picture: Option<String>,
+    pub location: Option<String>,
 }
 
 #[tauri::command]
@@ -24,7 +27,7 @@ pub async fn get_all_products() -> Result<Vec<Product>, String> {
                 .map_err(|e| e.to_string())?;
 
             let rows = client
-                .execute("SELECT name, shelf_life_days FROM Product")
+                .execute("SELECT name, shelf_life_days, location FROM Product")
                 .await
                 .map_err(|e| e.to_string())?;
 
@@ -45,10 +48,15 @@ pub async fn get_all_products() -> Result<Vec<Product>, String> {
                         }
                     }
                 };
+                let location = row
+                    .try_column::<&str>("location")
+                    .ok()
+                    .map(|s| s.to_string());
                 products.push(Product {
                     name,
                     shelf_life_days,
                     picture: None, // Picture is not fetched here, set to None
+                    location,
                 });
             }
 
@@ -73,7 +81,7 @@ pub async fn get_product(name: String, shelf_life_days: Option<i64>) -> Result<P
             let escaped_name = name.replace('\'', "''");
 
             let query = format!(
-                "SELECT name, shelf_life_days, picture FROM Product WHERE name = '{}'",
+                "SELECT name, shelf_life_days, picture, location FROM Product WHERE name = '{}'",
                 escaped_name
             );
 
@@ -102,6 +110,11 @@ pub async fn get_product(name: String, shelf_life_days: Option<i64>) -> Result<P
                 }
             };
 
+            let location = row
+                .try_column::<&str>("location")
+                .ok()
+                .map(|s| s.to_string());
+
             let picture = row
                 .try_column::<&[u8]>("picture")
                 .ok()
@@ -124,6 +137,7 @@ pub async fn get_product(name: String, shelf_life_days: Option<i64>) -> Result<P
                 name: actual_name,
                 shelf_life_days: actual_shelf_life_days,
                 picture,
+                location,
             })
         })
     })
@@ -221,11 +235,12 @@ pub async fn add_product(product: Product) -> Result<(), String> {
             let name = sql_quote(&product.name);
             let shelf = to_sql_null_or_int(product.shelf_life_days);
             let picture_sql = to_sql_null_or_blob_hex(&product.picture)?;
+            let location_sql = to_sql_null_or_string(&product.location);
 
             // Fail if exists (unique name)
             let insert_sql = format!(
-                "INSERT INTO Product (name, shelf_life_days, picture) VALUES ('{}', {}, {});",
-                name, shelf, picture_sql
+                "INSERT INTO Product (name, shelf_life_days, picture, location) VALUES ('{}', {}, {}, {});",
+                name, shelf, picture_sql, location_sql
             );
 
             let res = client
@@ -271,12 +286,13 @@ pub async fn update_product(product: Product) -> Result<(), String> {
 
             let shelf = to_sql_null_or_int(product.shelf_life_days);
             let picture_sql = to_sql_null_or_blob_hex(&product.picture)?;
+            let location_sql = to_sql_null_or_string(&product.location);
 
             let update_sql = format!(
                 "UPDATE Product
-                 SET shelf_life_days = {}, picture = {}
+                 SET shelf_life_days = {}, picture = {}, location = {}
                  WHERE name = '{}';",
-                shelf, picture_sql, name
+                shelf, picture_sql, location_sql, name
             );
 
             let res = client
