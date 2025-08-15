@@ -18,7 +18,7 @@ pub async fn get_all_products() -> Result<Vec<Product>, String> {
         .map_err(|e| e.to_string())?;
 
     let rows = client
-        .execute("SELECT name, expiry_days, picture FROM Product")
+        .execute("SELECT name, expiry_days FROM Product")
         .await
         .map_err(|e| e.to_string())?;
 
