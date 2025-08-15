@@ -245,3 +245,51 @@ pub async fn add_product(product: Product) -> Result<(), String> {
     .map_err(|e| e.to_string())?
 }
 
+#[tauri::command]
+pub async fn update_product(product: Product) -> Result<(), String> {
+    task::spawn_blocking(move || {
+        let rt = tokio::runtime::Runtime::new().unwrap();
+        rt.block_on(async {
+            let config = crate::db::get_db_config()
+                .await
+                .map_err(|e| e.to_string())?;
+            let client = Client::from_config(config)
+                .await
+                .map_err(|e| e.to_string())?;
+
+            let name = sql_quote(&product.name);
+
+            // Ensure it exists first (clearer error)
+            let exists_sql = format!("SELECT 1 FROM Product WHERE name = '{}' LIMIT 1;", name);
+            let exists = client
+                .execute(exists_sql)
+                .await
+                .map_err(|e| e.to_string())?;
+            if exists.rows.is_empty() {
+                return Err(format!("产品不存在：{}", product.name));
+            }
+
+            let shelf = to_sql_null_or_int(product.shelf_life_days);
+            let picture_sql = to_sql_null_or_blob_hex(&product.picture)?;
+
+            let update_sql = format!(
+                "UPDATE Product
+                 SET shelf_life_days = {}, picture = {}
+                 WHERE name = '{}';",
+                shelf, picture_sql, name
+            );
+
+            let res = client
+                .execute(update_sql)
+                .await
+                .map_err(|e| e.to_string())?;
+            if res.rows_affected == 0 {
+                return Err("更新失败：未影响任何行。".into());
+            }
+
+            Ok(())
+        })
+    })
+    .await
+    .map_err(|e| e.to_string())?
+}
