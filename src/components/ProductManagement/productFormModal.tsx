@@ -35,7 +35,7 @@ export default function ProductFormModal({
       })();
     } else {
       setName("");
-      setShelfLifeDays(0);
+      setShelfLifeDays(null);
       setPicture(null);
     }
   }, [mode, product]);
