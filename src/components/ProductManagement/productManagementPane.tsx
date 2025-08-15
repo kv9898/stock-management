@@ -40,14 +40,12 @@ export default function ProductManagementPane() {
     const confirm = window.confirm(`确认删除商品：${name} 吗？ 删除后无法恢复！`);
     if (!confirm) return;
 
-    const canDelete = await invoke("can_delete_product", { name });
-    if (!canDelete) {
-      alert("Product is used in stock or transactions.");
-      return;
+    try {
+      await invoke("delete_product", { name });
+      fetchProducts();
+    } catch (err: any) {
+      alert(err);
     }
-
-    await invoke("delete_product", { name });
-    fetchProducts();
   };
 
   return (
