@@ -2,12 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import fuzzaldrin from "fuzzaldrin-plus";
 
-type Product = {
-  name: string;
-  shelf_life_days: number | null;
-  picture: string | null;
-  location: string | null;
-};
+import type { Product } from "../../types/product";
 
 type Row = {
   id: string;
