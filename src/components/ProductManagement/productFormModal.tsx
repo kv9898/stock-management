@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { invoke } from "@tauri-apps/api/core";
-import { Product } from "./productManagementPane";
+import { Product } from "../../types/product";
 import { toDataUrl, stripDataUrl } from "./pictureHandler"
 
 import "./productFormModal.css";
