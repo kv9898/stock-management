@@ -26,8 +26,19 @@ pub async fn get_all_products() -> Result<Vec<Product>, String> {
                 .await
                 .map_err(|e| e.to_string())?;
 
+            // Only fetch a tiny boolean-like flag for the picture
             let rows = client
-                .execute("SELECT name, shelf_life_days, location FROM Product")
+                .execute(
+                    "SELECT
+                   name,
+                   shelf_life_days,
+                   location,
+                   CASE
+                     WHEN picture IS NULL OR length(picture) = 0 THEN 0
+                     ELSE 1
+                   END AS has_picture
+                 FROM Product",
+                )
                 .await
                 .map_err(|e| e.to_string())?;
 
@@ -37,25 +48,36 @@ pub async fn get_all_products() -> Result<Vec<Product>, String> {
                     .try_column::<&str>("name")
                     .map_err(|e| e.to_string())?
                     .to_string();
+
                 let shelf_life_days: Option<i64> = match row.try_column::<i64>("shelf_life_days") {
-                    Ok(val) => Some(val),
+                    Ok(v) => Some(v),
                     Err(e) => {
                         let msg = e.to_string();
                         if msg.to_lowercase().contains("null") {
                             None
                         } else {
-                            return Err(msg); // wrong type / other error
+                            return Err(msg);
                         }
                     }
                 };
+
                 let location = row
                     .try_column::<&str>("location")
                     .ok()
                     .map(|s| s.to_string());
+
+                // 0/1 flag -> Some("Yes") / None (so your existing TS type still works)
+                let has_picture: i64 = row.try_column::<i64>("has_picture").unwrap_or(0);
+                let picture = if has_picture != 0 {
+                    Some("Yes".to_string())
+                } else {
+                    None
+                };
+
                 products.push(Product {
                     name,
                     shelf_life_days,
-                    picture: None, // Picture is not fetched here, set to None
+                    picture, // <- "Yes" or null
                     location,
                 });
             }
