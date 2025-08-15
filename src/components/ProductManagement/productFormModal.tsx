@@ -17,7 +17,7 @@ export default function ProductFormModal({
   onClose,
 }: ProductFormProps) {
   const [name, setName] = useState("");
-  const [shelfLifeDays, setShelfLifeDays] = useState(0);
+  const [shelfLifeDays, setShelfLifeDays] = useState<number | null>(null);
   const [picture, setPicture] = useState<string | null>(null);
   const [dragOver, setDragOver] = useState(false);
   const dropRef = useRef<HTMLDivElement | null>(null);
@@ -86,7 +86,7 @@ export default function ProductFormModal({
         <input
           id="shelf-life"
           type="number"
-          value={shelfLifeDays}
+          value={shelfLifeDays ?? ""}
           onChange={(e) => setShelfLifeDays(parseInt(e.target.value))}
         />
 

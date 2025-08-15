@@ -9,7 +9,7 @@ use crate::db::get_db_config;
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Product {
     pub name: String,
-    pub shelf_life_days: i64,
+    pub shelf_life_days: Option<i64>,
     pub picture: Option<String>,
 }
 
@@ -34,9 +34,17 @@ pub async fn get_all_products() -> Result<Vec<Product>, String> {
                     .try_column::<&str>("name")
                     .map_err(|e| e.to_string())?
                     .to_string();
-                let shelf_life_days = row
-                    .try_column::<i64>("shelf_life_days")
-                    .map_err(|e| e.to_string())?;
+                let shelf_life_days: Option<i64> = match row.try_column::<i64>("shelf_life_days") {
+                    Ok(val) => Some(val),
+                    Err(e) => {
+                        let msg = e.to_string();
+                        if msg.to_lowercase().contains("null") {
+                            None
+                        } else {
+                            return Err(msg); // wrong type / other error
+                        }
+                    }
+                };
                 products.push(Product {
                     name,
                     shelf_life_days,
@@ -81,21 +89,33 @@ pub async fn get_product(name: String, shelf_life_days: Option<i64>) -> Result<P
                 .map_err(|e| e.to_string())?
                 .to_string();
 
-            let actual_shelf_life_days = row
-                .try_column::<i64>("shelf_life_days")
-                .map_err(|e| e.to_string())?;
+            let actual_shelf_life_days: Option<i64> = match row.try_column::<i64>("shelf_life_days")
+            {
+                Ok(val) => Some(val),
+                Err(e) => {
+                    let msg = e.to_string();
+                    if msg.to_lowercase().contains("null") {
+                        None
+                    } else {
+                        return Err(msg);
+                    }
+                }
+            };
 
             let picture = row
                 .try_column::<&[u8]>("picture")
                 .ok()
                 .map(|bytes| general_purpose::STANDARD.encode(bytes));
 
-            // Optional validation
+            // validation
             if let Some(expected_days) = shelf_life_days {
-                if expected_days != actual_shelf_life_days {
+                if Some(expected_days) != actual_shelf_life_days {
                     return Err(format!(
                         "有效期不匹配：传入为 {}，但数据库为 {}。",
-                        expected_days, actual_shelf_life_days
+                        expected_days,
+                        actual_shelf_life_days
+                            .map(|n| n.to_string())
+                            .unwrap_or_else(|| "缺失".into())
                     ));
                 }
             }
