@@ -73,18 +73,19 @@ export default function ProductFormModal({
   return (
     <div className="modal-overlay">
       <div className="modal-content">
-        <h3>{mode === "edit" ? "编辑产品" : "添加产品"}</h3>
 
+        <label htmlFor="product-name">产品名称</label>
         <input
-          placeholder="名称"
+          id="product-name"
           value={name}
           disabled={mode === "edit"}
           onChange={(e) => setName(e.target.value)}
         />
 
+        <label htmlFor="shelf-life">有效期（天）</label>
         <input
+          id="shelf-life"
           type="number"
-          placeholder="有效期（天）"
           value={shelfLifeDays}
           onChange={(e) => setShelfLifeDays(parseInt(e.target.value))}
         />
