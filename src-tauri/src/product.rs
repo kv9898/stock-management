@@ -4,7 +4,7 @@ use libsql_client::Client;
 use serde::{Deserialize, Serialize};
 use tokio::task;
 
-use crate::db::get_db_config;
+use crate::db::{get_db_config, sql_quote, to_sql_null_or_blob_hex, to_sql_null_or_int};
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Product {
@@ -205,3 +205,43 @@ pub async fn delete_product(name: String) -> Result<(), String> {
     .await
     .map_err(|e| e.to_string())?
 }
+
+#[tauri::command]
+pub async fn add_product(product: Product) -> Result<(), String> {
+    task::spawn_blocking(move || {
+        let rt = tokio::runtime::Runtime::new().unwrap();
+        rt.block_on(async {
+            let config = crate::db::get_db_config()
+                .await
+                .map_err(|e| e.to_string())?;
+            let client = Client::from_config(config)
+                .await
+                .map_err(|e| e.to_string())?;
+
+            let name = sql_quote(&product.name);
+            let shelf = to_sql_null_or_int(product.shelf_life_days);
+            let picture_sql = to_sql_null_or_blob_hex(&product.picture)?;
+
+            // Fail if exists (unique name)
+            let insert_sql = format!(
+                "INSERT INTO Product (name, shelf_life_days, picture) VALUES ('{}', {}, {});",
+                name, shelf, picture_sql
+            );
+
+            let res = client
+                .execute(insert_sql)
+                .await
+                .map_err(|e| e.to_string())?;
+
+            // If your driver exposes rows_affected, you can check it:
+            if res.rows_affected == 0 {
+                return Err("插入失败：未影响任何行。".into());
+            }
+
+            Ok(())
+        })
+    })
+    .await
+    .map_err(|e| e.to_string())?
+}
+
