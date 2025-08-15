@@ -1,6 +1,8 @@
 import { useState, useEffect, useRef } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import { Product } from "./productManagementPane";
+import { toDataUrl, stripDataUrl } from "./pictureHandler"
+
 import "./productFormModal.css";
 
 type ProductFormProps = {
@@ -18,11 +20,12 @@ export default function ProductFormModal({
 }: ProductFormProps) {
   const [name, setName] = useState("");
   const [shelfLifeDays, setShelfLifeDays] = useState<number | null>(null);
-  const [picture, setPicture] = useState<string | null>(null);
+  const [picture, setPicture] = useState<string | null>(null); // Raw base64 payload for backend
+  const [pictureURL, setPictureURL] = useState<string | null>(null); // Data URL for <img src=...>
   const [dragOver, setDragOver] = useState(false);
   const dropRef = useRef<HTMLDivElement | null>(null);
 
-  useEffect(() => {
+   useEffect(() => {
     if (mode === "edit" && product) {
       (async () => {
         const result = await invoke<Product>("get_product", {
@@ -31,47 +34,56 @@ export default function ProductFormModal({
         });
         setName(result.name);
         setShelfLifeDays(result.shelf_life_days);
-        setPicture(result.picture || null);
+
+        // result.picture is RAW base64 (per your backend) or null
+        setPicture(result.picture ?? null);
+        setPictureURL(toDataUrl(result.picture)); // convert for preview
       })();
     } else {
       setName("");
-      setShelfLifeDays(0);
+      setShelfLifeDays(null);
       setPicture(null);
+      setPictureURL(null);
     }
   }, [mode, product]);
 
-  const handleFile = (file: File) => {
-    const reader = new FileReader();
-    reader.onload = () => {
-      setPicture(reader.result as string); // base64
-    };
-    reader.readAsDataURL(file);
+  const fileToDataUrl = (file: File): Promise<string> =>
+    new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result as string); // data URL
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+
+  const handleFile = async (file: File) => {
+    const dataUrl = await fileToDataUrl(file);
+    setPictureURL(dataUrl);                 // for <img src>
+    setPicture(stripDataUrl(dataUrl));      // RAW base64 for backend
   };
 
-  const handleDrop = (e: React.DragEvent) => {
+  const handleDrop = async (e: React.DragEvent) => {
     e.preventDefault();
     setDragOver(false);
     if (e.dataTransfer.files.length > 0) {
-      handleFile(e.dataTransfer.files[0]);
+      await handleFile(e.dataTransfer.files[0]);
     }
   };
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files?.length) {
-      handleFile(e.target.files[0]);
+      await handleFile(e.target.files[0]);
     }
   };
 
   const handleSubmit = () => {
     if (!name) return;
-    onSubmit({ name, shelf_life_days: shelfLifeDays, picture });
+    onSubmit({ name, shelf_life_days: shelfLifeDays, picture }); // send RAW base64
     onClose();
   };
 
   return (
     <div className="modal-overlay">
       <div className="modal-content">
-
         <label htmlFor="product-name">产品名称</label>
         <input
           id="product-name"
@@ -85,7 +97,10 @@ export default function ProductFormModal({
           id="shelf-life"
           type="number"
           value={shelfLifeDays ?? ""}
-          onChange={(e) => setShelfLifeDays(parseInt(e.target.value))}
+          onChange={(e) => {
+            const value = e.target.value;
+            setShelfLifeDays(value === "" ? null : parseInt(value, 10));
+          }}
         />
 
         <div
@@ -98,11 +113,11 @@ export default function ProductFormModal({
           onDrop={handleDrop}
           ref={dropRef}
         >
-          {/* Show image when present; otherwise show the prompt */}
-          {picture && (
-            <img src={picture} alt="预览图" className="picture-preview" />
-          )}
-          {!picture && <p className="drop-hint">拖拽图片到此处或选择文件</p>}
+          {/* Preview uses data URL */}
+          {pictureURL && <img src={pictureURL} alt="预览图" className="picture-preview" />}
+
+          {/* Prompt only when no preview */}
+          {!pictureURL && <p className="drop-hint">拖拽图片到此处或选择文件</p>}
 
           {/* File chooser stays below */}
           <input type="file" accept="image/*" onChange={handleFileChange} />
@@ -114,7 +129,6 @@ export default function ProductFormModal({
           </button>
           <button className="btn" onClick={onClose}>取消</button>
         </div>
-        
       </div>
     </div>
   );
