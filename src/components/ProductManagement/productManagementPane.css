@@ -35,7 +35,7 @@
 
 .product-table th {
   font-weight: 600;
-  background-color: var(--header-bg);
+  background-color: var(--bg);
 }
 
 .product-table td.name-cell {
@@ -87,7 +87,6 @@
   --bg: white;
   --text: #333;
   --border: #e5e5e5;
-  --header-bg: #fafafa;
   --row-hover: #f9f9f9;
   --button-bg: #f0f0f0;
   --button-hover: #e0e0e0;
@@ -100,7 +99,6 @@
     --bg: #1e1e1e;
     --text: #e0e0e0;
     --border: #444;
-    --header-bg: #2c2c2c;
     --row-hover: #2a2a2a;
     --button-bg: #333;
     --button-hover: #444;
