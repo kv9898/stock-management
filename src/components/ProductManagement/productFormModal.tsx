@@ -85,7 +85,10 @@ export default function ProductFormModal({
           id="shelf-life"
           type="number"
           value={shelfLifeDays ?? ""}
-          onChange={(e) => setShelfLifeDays(parseInt(e.target.value))}
+          onChange={(e) => {
+            const value = e.target.value;
+            setShelfLifeDays(value === "" ? null : parseInt(value, 10));
+          }}
         />
 
         <div
