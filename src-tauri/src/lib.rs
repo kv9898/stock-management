@@ -1,7 +1,10 @@
 mod db;
 mod product;
 
-use product::get_all_products;
+#[tauri::command]
+async fn get_all_products() -> Result<Vec<product::Product>, String> {
+    product::get_all_products().await.map_err(|e| e.to_string())
+}
 
 // Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
 #[tauri::command]
