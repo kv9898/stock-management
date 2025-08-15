@@ -4282,6 +4282,7 @@ dependencies = [
  "anyhow",
  "base64 0.22.1",
  "libsql-client",
+ "once_cell",
  "serde",
  "serde_json",
  "tauri",

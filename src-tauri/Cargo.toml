@@ -26,4 +26,5 @@ libsql-client = "0.33.4"
 tokio = "1.47.1"
 anyhow = "1.0.99"
 base64 = "0.22.1"
+once_cell = "1.21.3"
 
