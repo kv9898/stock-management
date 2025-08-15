@@ -88,7 +88,10 @@ pub async fn delete_product(name: String) -> Result<(), String> {
 
     // Safe to delete
     client
-        .execute("DELETE FROM Product WHERE name = ?", &[&name])
+        .execute(format!(
+            "DELETE FROM Product WHERE name = '{}'",
+            name.replace('\'', "''")
+        ))
         .await
         .map_err(|e| e.to_string())?;
 
