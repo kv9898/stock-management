@@ -9,6 +9,7 @@ use crate::db::get_db_config;
 pub struct Product {
     pub name: String,
     pub shelf_life_days: i64,
+    pub picture: Option<String>,
 }
 
 #[tauri::command]
@@ -38,6 +39,7 @@ pub async fn get_all_products() -> Result<Vec<Product>, String> {
                 products.push(Product {
                     name,
                     shelf_life_days,
+                    picture: None, // Picture is not fetched here, set to None
                 });
             }
 
