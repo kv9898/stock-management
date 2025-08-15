@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
+import Select, { createFilter } from "react-select";
 import { invoke } from "@tauri-apps/api/core";
-import fuzzaldrin from "fuzzaldrin-plus";
 import { v4 as uuidv4 } from 'uuid';
 
 import type { Product } from "../../types/product";
@@ -22,14 +22,14 @@ function parseNum(s: string): number | null {
 
 export default function AddStockPane() {
   const [products, setProducts] = useState<Product[]>([]);
-  const [rows, setRows] = useState<Row[]>([{ id: uuidv4(), product: "", qty: null, unitPrice: null, totalPrice: null }]);
+  const [rows, setRows] = useState<Row[]>([
+    { id: uuidv4(), product: "", qty: null, unitPrice: null, totalPrice: null },
+  ]);
   const [recordAsTxn, setRecordAsTxn] = useState<boolean>(true);
-  const [searchFocusId, setSearchFocusId] = useState<string | null>(null);
 
   useEffect(() => {
     (async () => {
       const list = await invoke<Product[]>("get_all_products");
-      // sort alphabetically
       setProducts(
         [...list].sort((a, b) =>
           a.name.localeCompare(b.name, undefined, { sensitivity: "base", numeric: true })
@@ -38,34 +38,28 @@ export default function AddStockPane() {
     })();
   }, []);
 
-  const productNames = useMemo(() => products.map(p => p.name), [products]);
-
-  // Fuzzy suggestions for a given input
-  const getSuggestions = (input: string) => {
-    const q = input.trim();
-    if (!q) return productNames.slice(0, 20);
-    return fuzzaldrin.filter(productNames, q).slice(0, 20);
-  };
+  // react-select options
+  const productOptions = useMemo(
+    () => products.map(p => ({ value: p.name, label: p.name })),
+    [products]
+  );
 
   const setRow = (id: string, updater: (r: Row) => Row) => {
     setRows(rs => rs.map(r => (r.id === id ? updater({ ...r }) : r)));
   };
 
-  const addRow = () => setRows(rs => [...rs, { id: uuidv4(), product: "", qty: null, unitPrice: null, totalPrice: null }]);
-  const removeRow = (id: string) => setRows(rs => (rs.length === 1 ? rs : rs.filter(r => r.id !== id)));
+  const addRow = () =>
+    setRows(rs => [...rs, { id: uuidv4(), product: "", qty: null, unitPrice: null, totalPrice: null }]);
 
-  // Keep prices consistent:
-  // - When qty changes: recompute total if unitPrice present; else recompute unitPrice if total present
-  // - When unitPrice changes: recompute total if qty present
-  // - When total changes: recompute unitPrice if qty present
+  const removeRow = (id: string) =>
+    setRows(rs => (rs.length === 1 ? rs : rs.filter(r => r.id !== id)));
+
+  // price syncing
   const onQtyChange = (id: string, qty: number | null) =>
     setRow(id, r => {
       r.qty = qty;
       if (qty && r.unitPrice != null) r.totalPrice = round2(qty * r.unitPrice);
       else if (qty && r.totalPrice != null) r.unitPrice = round2(r.totalPrice / qty);
-      else if (!qty) {
-        // qty is null: keep whichever field user typed last; do not recalc
-      }
       return r;
     });
 
@@ -88,16 +82,14 @@ export default function AddStockPane() {
   }
 
   const submit = async () => {
-    // basic validation: ensure product + qty (and price if recordAsTxn)
-    const invalid = rows.some(r =>
-      !r.product || r.qty == null || (recordAsTxn && r.unitPrice == null && r.totalPrice == null)
+    const invalid = rows.some(
+      r => !r.product || r.qty == null || (recordAsTxn && r.unitPrice == null && r.totalPrice == null)
     );
     if (invalid) {
       alert("请完善每一行：商品、数量，以及（如果记录为交易）单价或总价。");
       return;
     }
 
-    // payload shape you can adjust as needed
     const payload = rows.map(r => ({
       product: r.product,
       qty: r.qty!,
@@ -108,12 +100,41 @@ export default function AddStockPane() {
 
     try {
       await invoke("add_stock_batch", { items: payload });
-      // clear on success
       setRows([{ id: uuidv4(), product: "", qty: null, unitPrice: null, totalPrice: null }]);
       alert("入库成功！");
     } catch (e: any) {
       alert(e?.toString?.() ?? "提交失败");
     }
+  };
+
+  // react-select dark theme styles using your CSS variables
+  const selectStyles = {
+    control: (base: any) => ({
+      ...base,
+      minHeight: 36,
+      backgroundColor: "var(--bg)",
+      color: "var(--text)",
+      borderColor: "var(--border)",
+      boxShadow: "none",
+      ":hover": { borderColor: "var(--button-hover)" },
+    }),
+    singleValue: (base: any) => ({ ...base, color: "var(--text)" }),
+    menu: (base: any) => ({
+      ...base,
+      backgroundColor: "var(--bg)",
+      border: `1px solid var(--border)`,
+      borderRadius: 8,
+      overflow: "hidden",
+    }),
+    option: (base: any, state: any) => ({
+      ...base,
+      backgroundColor: state.isFocused ? "var(--row-hover)" : "var(--bg)",
+      color: "var(--text)",
+      cursor: "pointer",
+    }),
+    input: (base: any) => ({ ...base, color: "var(--text)" }),
+    placeholder: (base: any) => ({ ...base, color: "var(--text)", opacity: 0.6 }),
+    menuPortal: (base: any) => ({ ...base, zIndex: 9999 }),
   };
 
   return (
@@ -143,82 +164,76 @@ export default function AddStockPane() {
             </tr>
           </thead>
           <tbody>
-            {rows.map((r) => {
-              const suggestions = getSuggestions(r.product);
-              return (
-                <tr key={r.id} className="product-row">
-                  {/* Selectize input */}
-                  <td>
-                    <div className="selectize">
+            {rows.map((r) => (
+              <tr key={r.id} className="product-row">
+                {/* Product select (React Select) */}
+                <td>
+                  <Select
+                    options={productOptions}
+                    value={productOptions.find(o => o.value === r.product) || null}
+                    onChange={(opt) =>
+                      setRow(r.id, row => (row.product = (opt ? (opt as any).value : ""), row))
+                    }
+                    isClearable
+                    isSearchable
+                    placeholder="选择或搜索产品..."
+                    // portal to body so the menu isn't clipped by the scroll container
+                    menuPortalTarget={document.body}
+                    menuPosition="fixed"
+                    styles={selectStyles as any}
+                    // nicer filtering (case-insensitive, diacritics)
+                    filterOption={createFilter({ ignoreCase: true, ignoreAccents: true, trim: true })}
+                  />
+                </td>
+
+                {/* Quantity */}
+                <td>
+                  <input
+                    type="number"
+                    min={0}
+                    value={r.qty ?? ""}
+                    onChange={(e) => onQtyChange(r.id, parseNum(e.target.value))}
+                  />
+                </td>
+
+                {/* Prices (conditionally shown) */}
+                {recordAsTxn && (
+                  <>
+                    <td>
                       <input
-                        value={r.product}
-                        onFocus={() => setSearchFocusId(r.id)}
-                        onBlur={() => setTimeout(() => setSearchFocusId(prev => (prev === r.id ? null : prev)), 150)}
-                        onChange={(e) => setRow(r.id, row => (row.product = e.target.value, row))}
-                        placeholder="选择或搜索产品…"
+                        type="number"
+                        step="0.01"
+                        min={0}
+                        value={r.unitPrice ?? ""}
+                        onChange={(e) => onUnitChange(r.id, parseNum(e.target.value))}
+                        placeholder="—"
                       />
-                      {searchFocusId === r.id && suggestions.length > 0 && (
-                        <div className="selectize-menu">
-                          {suggestions.map((name) => (
-                            <div
-                              key={name}
-                              className="selectize-item"
-                              onMouseDown={(e) => e.preventDefault()}
-                              onClick={() => setRow(r.id, row => (row.product = name, row))}
-                            >
-                              {name}
-                            </div>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                  </td>
+                    </td>
+                    <td>
+                      <input
+                        type="number"
+                        step="0.01"
+                        min={0}
+                        value={r.totalPrice ?? ""}
+                        onChange={(e) => onTotalChange(r.id, parseNum(e.target.value))}
+                        placeholder="—"
+                      />
+                    </td>
+                  </>
+                )}
 
-                  {/* Quantity */}
-                  <td>
-                    <input
-                      type="number"
-                      min={0}
-                      value={r.qty ?? ""}
-                      onChange={(e) => onQtyChange(r.id, parseNum(e.target.value))}
-                    />
-                  </td>
-
-                  {/* Prices (conditionally shown) */}
-                  {recordAsTxn && (
-                    <>
-                      <td>
-                        <input
-                          type="number"
-                          step="0.01"
-                          min={0}
-                          value={r.unitPrice ?? ""}
-                          onChange={(e) => onUnitChange(r.id, parseNum(e.target.value))}
-                          placeholder="—"
-                        />
-                      </td>
-                      <td>
-                        <input
-                          type="number"
-                          step="0.01"
-                          min={0}
-                          value={r.totalPrice ?? ""}
-                          onChange={(e) => onTotalChange(r.id, parseNum(e.target.value))}
-                          placeholder="—"
-                        />
-                      </td>
-                    </>
-                  )}
-
-                  {/* Actions */}
-                  <td>
-                    <button className="action-btn delete" onClick={() => removeRow(r.id)} disabled={rows.length === 1}>
-                      删除
-                    </button>
-                  </td>
-                </tr>
-              );
-            })}
+                {/* Actions */}
+                <td>
+                  <button
+                    className="action-btn delete"
+                    onClick={() => removeRow(r.id)}
+                    disabled={rows.length === 1}
+                  >
+                    删除
+                  </button>
+                </td>
+              </tr>
+            ))}
 
             {rows.length === 0 && (
               <tr>
