@@ -37,7 +37,9 @@ export default function ProductManagementPane() {
   };
 
   const handleDelete = async (name: string) => {
-    const confirm = window.confirm(`确认删除商品：${name} 吗？ 删除后无法恢复！`);
+    const confirm = window.confirm(
+      `确认删除商品：${name} 吗？ 删除后无法恢复！`
+    );
     if (!confirm) return;
 
     try {
@@ -50,7 +52,6 @@ export default function ProductManagementPane() {
 
   return (
     <div className="product-pane">
-
       <div className="product-table-container">
         <table className="product-table">
           <thead>
@@ -66,7 +67,10 @@ export default function ProductManagementPane() {
                 <td className="name-cell">{p.name}</td>
                 <td>{p.shelf_life_days}</td>
                 <td>
-                  <button className="action-btn" onClick={() => openEditModal(p)}>
+                  <button
+                    className="action-btn"
+                    onClick={() => openEditModal(p)}
+                  >
                     编辑
                   </button>
                   <button
