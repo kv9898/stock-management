@@ -7,6 +7,7 @@ use product::{add_product, delete_product, get_all_products, get_product, update
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
+        .plugin(tauri_plugin_fs::init())
         .setup(|app| {
             init_db_tokens(app)?;
             Ok(())
