@@ -88,6 +88,11 @@ export default function ProductManagementPane() {
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           placeholder="搜索产品名或位置…"
+          onKeyDown={(e) => {
+            if (e.key === "Escape") {
+              setSearch("");
+            }
+          }}
           style={{ flex: 1, padding: "8px 10px", borderRadius: 6, border: "1px solid var(--border)" }}
         />
       </div>
