@@ -83,7 +83,21 @@ pub async fn delete_product(name: String) -> Result<(), String> {
         .unwrap_or(0);
 
     if stock_count > 0 || txn_count > 0 {
-        return Err("Product is used in stock or transactions.".into());
+        let mut reasons = vec![];
+
+        if stock_count > 0 {
+            reasons.push("库存");
+        }
+
+        if txn_count > 0 {
+            reasons.push("交易记录");
+        }
+        let msg = format!(
+            "无法删除产品 “{}”：该产品已被使用于{}。",
+            name,
+            reasons.join("和")
+        );
+        return Err(msg.into());
     }
 
     // Safe to delete
