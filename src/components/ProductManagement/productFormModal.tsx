@@ -105,11 +105,28 @@ export default function ProductFormModal({
             <img src={picture} alt="Preview" className="picture-preview" />
           )}
         </div>
-
-        <button onClick={handleSubmit}>
-          {mode === "edit" ? "保存更改" : "添加产品"}
-        </button>
-        <button onClick={onClose}>取消</button>
+        <div style={{ display: "flex", justifyContent: "space-between", gap: "8px" }}>
+          <button
+            style={{
+              flex: 1,
+              padding: "8px",
+              textAlign: "center"
+            }}
+            onClick={handleSubmit}
+          >
+            {mode === "edit" ? "保存更改" : "添加产品"}
+          </button>
+          <button
+            style={{
+              flex: 1,
+              padding: "8px",
+              textAlign: "center"
+            }}
+            onClick={onClose}
+          >
+            取消
+          </button>
+        </div>
       </div>
     </div>
   );
