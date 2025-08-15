@@ -6,7 +6,7 @@ import "./productManagementPane.css";
 
 export type Product = {
   name: string;
-  shelf_life_days: number;
+  shelf_life_days: number | null;
   picture: string | null;
 };
 
