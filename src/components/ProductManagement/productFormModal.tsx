@@ -4,11 +4,12 @@ import "./productFormModal.css";
 type Product = {
   name: string;
   shelf_life_days: number;
+  picture: string | null;
 };
 
 type ProductFormProps = {
   mode: "add" | "edit";
-  product?: Product;
+  product?: string;
   onSubmit: (data: Product) => void;
   onClose: () => void;
 };
@@ -24,8 +25,8 @@ export default function ProductFormModal({
 
   useEffect(() => {
     if (mode === "edit" && product) {
-      setName(product.name);
-      setshelfLifeDays(product.shelf_life_days);
+      setName(product);
+      setshelfLifeDays(0);
     } else {
       setName("");
       setshelfLifeDays(0);
@@ -34,7 +35,7 @@ export default function ProductFormModal({
 
   const handleSubmit = () => {
     if (!name) return;
-    onSubmit({ name, shelf_life_days: shelfLifeDays });
+    onSubmit({ name, shelf_life_days: shelfLifeDays, picture: null });
     onClose();
   };
 

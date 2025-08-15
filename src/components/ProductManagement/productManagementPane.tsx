@@ -13,7 +13,7 @@ export default function ProductManagementPane() {
   const [products, setProducts] = useState<Product[]>([]);
   const [showModal, setShowModal] = useState(false);
   const [modalMode, setModalMode] = useState<"add" | "edit">("add");
-  const [selectedProduct, setSelectedProduct] = useState<Product | undefined>();
+  const [selectedProduct, setSelectedProduct] = useState<String | undefined>();
 
   const fetchProducts = async () => {
     const result = await invoke("get_all_products");
@@ -32,7 +32,7 @@ export default function ProductManagementPane() {
 
   const openEditModal = (product: Product) => {
     setModalMode("edit");
-    setSelectedProduct(product);
+    setSelectedProduct(product.name);
     setShowModal(true);
   };
 
