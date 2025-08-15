@@ -84,7 +84,7 @@ export default function ProductManagementPane() {
       {/* Search bar */}
       <div style={{ marginBottom: 8, display: "flex", gap: 8 }}>
         <input
-          type="text"
+          type="search"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           placeholder="搜索产品名或位置…"
