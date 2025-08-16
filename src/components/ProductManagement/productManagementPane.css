@@ -83,29 +83,8 @@
   padding-top: 8px;
 }
 
-/* Light Theme Defaults */
-:root {
-  --bg: white;
-  --text: #333;
-  --border: #e5e5e5;
-  --row-hover: #f9f9f9;
-  --button-bg: #f0f0f0;
-  --button-hover: #e0e0e0;
-  --button-text: black;
-}
-
 /* Dark Theme Overrides */
 @media (prefers-color-scheme: dark) {
-  :root {
-    --bg: #1e1e1e;
-    --text: #fff;
-    --border: #555;
-    --row-hover: #2a2a2a;
-    --button-bg: #444;
-    --button-hover: #555;
-    --button-text: #fff;
-  }
-
   .action-btn.delete:hover {
     background-color: #5a0000;
   }
