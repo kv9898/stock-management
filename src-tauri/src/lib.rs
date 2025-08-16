@@ -1,5 +1,6 @@
 mod db;
 mod product;
+mod stock;
 
 use db::init_db_tokens;
 use product::{add_product, delete_product, get_all_products, get_product, update_product};
