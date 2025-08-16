@@ -17,7 +17,7 @@ CREATE TABLE IF NOT EXISTS Product (
     name TEXT PRIMARY KEY NOT NULL,
     price INTEGER,
     picture BLOB,
-    location TEXT
+    type TEXT
 );
 """
 await client.execute(create_table_sql)

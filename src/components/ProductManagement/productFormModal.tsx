@@ -22,7 +22,7 @@ export default function ProductFormModal({
   const [price, setPrice] = useState<number | null>(null);
   const [picture, setPicture] = useState<string | null>(null); // Raw base64 payload for backend
   const [pictureURL, setPictureURL] = useState<string | null>(null); // Data URL for <img src=...>
-  const [location, setLocation] = useState<string | null>(null); // Not used in this modal but can be extended
+  const [type, setType] = useState<string | null>(null); // Not used in this modal but can be extended
   const [dragOver, setDragOver] = useState(false);
   const dropRef = useRef<HTMLDivElement | null>(null);
 
@@ -35,7 +35,7 @@ export default function ProductFormModal({
         });
         setName(result.name);
         setPrice(result.price);
-        setLocation(result.location);
+        setType(result.type);
 
         // result.picture is RAW base64 (per your backend) or null
         setPicture(result.picture ?? null);
@@ -46,7 +46,7 @@ export default function ProductFormModal({
       setPrice(null);
       setPicture(null);
       setPictureURL(null);
-      setLocation(null);
+      setType(null);
     }
   }, [mode, product]);
 
@@ -80,7 +80,7 @@ export default function ProductFormModal({
 
   const handleSubmit = () => {
     if (!name) return;
-    onSubmit({ name, price, picture, location }); // send RAW base64
+    onSubmit({ name, price, picture, type }); // send RAW base64
     onClose();
   };
 
@@ -106,13 +106,13 @@ export default function ProductFormModal({
           }}
         />
 
-        <label htmlFor="location">位置</label>
+        <label htmlFor="type">类型</label>
         <input
-          id="location"
-          value={location ?? ""}
+          id="type"
+          value={type ?? ""}
           onChange={(e) => {
             const value = e.target.value;
-            setLocation(value === "" ? null : value);
+            setType(value === "" ? null : value);
           }}
         />
 
