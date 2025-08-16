@@ -94,7 +94,7 @@ export default function ProductManagementPane() {
               <th>名称</th>
               <th style={{ width: "140px" }}>分类</th>
               <th style={{ width: "100px" }}>会员单价</th>
-              <th style={{ width: "80px" }}>图片</th>
+              <th style={{ width: "50px" }}>图片</th>
               <th style={{ width: "140px" }}>操作</th>
             </tr>
           </thead>
