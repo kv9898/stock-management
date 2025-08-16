@@ -5,6 +5,8 @@ import { v4 as uuidv4 } from 'uuid';
 
 import type { Product } from "../../types/product";
 
+import './AddStockPane.css'
+
 type Row = {
   id: string;
   product: string;          // product name
@@ -169,6 +171,7 @@ export default function AddStockPane() {
                 {/* Product select (React Select) */}
                 <td>
                   <Select
+                    classNamePrefix="rs"
                     options={productOptions}
                     value={productOptions.find(o => o.value === r.product) || null}
                     onChange={(opt) =>
