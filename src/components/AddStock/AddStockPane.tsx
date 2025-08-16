@@ -5,6 +5,8 @@ import { v4 as uuidv4 } from 'uuid';
 
 import type { Product } from "../../types/product";
 
+import './AddStockPane.css'
+
 type Row = {
   id: string;
   product: string;          // product name
@@ -112,7 +114,7 @@ export default function AddStockPane() {
     control: (base: any) => ({
       ...base,
       minHeight: 36,
-      backgroundColor: "var(--bg)",
+      backgroundColor: "var(--bg-highlight)",
       color: "var(--text)",
       borderColor: "var(--border)",
       boxShadow: "none",
@@ -121,14 +123,14 @@ export default function AddStockPane() {
     singleValue: (base: any) => ({ ...base, color: "var(--text)" }),
     menu: (base: any) => ({
       ...base,
-      backgroundColor: "var(--bg)",
+      backgroundColor: "var(--bg-highlight)",
       border: `1px solid var(--border)`,
       borderRadius: 8,
       overflow: "hidden",
     }),
     option: (base: any, state: any) => ({
       ...base,
-      backgroundColor: state.isFocused ? "var(--row-hover)" : "var(--bg)",
+      backgroundColor: state.isFocused ? "var(--row-hover)" : "var(--bg-highlight)",
       color: "var(--text)",
       cursor: "pointer",
     }),
@@ -169,6 +171,7 @@ export default function AddStockPane() {
                 {/* Product select (React Select) */}
                 <td>
                   <Select
+                    classNamePrefix="rs"
                     options={productOptions}
                     value={productOptions.find(o => o.value === r.product) || null}
                     onChange={(opt) =>

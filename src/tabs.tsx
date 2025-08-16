@@ -1,6 +1,8 @@
 import ProductManagementPane from "./components/ProductManagement/productManagementPane";
 import AddStockPane from "./components/AddStock/AddStockPane";
 
+import './tabs.css'
+
 export const tabs = [
   { key: "dataAnalysis", label: "数据分析" },
   { key: "addStock", label: "添加库存" },
