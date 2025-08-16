@@ -134,7 +134,7 @@ export default function AddStockPane() {
     }));
 
     try {
-      await invoke("add_stock", { items: payload });
+      await invoke("add_stock", { changes: payload });
       setRows([{ id: uuidv4(), product: "", qty: null, expiry: null }]); //, unitPrice: null, totalPrice: null }]);
       alert("入库成功！");
     } catch (e: any) {
