@@ -1,8 +1,10 @@
 mod db;
 mod product;
+mod stock;
 
 use db::init_db_tokens;
 use product::{add_product, delete_product, get_all_products, get_product, update_product};
+use stock::add_stock;
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
@@ -18,7 +20,8 @@ pub fn run() {
             get_product,
             delete_product,
             add_product,
-            update_product
+            update_product,
+            add_stock
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

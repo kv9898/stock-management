@@ -11,6 +11,7 @@ type Row = {
   id: string;
   product: string;          // product name
   qty: number | null;
+  expiry: string | null;     // YYYY-MM-DD or null
   // unitPrice: number | null; // per-unit price
   // totalPrice: number | null;
 };
@@ -25,7 +26,7 @@ function parseNum(s: string): number | null {
 export default function AddStockPane() {
   const [products, setProducts] = useState<Product[]>([]);
   const [rows, setRows] = useState<Row[]>([
-    { id: uuidv4(), product: "", qty: null} //, unitPrice: null, totalPrice: null },
+    { id: uuidv4(), product: "", qty: null, expiry: null } //, unitPrice: null, totalPrice: null },
   ]);
 
   useEffect(() => {
@@ -50,7 +51,7 @@ export default function AddStockPane() {
   };
 
   const addRow = () =>
-    setRows(rs => [...rs, { id: uuidv4(), product: "", qty: null}]);//, unitPrice: null, totalPrice: null }]);
+    setRows(rs => [...rs, { id: uuidv4(), product: "", qty: null, expiry: null}]);//, unitPrice: null, totalPrice: null }]);
 
   const removeRow = (id: string) =>
     setRows(rs => (rs.length === 1 ? rs : rs.filter(r => r.id !== id)));
@@ -61,6 +62,10 @@ export default function AddStockPane() {
       r.qty = qty;
       return r;
     });
+
+  const onExpiryChange = (id: string, v: string) =>
+    setRow(id, r => { r.expiry = v === "" ? null : v; return r; });    
+
   // const onQtyChange = (id: string, qty: number | null) =>
   //   setRow(id, r => {
   //     r.qty = qty;
@@ -115,21 +120,22 @@ export default function AddStockPane() {
 
   const submit = async () => {
     const invalid = rows.some(
-      r => !r.product || r.qty == null
+      r => !r.product || r.qty == null || !r.expiry
     );
     if (invalid) {
-      alert("请完善每一行的商品及数量。");
+      alert("请完善每一行：产品、数量、有效期。");
       return;
     }
 
     const payload = rows.map(r => ({
-      product: r.product,
+      name: r.product,
+      expiry_date: r.expiry!,
       qty: r.qty!,
     }));
 
     try {
-      await invoke("add_stock_batch", { items: payload });
-      setRows([{ id: uuidv4(), product: "", qty: null}]); //, unitPrice: null, totalPrice: null }]);
+      await invoke("add_stock", { changes: payload });
+      setRows([{ id: uuidv4(), product: "", qty: null, expiry: null }]); //, unitPrice: null, totalPrice: null }]);
       alert("入库成功！");
     } catch (e: any) {
       alert(e?.toString?.() ?? "提交失败");
@@ -186,6 +192,7 @@ export default function AddStockPane() {
           <thead>
             <tr>
               <th style={{ width: 380 }}>产品</th>
+              <th style={{ width: 140 }}>有效期</th>
               <th style={{ width: 110 }}>数量</th>
               {/* {recordAsTxn && <th style={{ width: 140 }}>单价</th>}
               {recordAsTxn && <th style={{ width: 160 }}>总价</th>} */}
@@ -213,6 +220,15 @@ export default function AddStockPane() {
                     styles={selectStyles as any}
                     // nicer filtering (case-insensitive, diacritics)
                     filterOption={createFilter({ ignoreCase: true, ignoreAccents: true, trim: true })}
+                  />
+                </td>
+
+                {/* Expiry date */}
+                <td>
+                  <input
+                    type="date"
+                    value={r.expiry ?? ""}
+                    onChange={(e) => onExpiryChange(r.id, e.target.value)}
                   />
                 </td>
 
