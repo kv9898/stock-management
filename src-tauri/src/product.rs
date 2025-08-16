@@ -11,7 +11,7 @@ use crate::db::{
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Product {
     pub name: String,
-    pub shelf_life_days: Option<i64>,
+    pub price: Option<i64>,
     pub picture: Option<String>,
     pub location: Option<String>,
 }
@@ -31,7 +31,7 @@ pub async fn get_all_products() -> Result<Vec<Product>, String> {
                 .execute(
                     "SELECT
                    name,
-                   shelf_life_days,
+                   price,
                    location,
                    CASE
                      WHEN picture IS NULL OR length(picture) = 0 THEN 0
@@ -49,7 +49,7 @@ pub async fn get_all_products() -> Result<Vec<Product>, String> {
                     .map_err(|e| e.to_string())?
                     .to_string();
 
-                let shelf_life_days: Option<i64> = match row.try_column::<i64>("shelf_life_days") {
+                let price: Option<i64> = match row.try_column::<i64>("price") {
                     Ok(v) => Some(v),
                     Err(e) => {
                         let msg = e.to_string();
@@ -76,7 +76,7 @@ pub async fn get_all_products() -> Result<Vec<Product>, String> {
 
                 products.push(Product {
                     name,
-                    shelf_life_days,
+                    price,
                     picture, // <- "Yes" or null
                     location,
                 });
@@ -90,7 +90,7 @@ pub async fn get_all_products() -> Result<Vec<Product>, String> {
 }
 
 #[tauri::command]
-pub async fn get_product(name: String, shelf_life_days: Option<i64>) -> Result<Product, String> {
+pub async fn get_product(name: String, price: Option<i64>) -> Result<Product, String> {
     task::spawn_blocking(move || {
         let rt = tokio::runtime::Runtime::new().unwrap();
         rt.block_on(async {
@@ -103,7 +103,7 @@ pub async fn get_product(name: String, shelf_life_days: Option<i64>) -> Result<P
             let escaped_name = name.replace('\'', "''");
 
             let query = format!(
-                "SELECT name, shelf_life_days, picture, location FROM Product WHERE name = '{}'",
+                "SELECT name, price, picture, location FROM Product WHERE name = '{}'",
                 escaped_name
             );
 
@@ -119,8 +119,7 @@ pub async fn get_product(name: String, shelf_life_days: Option<i64>) -> Result<P
                 .map_err(|e| e.to_string())?
                 .to_string();
 
-            let actual_shelf_life_days: Option<i64> = match row.try_column::<i64>("shelf_life_days")
-            {
+            let actual_price: Option<i64> = match row.try_column::<i64>("price") {
                 Ok(val) => Some(val),
                 Err(e) => {
                     let msg = e.to_string();
@@ -143,12 +142,12 @@ pub async fn get_product(name: String, shelf_life_days: Option<i64>) -> Result<P
                 .map(|bytes| general_purpose::STANDARD.encode(bytes));
 
             // validation
-            if let Some(expected_days) = shelf_life_days {
-                if Some(expected_days) != actual_shelf_life_days {
+            if let Some(expected_days) = price {
+                if Some(expected_days) != actual_price {
                     return Err(format!(
                         "有效期不匹配：传入为 {}，但数据库为 {}。",
                         expected_days,
-                        actual_shelf_life_days
+                        actual_price
                             .map(|n| n.to_string())
                             .unwrap_or_else(|| "缺失".into())
                     ));
@@ -157,7 +156,7 @@ pub async fn get_product(name: String, shelf_life_days: Option<i64>) -> Result<P
 
             Ok(Product {
                 name: actual_name,
-                shelf_life_days: actual_shelf_life_days,
+                price: actual_price,
                 picture,
                 location,
             })
@@ -255,14 +254,14 @@ pub async fn add_product(product: Product) -> Result<(), String> {
                 .map_err(|e| e.to_string())?;
 
             let name = sql_quote(&product.name);
-            let shelf = to_sql_null_or_int(product.shelf_life_days);
+            let price = to_sql_null_or_int(product.price);
             let picture_sql = to_sql_null_or_blob_hex(&product.picture)?;
             let location_sql = to_sql_null_or_string(&product.location);
 
             // Fail if exists (unique name)
             let insert_sql = format!(
-                "INSERT INTO Product (name, shelf_life_days, picture, location) VALUES ('{}', {}, {}, {});",
-                name, shelf, picture_sql, location_sql
+                "INSERT INTO Product (name, price, picture, location) VALUES ('{}', {}, {}, {});",
+                name, price, picture_sql, location_sql
             );
 
             let res = client
@@ -306,15 +305,15 @@ pub async fn update_product(product: Product) -> Result<(), String> {
                 return Err(format!("产品不存在：{}", product.name));
             }
 
-            let shelf = to_sql_null_or_int(product.shelf_life_days);
+            let price = to_sql_null_or_int(product.price);
             let picture_sql = to_sql_null_or_blob_hex(&product.picture)?;
             let location_sql = to_sql_null_or_string(&product.location);
 
             let update_sql = format!(
                 "UPDATE Product
-                 SET shelf_life_days = {}, picture = {}, location = {}
+                 SET price = {}, picture = {}, location = {}
                  WHERE name = '{}';",
-                shelf, picture_sql, location_sql, name
+                price, picture_sql, location_sql, name
             );
 
             let res = client
