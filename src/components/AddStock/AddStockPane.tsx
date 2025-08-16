@@ -112,7 +112,7 @@ export default function AddStockPane() {
     control: (base: any) => ({
       ...base,
       minHeight: 36,
-      backgroundColor: "var(--bg)",
+      backgroundColor: "var(--bg-highlight)",
       color: "var(--text)",
       borderColor: "var(--border)",
       boxShadow: "none",
@@ -121,14 +121,14 @@ export default function AddStockPane() {
     singleValue: (base: any) => ({ ...base, color: "var(--text)" }),
     menu: (base: any) => ({
       ...base,
-      backgroundColor: "var(--bg)",
+      backgroundColor: "var(--bg-highlight)",
       border: `1px solid var(--border)`,
       borderRadius: 8,
       overflow: "hidden",
     }),
     option: (base: any, state: any) => ({
       ...base,
-      backgroundColor: state.isFocused ? "var(--row-hover)" : "var(--bg)",
+      backgroundColor: state.isFocused ? "var(--row-hover)" : "var(--bg-highlight)",
       color: "var(--text)",
       cursor: "pointer",
     }),

@@ -11,7 +11,7 @@
 
 /* --- Modal card --- */
 .modal-content {
-  background: var(--bg);
+  background: var(--bg-highlight);
   color: var(--text);
   padding: 20px;
   border-radius: 12px;
@@ -39,7 +39,7 @@ input[type="file"] {
   border-radius: 8px;
   width: 100%;
   box-sizing: border-box;
-  background-color: var(--bg);
+  background-color: var(--bg-highlight);
   color: var(--text);
 }
 
@@ -76,13 +76,13 @@ input[type="file"]::file-selector-button:hover {
   text-align: center;
   border-radius: 8px;
   position: relative;
-  background-color: var(--bg);
+  background-color: var(--bg-highlight);
   color: var(--text);
 }
 
 .picture-upload.drag-over {
   border-color: #3b82f6;          /* a11y-friendly blue */
-  background-color: color-mix(in srgb, #3b82f6 8%, var(--bg));
+  background-color: color-mix(in srgb, #3b82f6 8%, var(--bg-highlight));
 }
 
 /* Preview above the selector */
@@ -136,6 +136,6 @@ input[type="file"]::file-selector-button:hover {
 @media (prefers-color-scheme: dark) {
   .modal-overlay { background-color: rgba(0, 0, 0, 0.55); }
   .picture-upload.drag-over {
-    background-color: color-mix(in srgb, #3b82f6 14%, var(--bg));
+    background-color: color-mix(in srgb, #3b82f6 14%, var(--bg-highlight));
   }
 }

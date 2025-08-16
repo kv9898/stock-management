@@ -10,7 +10,7 @@
 .product-table-container {
   flex: 1;
   overflow-y: auto;
-  background-color: var(--bg);
+  background-color: var(--bg-highlight);
   border-radius: 8px;
   box-shadow: 0 0 4px rgba(0, 0, 0, 0.05);
   padding: 8px;
@@ -22,7 +22,7 @@
   border-collapse: collapse;
   font-size: 15px;
   color: var(--text);
-  background-color: var(--bg);
+  background-color: var(--bg-highlight);
 }
 
 .product-table th,
@@ -35,7 +35,7 @@
 
 .product-table th {
   font-weight: 600;
-  background-color: var(--bg);
+  background-color: var(--bg-highlight);
   border-bottom: 2px solid var(--border);
 }
 
