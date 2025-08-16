@@ -95,6 +95,16 @@ export default function ProductFormModal({
           onChange={(e) => setName(e.target.value)}
         />
 
+        <label htmlFor="type">类型</label>
+        <input
+          id="type"
+          value={type ?? ""}
+          onChange={(e) => {
+            const value = e.target.value;
+            setType(value === "" ? null : value);
+          }}
+        />
+
         <label htmlFor="price">会员单价</label>
         <input
           id="price"
@@ -103,16 +113,6 @@ export default function ProductFormModal({
           onChange={(e) => {
             const value = e.target.value;
             setPrice(value === "" ? null : parseInt(value, 10));
-          }}
-        />
-
-        <label htmlFor="type">类型</label>
-        <input
-          id="type"
-          value={type ?? ""}
-          onChange={(e) => {
-            const value = e.target.value;
-            setType(value === "" ? null : value);
           }}
         />
 
