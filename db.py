@@ -2,7 +2,7 @@ from libsql_client import create_client
 import json
 
 # Load database URL and tokens from JSON
-with open("tokens.json", "r") as f:
+with open("src-tauri/resources/tokens.json", "r") as f:
     db_url, auth_token = json.load(f).values()
 
 if db_url.startswith("libsql://"):
