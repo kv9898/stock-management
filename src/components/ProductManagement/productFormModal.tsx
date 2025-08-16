@@ -19,7 +19,7 @@ export default function ProductFormModal({
   onClose,
 }: ProductFormProps) {
   const [name, setName] = useState("");
-  const [shelfLifeDays, setShelfLifeDays] = useState<number | null>(null);
+  const [price, setPrice] = useState<number | null>(null);
   const [picture, setPicture] = useState<string | null>(null); // Raw base64 payload for backend
   const [pictureURL, setPictureURL] = useState<string | null>(null); // Data URL for <img src=...>
   const [location, setLocation] = useState<string | null>(null); // Not used in this modal but can be extended
@@ -31,10 +31,10 @@ export default function ProductFormModal({
       (async () => {
         const result = await invoke<Product>("get_product", {
           name: product.name,
-          shelf_life_days: product.shelf_life_days,
+          price: product.price,
         });
         setName(result.name);
-        setShelfLifeDays(result.shelf_life_days);
+        setPrice(result.price);
         setLocation(result.location);
 
         // result.picture is RAW base64 (per your backend) or null
@@ -43,7 +43,7 @@ export default function ProductFormModal({
       })();
     } else {
       setName("");
-      setShelfLifeDays(null);
+      setPrice(null);
       setPicture(null);
       setPictureURL(null);
       setLocation(null);
@@ -80,7 +80,7 @@ export default function ProductFormModal({
 
   const handleSubmit = () => {
     if (!name) return;
-    onSubmit({ name, shelf_life_days: shelfLifeDays, picture, location }); // send RAW base64
+    onSubmit({ name, price, picture, location }); // send RAW base64
     onClose();
   };
 
@@ -95,18 +95,18 @@ export default function ProductFormModal({
           onChange={(e) => setName(e.target.value)}
         />
 
-        <label htmlFor="shelf-life">有效期（天）</label>
+        <label htmlFor="price">会员单价</label>
         <input
-          id="shelf-life"
+          id="price"
           type="number"
-          value={shelfLifeDays ?? ""}
+          value={price ?? ""}
           onChange={(e) => {
             const value = e.target.value;
-            setShelfLifeDays(value === "" ? null : parseInt(value, 10));
+            setPrice(value === "" ? null : parseInt(value, 10));
           }}
         />
 
-        <label htmlFor="shelf-life">位置</label>
+        <label htmlFor="location">位置</label>
         <input
           id="location"
           value={location ?? ""}
