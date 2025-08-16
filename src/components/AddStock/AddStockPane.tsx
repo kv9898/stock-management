@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useRef } from "react";
 import Select, { createFilter } from "react-select";
 import { invoke } from "@tauri-apps/api/core";
 import { v4 as uuidv4 } from 'uuid';
@@ -33,6 +33,8 @@ export default function AddStockPane() {
   const [rows, setRows] = useState<Row[]>([
     { id: uuidv4(), product: "", qty: null, expiry: null } //, unitPrice: null, totalPrice: null },
   ]);
+
+  const inputRefs = useRef<(HTMLInputElement | null)[][]>([]);
 
   useEffect(() => {
     (async () => {
@@ -167,6 +169,29 @@ export default function AddStockPane() {
     }
   };
 
+  function handleEnter(
+    e: React.KeyboardEvent<HTMLInputElement> | null,
+    rowIdx: number,
+    colIdx: number
+  ) {
+    if (e) {
+      if (e.key !== "Enter") return;
+      e.preventDefault();
+    }
+
+    const nextCol = colIdx + 1;
+    if (inputRefs.current[rowIdx][nextCol]) {
+      inputRefs.current[rowIdx][nextCol]?.focus();
+    } else {
+      // jump to first col of next row
+      const nextRow = rowIdx + 1;
+      if (!inputRefs.current[nextRow]) return;
+
+      inputRefs.current[nextRow][0]?.focus();
+    }
+    
+  }
+
   // react-select dark theme styles using your CSS variables
   const selectStyles = {
     control: (base: any) => ({
@@ -213,7 +238,7 @@ export default function AddStockPane() {
             </tr>
           </thead>
           <tbody>
-            {rows.map((r) => (
+            {rows.map((r, rowIdx) => (
               <tr key={r.id} className="product-row">
                 {/* Product select (React Select) */}
                 <td>
@@ -221,9 +246,10 @@ export default function AddStockPane() {
                     classNamePrefix="rs"
                     options={productOptions}
                     value={productOptions.find(o => o.value === r.product) || null}
-                    onChange={(opt) =>
-                      setRow(r.id, row => (row.product = (opt ? (opt as any).value : ""), row))
-                    }
+                    onChange={(opt) => {
+                      setRow(r.id, row => (row.product = (opt ? (opt as any).value : ""), row));
+                      handleEnter(null, rowIdx, 0);
+                    }}
                     isClearable
                     isSearchable
                     placeholder="选择或搜索产品..."
@@ -233,6 +259,10 @@ export default function AddStockPane() {
                     styles={selectStyles as any}
                     // nicer filtering (case-insensitive, diacritics)
                     filterOption={createFilter({ ignoreCase: true, ignoreAccents: true, trim: true })}
+                    ref={(el) => {
+                      inputRefs.current[rowIdx] ||= [];
+                      inputRefs.current[rowIdx][0] = el ? (el as any).inputRef : null;
+                    }}
                   />
                 </td>
 
@@ -242,6 +272,10 @@ export default function AddStockPane() {
                     type="date"
                     value={r.expiry ?? ""}
                     onChange={(e) => onExpiryChange(r.id, e.target.value)}
+                    ref={(el) => {
+                      inputRefs.current[rowIdx][1] = el;
+                    }}
+                    onKeyDown={(e) => handleEnter(e, rowIdx, 1)}
                   />
                 </td>
 
@@ -252,6 +286,10 @@ export default function AddStockPane() {
                     min={0}
                     value={r.qty ?? ""}
                     onChange={(e) => onQtyChange(r.id, parseNum(e.target.value))}
+                    ref={(el) => {
+                      inputRefs.current[rowIdx][2] = el;
+                    }}
+                    onKeyDown={(e) => handleEnter(e, rowIdx, 2)}
                   />
                 </td>
 
