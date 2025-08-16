@@ -34,6 +34,9 @@ CREATE TABLE IF NOT EXISTS Stock (
 """
 await client.execute(stock_sql)
 
+  ## make sure that the pair (name, expiry) is unique in this table.
+await client.execute("CREATE UNIQUE INDEX IF NOT EXISTS stock_name_expiry_uq ON Stock(name, expiry);")
+
 # # Transactions
 
 # ## Header table
