@@ -60,22 +60,48 @@ export default function AddStockPane() {
   const onQtyChange = (id: string, qty: number | null) =>
     setRow(id, r => {
       r.qty = qty;
-      if (qty && r.unitPrice != null) r.totalPrice = round2(qty * r.unitPrice);
-      else if (qty && r.totalPrice != null) r.unitPrice = round2(r.totalPrice / qty);
+
+      if (qty == null || qty === 0) {
+        // if qty is empty or 0, we can’t meaningfully calculate prices
+        // so just clear both unit & total
+        r.unitPrice = null;
+        r.totalPrice = null;
+      } else if (r.unitPrice != null) {
+        // recalc total when qty + unit price exist
+        r.totalPrice = round2(qty * r.unitPrice);
+      } else if (r.totalPrice != null) {
+        // recalc unit when qty + total price exist
+        r.unitPrice = round2(r.totalPrice / qty);
+      }
+
       return r;
     });
 
   const onUnitChange = (id: string, unit: number | null) =>
     setRow(id, r => {
       r.unitPrice = unit;
-      if (r.qty && unit != null) r.totalPrice = round2(r.qty * unit);
+
+      if (unit == null) {
+        // if unit price cleared, also clear total
+        r.totalPrice = null;
+      } else if (r.qty && r.qty !== 0) {
+        // recalc total when possible (keep your current 0 behavior)
+        r.totalPrice = round2(r.qty * unit);
+      }
       return r;
     });
 
   const onTotalChange = (id: string, total: number | null) =>
     setRow(id, r => {
       r.totalPrice = total;
-      if (r.qty && total != null) r.unitPrice = round2(total / r.qty);
+
+      if (total == null) {
+        // if total cleared, also clear unit price
+        r.unitPrice = null;
+      } else if (r.qty && r.qty !== 0) {
+        // recalc unit when possible (avoid divide-by-zero)
+        r.unitPrice = round2(total / r.qty);
+      }
       return r;
     });
 
