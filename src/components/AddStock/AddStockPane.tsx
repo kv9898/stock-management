@@ -50,7 +50,7 @@ export default function AddStockPane() {
   };
 
   const addRow = () =>
-    setRows(rs => [...rs, { id: uuidv4(), product: "", qty: null, unitPrice: null, totalPrice: null }]);
+    setRows(rs => [...rs, { id: uuidv4(), product: "", qty: null}]);//, unitPrice: null, totalPrice: null }]);
 
   const removeRow = (id: string) =>
     setRows(rs => (rs.length === 1 ? rs : rs.filter(r => r.id !== id)));
