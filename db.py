@@ -15,7 +15,7 @@ client = create_client(url=db_url, auth_token=auth_token)
 create_table_sql = """
 CREATE TABLE IF NOT EXISTS Product (
     name TEXT PRIMARY KEY NOT NULL,
-    shelf_life_days INTEGER,
+    price INTEGER,
     picture BLOB,
     location TEXT
 );
