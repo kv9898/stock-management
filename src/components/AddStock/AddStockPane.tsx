@@ -123,12 +123,12 @@ export default function AddStockPane() {
     }
 
     const payload = rows.map(r => ({
-      product: r.product,
+      name: r.product,
       qty: r.qty!,
     }));
 
     try {
-      await invoke("add_stock_batch", { items: payload });
+      await invoke("add_stock", { items: payload });
       setRows([{ id: uuidv4(), product: "", qty: null}]); //, unitPrice: null, totalPrice: null }]);
       alert("入库成功！");
     } catch (e: any) {
