@@ -53,7 +53,7 @@ export default function ProductManagementPane() {
     if (q) {
       const enriched = products.map(product => ({
           product,
-          key: `${product.name} ${product.location}`
+          key: `${product.name} ${product.type}`
       }));
 
       const matches = filter(enriched, q, {
@@ -93,7 +93,7 @@ export default function ProductManagementPane() {
             <tr>
               <th>名称</th>
               <th style={{ width: "120px" }}>会员单价</th>
-              <th style={{ width: "140px" }}>位置</th>
+              <th style={{ width: "140px" }}>分类</th>
               <th style={{ width: "120px" }}>图片</th>
               <th style={{ width: "140px" }}>操作</th>
             </tr>
@@ -103,7 +103,7 @@ export default function ProductManagementPane() {
               <tr key={p.name} className="product-row">
                 <td className="name-cell">{p.name}</td>
                 <td>{p.price}</td>
-                <td>{p.location}</td>
+                <td>{p.type}</td>
                 <td>{p.picture ? "√" : ""}</td>
                 <td>
                   <button className="action-btn" onClick={() => openEditModal(p)}>
