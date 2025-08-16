@@ -26,7 +26,7 @@ pub async fn add_stock(changes: Vec<StockChange>) -> Result<(), String> {
                 .map_err(|e| e.to_string())?;
 
             // Start a transaction so the whole batch is atomic
-            client.execute("BEGIN").await.map_err(|e| e.to_string())?;
+            let tx = client.transaction().await.map_err(|e| e.to_string())?;
 
             // If anything fails, make a best-effort rollback
             let res = async {
@@ -43,7 +43,7 @@ pub async fn add_stock(changes: Vec<StockChange>) -> Result<(), String> {
                         "UPDATE Stock SET quantity = quantity + {} WHERE name = '{}' AND expiry = '{}';",
                         c.qty, name, expiry
                     );
-                    let upd = client.execute(update_sql).await.map_err(|e| e.to_string())?;
+                    let upd = tx.execute(update_sql).await.map_err(|e| e.to_string())?;
 
                     if upd.rows_affected == 0 {
                         // No such row -> INSERT a new one
@@ -52,7 +52,7 @@ pub async fn add_stock(changes: Vec<StockChange>) -> Result<(), String> {
                             "INSERT INTO Stock (id, name, expiry, quantity) VALUES ('{}', '{}', '{}', {});",
                             sql_quote(&id), name, expiry, c.qty
                         );
-                        let ins = client.execute(insert_sql).await.map_err(|e| e.to_string())?;
+                        let ins = tx.execute(insert_sql).await.map_err(|e| e.to_string())?;
                         if ins.rows_affected == 0 {
                             return Err("插入失败：未影响任何行。".into());
                         }
@@ -63,11 +63,11 @@ pub async fn add_stock(changes: Vec<StockChange>) -> Result<(), String> {
 
             match res {
                 Ok(()) => {
-                    client.execute("COMMIT").await.map_err(|e| e.to_string())?;
+                    tx.commit().await.map_err(|e| e.to_string())?;
                     Ok(())
                 }
                 Err(e) => {
-                    let _ = client.execute("ROLLBACK").await;
+                    tx.rollback().await.map_err(|e| e.to_string())?;
                     Err(e)
                 }
             }
