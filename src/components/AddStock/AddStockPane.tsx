@@ -231,7 +231,7 @@ export default function AddStockPane() {
                     <td>
                       <input
                         type="number"
-                        step="0.01"
+                        step="1"
                         min={0}
                         value={r.unitPrice ?? ""}
                         onChange={(e) => onUnitChange(r.id, parseNum(e.target.value))}
@@ -241,7 +241,7 @@ export default function AddStockPane() {
                     <td>
                       <input
                         type="number"
-                        step="0.01"
+                        step="10"
                         min={0}
                         value={r.totalPrice ?? ""}
                         onChange={(e) => onTotalChange(r.id, parseNum(e.target.value))}
