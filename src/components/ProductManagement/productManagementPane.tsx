@@ -92,7 +92,7 @@ export default function ProductManagementPane() {
           <thead>
             <tr>
               <th>名称</th>
-              <th style={{ width: "120px" }}>有效期（天）</th>
+              <th style={{ width: "120px" }}>会员价</th>
               <th style={{ width: "140px" }}>位置</th>
               <th style={{ width: "120px" }}>图片</th>
               <th style={{ width: "140px" }}>操作</th>
@@ -102,7 +102,7 @@ export default function ProductManagementPane() {
             {visibleProducts.map((p) => (
               <tr key={p.name} className="product-row">
                 <td className="name-cell">{p.name}</td>
-                <td>{p.shelf_life_days}</td>
+                <td>{p.price}</td>
                 <td>{p.location}</td>
                 <td>{p.picture ? "√" : ""}</td>
                 <td>
