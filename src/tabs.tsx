@@ -8,7 +8,6 @@ export const tabs = [
   { key: "addStock", label: "添加库存" },
   { key: "removeStock", label: "移除库存" },
   { key: "expiryWarnings", label: "过期预警" },
-  { key: "transactionHistory", label: "交易历史" },
   { key: "productManagement", label: "产品信息管理" },
 ];
 
@@ -31,19 +30,6 @@ export const renderTabContent = (activeTab: string) => {
               </li>
             ))}
           </ul> */}
-        </>
-      );
-    case "transactionHistory":
-      return (
-        <>
-          <h2>交易历史</h2>
-          <ul>
-            {/* {transactions.map((tx) => (
-              <li key={tx.id}>
-                {tx.date}: {tx.type === "add" ? "Added" : "Removed"} {tx.product}
-              </li>
-            ))} */}
-          </ul>
         </>
       );
     case "productManagement":
