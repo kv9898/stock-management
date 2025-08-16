@@ -180,13 +180,13 @@ pub async fn delete_product(name: String) -> Result<(), String> {
                 .map_err(|e| e.to_string())?;
 
             // Check usage in TransactionItem
-            let transaction_used = client
-                .execute(format!(
-                    "SELECT COUNT(*) as count FROM TransactionItem WHERE product_name = '{}'",
-                    name.replace('\'', "''") // escape single quotes
-                ))
-                .await
-                .map_err(|e| e.to_string())?;
+            // let transaction_used = client
+            //     .execute(format!(
+            //         "SELECT COUNT(*) as count FROM TransactionItem WHERE product_name = '{}'",
+            //         name.replace('\'', "''") // escape single quotes
+            //     ))
+            //     .await
+            //     .map_err(|e| e.to_string())?;
 
             // Extract counts
             let stock_count: i64 = stock_used
@@ -194,11 +194,12 @@ pub async fn delete_product(name: String) -> Result<(), String> {
                 .get(0)
                 .and_then(|r| r.try_column::<i64>("count").ok())
                 .unwrap_or(0);
-            let txn_count: i64 = transaction_used
-                .rows
-                .get(0)
-                .and_then(|r| r.try_column::<i64>("count").ok())
-                .unwrap_or(0);
+            let txn_count: i64 = 0; // Uncomment when TransactionItem is implemented
+                                    // transaction_used
+                                    // .rows
+                                    // .get(0)
+                                    // .and_then(|r| r.try_column::<i64>("count").ok())
+                                    // .unwrap_or(0);
 
             // Check usage status
             if stock_count > 0 || txn_count > 0 {

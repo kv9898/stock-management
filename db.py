@@ -34,29 +34,29 @@ CREATE TABLE IF NOT EXISTS Stock (
 """
 await client.execute(stock_sql)
 
-# Transactions
+# # Transactions
 
-## Header table
-create_transaction_header = """
-CREATE TABLE IF NOT EXISTS TransactionHeader (
-  id TEXT PRIMARY KEY NOT NULL,
-  date TEXT NOT NULL,
-  type TEXT CHECK(type IN ('buy', 'sell')) NOT NULL,
-  total_amount INTEGER
-);
-"""
-await client.execute(create_transaction_header)
+# ## Header table
+# create_transaction_header = """
+# CREATE TABLE IF NOT EXISTS TransactionHeader (
+#   id TEXT PRIMARY KEY NOT NULL,
+#   date TEXT NOT NULL,
+#   type TEXT CHECK(type IN ('buy', 'sell')) NOT NULL,
+#   total_amount INTEGER
+# );
+# """
+# await client.execute(create_transaction_header)
 
-## Detail table
-create_transaction_detail = """
-CREATE TABLE TransactionItem (
-  id TEXT PRIMARY KEY NOT NULL,
-  transaction_id TEXT NOT NULL,
-  product_name TEXT NOT NULL,
-  quantity INTEGER NOT NULL,
+# ## Detail table
+# create_transaction_detail = """
+# CREATE TABLE TransactionItem (
+#   id TEXT PRIMARY KEY NOT NULL,
+#   transaction_id TEXT NOT NULL,
+#   product_name TEXT NOT NULL,
+#   quantity INTEGER NOT NULL,
 
-  FOREIGN KEY (transaction_id) REFERENCES TransactionHeader(id),
-  FOREIGN KEY (product_name) REFERENCES Product(name)
-);
-"""
-await client.execute(create_transaction_detail)
+#   FOREIGN KEY (transaction_id) REFERENCES TransactionHeader(id),
+#   FOREIGN KEY (product_name) REFERENCES Product(name)
+# );
+# """
+# await client.execute(create_transaction_detail)

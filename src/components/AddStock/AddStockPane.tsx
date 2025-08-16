@@ -11,8 +11,8 @@ type Row = {
   id: string;
   product: string;          // product name
   qty: number | null;
-  unitPrice: number | null; // per-unit price
-  totalPrice: number | null;
+  // unitPrice: number | null; // per-unit price
+  // totalPrice: number | null;
 };
 
 // safe numeric parser: "" -> null, valid -> number
@@ -25,9 +25,8 @@ function parseNum(s: string): number | null {
 export default function AddStockPane() {
   const [products, setProducts] = useState<Product[]>([]);
   const [rows, setRows] = useState<Row[]>([
-    { id: uuidv4(), product: "", qty: null, unitPrice: null, totalPrice: null },
+    { id: uuidv4(), product: "", qty: null} //, unitPrice: null, totalPrice: null },
   ]);
-  const [recordAsTxn, setRecordAsTxn] = useState<boolean>(true);
 
   useEffect(() => {
     (async () => {
@@ -51,7 +50,7 @@ export default function AddStockPane() {
   };
 
   const addRow = () =>
-    setRows(rs => [...rs, { id: uuidv4(), product: "", qty: null, unitPrice: null, totalPrice: null }]);
+    setRows(rs => [...rs, { id: uuidv4(), product: "", qty: null}]);//, unitPrice: null, totalPrice: null }]);
 
   const removeRow = (id: string) =>
     setRows(rs => (rs.length === 1 ? rs : rs.filter(r => r.id !== id)));
@@ -60,75 +59,77 @@ export default function AddStockPane() {
   const onQtyChange = (id: string, qty: number | null) =>
     setRow(id, r => {
       r.qty = qty;
-
-      if (qty == null || qty === 0) {
-        // if qty is empty or 0, we can’t meaningfully calculate prices
-        // so just clear both unit & total
-        r.unitPrice = null;
-        r.totalPrice = null;
-      } else if (r.unitPrice != null) {
-        // recalc total when qty + unit price exist
-        r.totalPrice = round2(qty * r.unitPrice);
-      } else if (r.totalPrice != null) {
-        // recalc unit when qty + total price exist
-        r.unitPrice = round2(r.totalPrice / qty);
-      }
-
       return r;
     });
+  // const onQtyChange = (id: string, qty: number | null) =>
+  //   setRow(id, r => {
+  //     r.qty = qty;
 
-  const onUnitChange = (id: string, unit: number | null) =>
-    setRow(id, r => {
-      r.unitPrice = unit;
+  //     if (qty == null || qty === 0) {
+  //       // if qty is empty or 0, we can’t meaningfully calculate prices
+  //       // so just clear both unit & total
+  //       r.unitPrice = null;
+  //       r.totalPrice = null;
+  //     } else if (r.unitPrice != null) {
+  //       // recalc total when qty + unit price exist
+  //       r.totalPrice = round2(qty * r.unitPrice);
+  //     } else if (r.totalPrice != null) {
+  //       // recalc unit when qty + total price exist
+  //       r.unitPrice = round2(r.totalPrice / qty);
+  //     }
 
-      if (unit == null) {
-        // if unit price cleared, also clear total
-        r.totalPrice = null;
-      } else if (r.qty && r.qty !== 0) {
-        // recalc total when possible (keep your current 0 behavior)
-        r.totalPrice = round2(r.qty * unit);
-      }
-      return r;
-    });
+  //     return r;
+  //   });
 
-  const onTotalChange = (id: string, total: number | null) =>
-    setRow(id, r => {
-      r.totalPrice = total;
+  // const onUnitChange = (id: string, unit: number | null) =>
+  //   setRow(id, r => {
+  //     r.unitPrice = unit;
 
-      if (total == null) {
-        // if total cleared, also clear unit price
-        r.unitPrice = null;
-      } else if (r.qty && r.qty !== 0) {
-        // recalc unit when possible (avoid divide-by-zero)
-        r.unitPrice = round2(total / r.qty);
-      }
-      return r;
-    });
+  //     if (unit == null) {
+  //       // if unit price cleared, also clear total
+  //       r.totalPrice = null;
+  //     } else if (r.qty && r.qty !== 0) {
+  //       // recalc total when possible (keep your current 0 behavior)
+  //       r.totalPrice = round2(r.qty * unit);
+  //     }
+  //     return r;
+  //   });
 
-  function round2(n: number) {
-    return Math.round(n * 100) / 100;
-  }
+  // const onTotalChange = (id: string, total: number | null) =>
+  //   setRow(id, r => {
+  //     r.totalPrice = total;
+
+  //     if (total == null) {
+  //       // if total cleared, also clear unit price
+  //       r.unitPrice = null;
+  //     } else if (r.qty && r.qty !== 0) {
+  //       // recalc unit when possible (avoid divide-by-zero)
+  //       r.unitPrice = round2(total / r.qty);
+  //     }
+  //     return r;
+  //   });
+
+  // function round2(n: number) {
+  //   return Math.round(n * 100) / 100;
+  // }
 
   const submit = async () => {
     const invalid = rows.some(
-      r => !r.product || r.qty == null || (recordAsTxn && r.unitPrice == null && r.totalPrice == null)
+      r => !r.product || r.qty == null
     );
     if (invalid) {
-      alert("请完善每一行：商品、数量，以及（如果记录为交易）单价或总价。");
+      alert("请完善每一行的商品及数量。");
       return;
     }
 
     const payload = rows.map(r => ({
       product: r.product,
       qty: r.qty!,
-      unit_price: recordAsTxn ? r.unitPrice : null,
-      total_price: recordAsTxn ? r.totalPrice : null,
-      record_as_transaction: recordAsTxn,
     }));
 
     try {
       await invoke("add_stock_batch", { items: payload });
-      setRows([{ id: uuidv4(), product: "", qty: null, unitPrice: null, totalPrice: null }]);
+      setRows([{ id: uuidv4(), product: "", qty: null}]); //, unitPrice: null, totalPrice: null }]);
       alert("入库成功！");
     } catch (e: any) {
       alert(e?.toString?.() ?? "提交失败");
@@ -170,14 +171,14 @@ export default function AddStockPane() {
       <div className="product-table-container">
         {/* Header bar */}
         <div style={{ display: "flex", alignItems: "center", gap: 16, marginBottom: 8 }}>
-          <label style={{ display: "flex", alignItems: "center", gap: 6 }}>
+          {/* <label style={{ display: "flex", alignItems: "center", gap: 6 }}>
             <input
               type="checkbox"
               checked={recordAsTxn}
               onChange={(e) => setRecordAsTxn(e.target.checked)}
             />
             记录为交易
-          </label>
+          </label> */}
           <button className="add-btn" onClick={addRow}>添加一行</button>
         </div>
 
@@ -186,8 +187,8 @@ export default function AddStockPane() {
             <tr>
               <th style={{ width: 380 }}>产品</th>
               <th style={{ width: 110 }}>数量</th>
-              {recordAsTxn && <th style={{ width: 140 }}>单价</th>}
-              {recordAsTxn && <th style={{ width: 160 }}>总价</th>}
+              {/* {recordAsTxn && <th style={{ width: 140 }}>单价</th>}
+              {recordAsTxn && <th style={{ width: 160 }}>总价</th>} */}
               <th style={{ width: 80 }}>操作</th>
             </tr>
           </thead>
@@ -226,7 +227,7 @@ export default function AddStockPane() {
                 </td>
 
                 {/* Prices (conditionally shown) */}
-                {recordAsTxn && (
+                {/* {recordAsTxn && (
                   <>
                     <td>
                       <input
@@ -249,7 +250,7 @@ export default function AddStockPane() {
                       />
                     </td>
                   </>
-                )}
+                )} */}
 
                 {/* Actions */}
                 <td>
@@ -266,7 +267,7 @@ export default function AddStockPane() {
 
             {rows.length === 0 && (
               <tr>
-                <td colSpan={recordAsTxn ? 5 : 3} style={{ padding: 16, opacity: 0.6 }}>
+                <td colSpan={3} style={{ padding: 16, opacity: 0.6 }}>
                   暂无条目
                 </td>
               </tr>
