@@ -11,6 +11,17 @@ if db_url.startswith("libsql://"):
 # Connect to the Turso database
 client = create_client(url=db_url, auth_token=auth_token)
 
+# create the Product table
+create_table_sql = """
+CREATE TABLE IF NOT EXISTS Product (
+    name TEXT PRIMARY KEY NOT NULL,
+    shelf_life_days INTEGER,
+    picture BLOB,
+    location TEXT
+);
+"""
+await client.execute(create_table_sql)
+
 # Create the Stock table if it doesn't exist
 stock_sql = """
 CREATE TABLE IF NOT EXISTS Stock (
@@ -22,17 +33,6 @@ CREATE TABLE IF NOT EXISTS Stock (
 );
 """
 await client.execute(stock_sql)
-
-# create the Product table
-create_table_sql = """
-CREATE TABLE IF NOT EXISTS Product (
-    name TEXT PRIMARY KEY NOT NULL,
-    shelf_life_days INTEGER,
-    picture BLOB,
-    location TEXT
-);
-"""
-await client.execute(create_table_sql)
 
 # Transactions
 
