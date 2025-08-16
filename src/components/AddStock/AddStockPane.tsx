@@ -16,11 +16,11 @@ type Row = {
 };
 
 // safe numeric parser: "" -> null, valid -> number
-// function parseNum(s: string): number | null {
-//   if (s.trim() === "") return null;
-//   const n = Number(s);
-//   return Number.isFinite(n) ? n : null;
-// }
+function parseNum(s: string): number | null {
+  if (s.trim() === "") return null;
+  const n = Number(s);
+  return Number.isFinite(n) ? n : null;
+}
 
 export default function AddStockPane() {
   const [products, setProducts] = useState<Product[]>([]);
@@ -56,6 +56,11 @@ export default function AddStockPane() {
     setRows(rs => (rs.length === 1 ? rs : rs.filter(r => r.id !== id)));
 
   // price syncing
+  const onQtyChange = (id: string, qty: number | null) =>
+    setRow(id, r => {
+      r.qty = qty;
+      return r;
+    });
   // const onQtyChange = (id: string, qty: number | null) =>
   //   setRow(id, r => {
   //     r.qty = qty;
@@ -217,7 +222,7 @@ export default function AddStockPane() {
                     type="number"
                     min={0}
                     value={r.qty ?? ""}
-                    // onChange={(e) => onQtyChange(r.id, parseNum(e.target.value))}
+                    onChange={(e) => onQtyChange(r.id, parseNum(e.target.value))}
                   />
                 </td>
 
