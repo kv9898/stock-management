@@ -16,6 +16,11 @@ type Row = {
   // totalPrice: number | null;
 };
 
+// helpers
+const makeEmptyRow = (): Row => ({ id: uuidv4(), product: "", qty: null, expiry: null });
+const isRowEmpty = (r: Row) => !r.product && r.qty == null && !r.expiry;
+const isRowComplete = (r: Row) => !!r.product && r.qty != null && !!r.expiry;
+
 // safe numeric parser: "" -> null, valid -> number
 function parseNum(s: string): number | null {
   if (s.trim() === "") return null;
@@ -46,15 +51,24 @@ export default function AddStockPane() {
     [products]
   );
 
-  const setRow = (id: string, updater: (r: Row) => Row) => {
-    setRows(rs => rs.map(r => (r.id === id ? updater({ ...r }) : r)));
+  // keep a trailing empty row at all times
+  const ensureTrailingBlank = (list: Row[]) => {
+    if (list.length === 0) return [makeEmptyRow()];
+    const last = list[list.length - 1];
+    return isRowEmpty(last) ? list : [...list, makeEmptyRow()];
   };
 
-  const addRow = () =>
-    setRows(rs => [...rs, { id: uuidv4(), product: "", qty: null, expiry: null}]);//, unitPrice: null, totalPrice: null }]);
+  const setRow = (id: string, updater: (r: Row) => Row) => {
+    setRows((rs) => ensureTrailingBlank(rs.map((r) => (r.id === id ? updater({ ...r }) : r))));
+  };
 
-  const removeRow = (id: string) =>
-    setRows(rs => (rs.length === 1 ? rs : rs.filter(r => r.id !== id)));
+  const removeRow = (id: string) => {
+    setRows((rs) => {
+      const after = rs.filter((r) => r.id !== id);
+      // never remove the only (blank) row; always keep one ghost at the end
+      return ensureTrailingBlank(after.length === 0 ? [makeEmptyRow()] : after);
+    });
+  };
 
   // price syncing
   const onQtyChange = (id: string, qty: number | null) =>
@@ -119,24 +133,35 @@ export default function AddStockPane() {
   // }
 
   const submit = async () => {
-    const invalid = rows.some(
-      r => !r.product || r.qty == null || !r.expiry
-    );
-    if (invalid) {
-      alert("请完善每一行：产品、数量、有效期。");
+    // Treat the last row as "ghost" if it's empty
+    const isGhost = (r: Row, idx: number) =>
+      idx === rows.length - 1 && isRowEmpty(r);
+
+    const nonGhostRows = rows.filter((r, idx) => !isGhost(r, idx));
+
+    // Must have at least one real row
+    if (nonGhostRows.length === 0) {
+      alert("请至少填写一条记录。");
       return;
     }
 
-    const payload = rows.map(r => ({
+    // All non-ghost rows must be complete
+    const firstInvalidIdx = nonGhostRows.findIndex(r => !isRowComplete(r));
+    if (firstInvalidIdx !== -1) {
+      alert("存在未填写完整的行（产品、数量、有效期均必填）。");
+      return;
+    }
+
+    const payload = nonGhostRows.map(r => ({
       name: r.product,
-      expiry_date: r.expiry!,
+      expiry_date: r.expiry!, // safe due to isRowComplete
       qty: r.qty!,
     }));
 
     try {
       await invoke("add_stock", { changes: payload });
-      setRows([{ id: uuidv4(), product: "", qty: null, expiry: null }]); //, unitPrice: null, totalPrice: null }]);
-      alert("入库成功！");
+      setRows([makeEmptyRow()]); // reset to a single ghost row
+      alert("提交成功！");
     } catch (e: any) {
       alert(e?.toString?.() ?? "提交失败");
     }
@@ -175,18 +200,6 @@ export default function AddStockPane() {
   return (
     <div className="product-pane">
       <div className="product-table-container">
-        {/* Header bar */}
-        <div style={{ display: "flex", alignItems: "center", gap: 16, marginBottom: 8 }}>
-          {/* <label style={{ display: "flex", alignItems: "center", gap: 6 }}>
-            <input
-              type="checkbox"
-              checked={recordAsTxn}
-              onChange={(e) => setRecordAsTxn(e.target.checked)}
-            />
-            记录为交易
-          </label> */}
-          <button className="add-btn" onClick={addRow}>添加一行</button>
-        </div>
 
         <table className="product-table">
           <thead>
@@ -281,13 +294,6 @@ export default function AddStockPane() {
               </tr>
             ))}
 
-            {rows.length === 0 && (
-              <tr>
-                <td colSpan={3} style={{ padding: 16, opacity: 0.6 }}>
-                  暂无条目
-                </td>
-              </tr>
-            )}
           </tbody>
         </table>
       </div>
