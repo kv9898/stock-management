@@ -93,8 +93,8 @@ export default function ProductManagementPane() {
             <tr>
               <th>名称</th>
               <th style={{ width: "140px" }}>分类</th>
-              <th style={{ width: "100px" }}>会员单价</th>
-              <th style={{ width: "50px" }}>图片</th>
+              <th style={{ width: "100px", textAlign: "right" }}>会员单价</th>
+              <th style={{ width: "50px", textAlign: "center" }}>图片</th>
               <th style={{ width: "140px" }}>操作</th>
             </tr>
           </thead>
@@ -103,8 +103,8 @@ export default function ProductManagementPane() {
               <tr key={p.name} className="product-row">
                 <td className="name-cell">{p.name}</td>
                 <td>{p.type}</td>
-                <td>{p.price}</td>
-                <td>{p.picture ? "√" : ""}</td>
+                <td style={{ textAlign: "right" }}>{p.price}</td>
+                <td style={{ textAlign: "center" }}>{p.picture ? "√" : ""}</td>
                 <td>
                   <button className="action-btn" onClick={() => openEditModal(p)}>
                     编辑
