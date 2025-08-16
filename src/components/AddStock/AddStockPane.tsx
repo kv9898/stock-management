@@ -11,8 +11,8 @@ type Row = {
   id: string;
   product: string;          // product name
   qty: number | null;
-  unitPrice: number | null; // per-unit price
-  totalPrice: number | null;
+  // unitPrice: number | null; // per-unit price
+  // totalPrice: number | null;
 };
 
 // safe numeric parser: "" -> null, valid -> number
@@ -25,7 +25,7 @@ type Row = {
 export default function AddStockPane() {
   const [products, setProducts] = useState<Product[]>([]);
   const [rows, setRows] = useState<Row[]>([
-    { id: uuidv4(), product: "", qty: null, unitPrice: null, totalPrice: null },
+    { id: uuidv4(), product: "", qty: null} //, unitPrice: null, totalPrice: null },
   ]);
 
   useEffect(() => {
@@ -124,7 +124,7 @@ export default function AddStockPane() {
 
     try {
       await invoke("add_stock_batch", { items: payload });
-      setRows([{ id: uuidv4(), product: "", qty: null, unitPrice: null, totalPrice: null }]);
+      setRows([{ id: uuidv4(), product: "", qty: null}]); //, unitPrice: null, totalPrice: null }]);
       alert("入库成功！");
     } catch (e: any) {
       alert(e?.toString?.() ?? "提交失败");
