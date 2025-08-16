@@ -13,7 +13,7 @@ pub struct Product {
     pub name: String,
     pub price: Option<i64>,
     pub picture: Option<String>,
-    pub location: Option<String>,
+    pub product_type: Option<String>,
 }
 
 #[tauri::command]
@@ -32,7 +32,7 @@ pub async fn get_all_products() -> Result<Vec<Product>, String> {
                     "SELECT
                    name,
                    price,
-                   location,
+                   type,
                    CASE
                      WHEN picture IS NULL OR length(picture) = 0 THEN 0
                      ELSE 1
@@ -61,10 +61,7 @@ pub async fn get_all_products() -> Result<Vec<Product>, String> {
                     }
                 };
 
-                let location = row
-                    .try_column::<&str>("location")
-                    .ok()
-                    .map(|s| s.to_string());
+                let product_type = row.try_column::<&str>("type").ok().map(|s| s.to_string());
 
                 // 0/1 flag -> Some("Yes") / None (so your existing TS type still works)
                 let has_picture: i64 = row.try_column::<i64>("has_picture").unwrap_or(0);
@@ -78,7 +75,7 @@ pub async fn get_all_products() -> Result<Vec<Product>, String> {
                     name,
                     price,
                     picture, // <- "Yes" or null
-                    location,
+                    product_type,
                 });
             }
 
@@ -103,7 +100,7 @@ pub async fn get_product(name: String, price: Option<i64>) -> Result<Product, St
             let escaped_name = name.replace('\'', "''");
 
             let query = format!(
-                "SELECT name, price, picture, location FROM Product WHERE name = '{}'",
+                "SELECT name, price, picture, type FROM Product WHERE name = '{}'",
                 escaped_name
             );
 
@@ -131,10 +128,7 @@ pub async fn get_product(name: String, price: Option<i64>) -> Result<Product, St
                 }
             };
 
-            let location = row
-                .try_column::<&str>("location")
-                .ok()
-                .map(|s| s.to_string());
+            let product_type = row.try_column::<&str>("type").ok().map(|s| s.to_string());
 
             let picture = row
                 .try_column::<&[u8]>("picture")
@@ -158,7 +152,7 @@ pub async fn get_product(name: String, price: Option<i64>) -> Result<Product, St
                 name: actual_name,
                 price: actual_price,
                 picture,
-                location,
+                product_type,
             })
         })
     })
@@ -256,12 +250,12 @@ pub async fn add_product(product: Product) -> Result<(), String> {
             let name = sql_quote(&product.name);
             let price = to_sql_null_or_int(product.price);
             let picture_sql = to_sql_null_or_blob_hex(&product.picture)?;
-            let location_sql = to_sql_null_or_string(&product.location);
+            let type_sql = to_sql_null_or_string(&product.product_type);
 
             // Fail if exists (unique name)
             let insert_sql = format!(
-                "INSERT INTO Product (name, price, picture, location) VALUES ('{}', {}, {}, {});",
-                name, price, picture_sql, location_sql
+                "INSERT INTO Product (name, price, picture, type) VALUES ('{}', {}, {}, {});",
+                name, price, picture_sql, type_sql
             );
 
             let res = client
@@ -307,13 +301,13 @@ pub async fn update_product(product: Product) -> Result<(), String> {
 
             let price = to_sql_null_or_int(product.price);
             let picture_sql = to_sql_null_or_blob_hex(&product.picture)?;
-            let location_sql = to_sql_null_or_string(&product.location);
+            let type_sql = to_sql_null_or_string(&product.product_type);
 
             let update_sql = format!(
                 "UPDATE Product
-                 SET price = {}, picture = {}, location = {}
+                 SET price = {}, picture = {}, type = {}
                  WHERE name = '{}';",
-                price, picture_sql, location_sql, name
+                price, picture_sql, type_sql, name
             );
 
             let res = client
