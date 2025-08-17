@@ -5,7 +5,8 @@ use serde::{Deserialize, Serialize};
 use tokio::task;
 
 use crate::db::{
-    get_db_config, sql_quote, to_sql_null_or_blob_hex, to_sql_null_or_int, to_sql_null_or_string,
+    get_db_config, ignore_empty_baton_commit, sql_quote, to_sql_null_or_blob_hex,
+    to_sql_null_or_int, to_sql_null_or_string,
 };
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -276,49 +277,100 @@ pub async fn add_product(product: Product) -> Result<(), String> {
     .map_err(|e| e.to_string())?
 }
 
+#[derive(Deserialize, Debug)]
+pub struct UpdateProductArgs {
+    product: Product,
+    #[serde(default)] // if key is missing, becomes None (not an error)
+    old_name: Option<String>,
+}
+
 #[tauri::command]
-pub async fn update_product(product: Product) -> Result<(), String> {
+pub async fn update_product(args: UpdateProductArgs) -> Result<(), String> {
+    let product = args.product;
     task::spawn_blocking(move || {
         let rt = tokio::runtime::Runtime::new().unwrap();
-        rt.block_on(async {
-            let config = crate::db::get_db_config()
-                .await
-                .map_err(|e| e.to_string())?;
+        rt.block_on(async move {
+            // 1) connect
+            let config = get_db_config().await.map_err(|e| e.to_string())?;
             let client = Client::from_config(config)
                 .await
                 .map_err(|e| e.to_string())?;
 
-            let name = sql_quote(&product.name);
-
-            // Ensure it exists first (clearer error)
-            let exists_sql = format!("SELECT 1 FROM Product WHERE name = '{}' LIMIT 1;", name);
-            let exists = client
-                .execute(exists_sql)
+            // IMPORTANT: enable FKs so ON UPDATE CASCADE fires
+            client
+                .execute("PRAGMA foreign_keys = ON;")
                 .await
                 .map_err(|e| e.to_string())?;
-            if exists.rows.is_empty() {
-                return Err(format!("产品不存在：{}", product.name));
-            }
 
-            let price = to_sql_null_or_int(product.price);
+            // 2) begin tx
+            let tx = client.transaction().await.map_err(|e| e.to_string())?;
+
+            // normalize inputs
+            let old = args.old_name.unwrap_or_else(|| product.name.clone());
+            let old_q = sql_quote(&old);
+            let new_q = sql_quote(&product.name);
+
+            let price_sql = to_sql_null_or_int(product.price);
             let picture_sql = to_sql_null_or_blob_hex(&product.picture)?;
             let type_sql = to_sql_null_or_string(&product.r#type);
 
-            let update_sql = format!(
-                "UPDATE Product
-                 SET price = {}, picture = {}, type = {}
-                 WHERE name = '{}';",
-                price, picture_sql, type_sql, name
-            );
-
-            let res = client
-                .execute(update_sql)
+            // 3) checks inside the tx
+            // ensure the original row exists
+            let exists = tx
+                .execute(format!(
+                    "SELECT 1 FROM Product WHERE name='{}' LIMIT 1;",
+                    old_q
+                ))
                 .await
                 .map_err(|e| e.to_string())?;
+            if exists.rows.is_empty() {
+                // not committing aborts the tx
+                return Err(format!("产品不存在：{}", old));
+            }
+
+            // if renaming, ensure target name not taken
+            let is_renaming = new_q != old_q;
+            if is_renaming {
+                let dup = tx
+                    .execute(format!(
+                        "SELECT 1 FROM Product WHERE name='{}' LIMIT 1;",
+                        new_q
+                    ))
+                    .await
+                    .map_err(|e| e.to_string())?;
+                if !dup.rows.is_empty() {
+                    return Err(format!("产品名已存在：{}", product.name));
+                }
+            }
+
+            // 4) perform update (rename triggers FK cascade to Stock.name)
+            let sql = if is_renaming {
+                format!(
+                    "UPDATE Product
+                       SET name='{}', price={}, picture={}, type={}
+                     WHERE name='{}';",
+                    new_q, price_sql, picture_sql, type_sql, old_q
+                )
+            } else {
+                format!(
+                    "UPDATE Product
+                       SET price={}, picture={}, type={}
+                     WHERE name='{}';",
+                    price_sql, picture_sql, type_sql, old_q
+                )
+            };
+
+            let res = tx.execute(sql).await.map_err(|e| e.to_string())?;
             if res.rows_affected == 0 {
                 return Err("更新失败：未影响任何行。".into());
             }
 
+            // 5) commit (use your helper if you have it)
+            // If you have `ignore_empty_baton_commit`, use it like your example:
+            // let commit_res = tx.commit().await;
+            // ignore_empty_baton_commit(commit_res)?;
+            let commit_res = tx.commit().await;
+            ignore_empty_baton_commit(commit_res)?;
             Ok(())
         })
     })

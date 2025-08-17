@@ -11,6 +11,9 @@ if db_url.startswith("libsql://"):
 # Connect to the Turso database
 client = create_client(url=db_url, auth_token=auth_token)
 
+# Turn on FK enforcement for THIS connection (safe; no data change)
+await client.execute("PRAGMA foreign_keys = ON;")
+
 # create the Product table
 create_table_sql = """
 CREATE TABLE IF NOT EXISTS Product (
@@ -30,6 +33,8 @@ CREATE TABLE IF NOT EXISTS Stock (
   expiry TEXT NOT NULL,
   quantity INTEGER DEFAULT 0,
   FOREIGN KEY (name) REFERENCES Product(name)
+    ON UPDATE CASCADE
+    ON DELETE RESTRICT
 );
 """
 await client.execute(stock_sql)
