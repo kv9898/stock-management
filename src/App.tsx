@@ -4,7 +4,7 @@ import SidebarButton from "./components/sidebarButton";
 import { tabs, renderTabContent } from "./tabs";
 
 function App() {
-  const [activeTab, setActiveTab] = useState("dataAnalysis");
+  const [activeTab, setActiveTab] = useState("viewStock");
 
   return (
     <div className="app-wrapper">
