@@ -4,6 +4,7 @@ import { invoke } from "@tauri-apps/api/core";
 import { v4 as uuidv4 } from 'uuid';
 
 import type { Product } from "../../types/product";
+import { ExpiryDatePicker } from "./ExpiryDatePicker";
 
 import './AddStockPane.css'
 
@@ -268,14 +269,14 @@ export default function AddStockPane() {
 
                 {/* Expiry date */}
                 <td>
-                  <input
-                    type="date"
+                  <ExpiryDatePicker
                     value={r.expiry ?? ""}
-                    onChange={(e) => onExpiryChange(r.id, e.target.value)}
                     ref={(el) => {
                       inputRefs.current[rowIdx][1] = el;
                     }}
-                    onKeyDown={(e) => handleEnter(e, rowIdx, 1)}
+                    onChange={(v) => onExpiryChange(r.id, v ?? "")}
+                    onEnterNext={(e) => handleEnter(e, rowIdx, 1)}
+                    onFinish={() => handleEnter(null, rowIdx, 1)}
                   />
                 </td>
 
