@@ -7,10 +7,12 @@ import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 // inside your row rendering
 export function ExpiryDatePicker({
   value,                // string | null, e.g. "2024-06-25"
+  ref,                  // React ref for focus management
   onChange,             // (s: string | null) => void
   onEnterNext,          // () => void  (move focus to qty field)
 }: {
   value: string | null;
+  ref?: React.Ref<HTMLInputElement>;
   onChange: (s: string | null) => void;
   onEnterNext: () => void;
 }) {
@@ -21,6 +23,7 @@ export function ExpiryDatePicker({
     <LocalizationProvider dateAdapter={AdapterDayjs} adapterLocale="zh-cn">
       <DatePicker
         value={dj}
+        ref={ref}
         format="YYYY/MM/DD"          // display format you want
         minDate={dayjs("1900-01-01")} // clamp years (prevents 6-digit weirdness)
         maxDate={dayjs("2099-12-31")}
