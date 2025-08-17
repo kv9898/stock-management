@@ -1,5 +1,6 @@
 import ProductManagementPane from "./components/ProductManagement/productManagementPane";
-import AddStockPane from "./components/AddStock/AddStockPane";
+import AddStockPane from "./components/Stock/AddStockPane";
+import RemoveStockPane from "./components/Stock/RemoveStockPane";
 
 import './tabs.css'
 
@@ -18,7 +19,7 @@ export const renderTabContent = (activeTab: string) => {
     case "addStock":
       return <AddStockPane />;
     case "removeStock":
-      return <h2>移出库存</h2>;
+      return <RemoveStockPane />;
     case "expiryWarnings":
       return (
         <>
