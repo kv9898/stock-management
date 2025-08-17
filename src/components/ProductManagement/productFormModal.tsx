@@ -29,6 +29,8 @@ export default function ProductFormModal({
 
    useEffect(() => {
     if (mode === "edit" && product) {
+      setName(product.name);
+      setOriginalName(product.name);
       (async () => {
         const result = await invoke<Product>("get_product", {
           name: product.name,
@@ -83,7 +85,7 @@ export default function ProductFormModal({
 
   const handleSubmit = () => {
     if (!name) return;
-    onSubmit({ name, price, picture, type }, originalName); // send RAW base64
+    onSubmit({ name, price, picture, type }, originalName ?? product?.name); // send RAW base64
     onClose();
   };
 

@@ -141,7 +141,8 @@ export default function ProductManagementPane() {
             if (modalMode === "add") {
               await invoke("add_product", { product: data });
             } else {
-              await invoke("update_product", { product: data, old_name: oldName } );
+              const payload = { product: data, old_name: oldName ?? selectedProduct?.name };
+              await invoke("update_product", {args: payload});
             }
             setShowModal(false);
             fetchProducts();
