@@ -3,16 +3,19 @@ import { useEffect, useMemo, useState } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import { DataGrid, GridColDef } from "@mui/x-data-grid";
 import Plot from "react-plotly.js";
+import { FormControl, InputLabel, MenuItem, Select } from "@mui/material";
 
-type StockSummary = { name: string; total_quantity: number };
+type StockSummary = { name: string; total_quantity: number; type?: string | null };
 type Bucket = { expiry: string; quantity: number };
 
-// Shared container
 const Container: React.FC<{ children: React.ReactNode }> = ({ children }) => (
   <div style={{ padding: 16, display: "flex", flexDirection: "column", gap: 12, height: "100%" }}>
     {children}
   </div>
 );
+
+const ALL = "__ALL__";
+const UNCLASSIFIED = "__UNCLASSIFIED__";
 
 export default function ViewStockTab() {
   const [mode, setMode] = useState<"list" | "detail">("list");
@@ -20,27 +23,58 @@ export default function ViewStockTab() {
   const [rows, setRows] = useState<StockSummary[]>([]);
   const [selectedName, setSelectedName] = useState<string | null>(null);
 
+  // Type filtering (client-side)
+  const [selectedType, setSelectedType] = useState<string>(ALL);
+
   // Detail data
   const [buckets, setBuckets] = useState<Bucket[]>([]);
   const [loadingDetail, setLoadingDetail] = useState(false);
 
-  // Load overview once
+  // Fetch everything once
   useEffect(() => {
-    (async () => {
-      const res = await invoke<StockSummary[]>("get_stock_overview");
-      setRows(res);
-    })().catch(err => {
-      console.error(err);
-      alert(String(err));
-    });
+    invoke<StockSummary[]>("get_stock_overview")
+      .then(setRows)
+      .catch((err) => {
+        console.error(err);
+        alert(String(err));
+      });
   }, []);
 
-  // When entering detail mode, load histogram
+  // Distinct types from data
+  const typeOptions = useMemo(() => {
+    const set = new Set<string>();
+    for (const r of rows) {
+      if (r.type == null) set.add(UNCLASSIFIED);
+      else set.add(r.type);
+    }
+    return [ALL, ...Array.from(set).sort((a, b) => {
+      if (a === UNCLASSIFIED) return 1;
+      if (b === UNCLASSIFIED) return -1;
+      return a.localeCompare(b, undefined, { sensitivity: "base", numeric: true });
+    })];
+  }, [rows]);
+
+  // Filter locally: first by type, then by search
+  const filtered = useMemo(() => {
+    let list = rows;
+    if (selectedType !== ALL) {
+      list = list.filter((r) =>
+        selectedType === UNCLASSIFIED ? !r.type : r.type === selectedType
+      );
+    }
+    const q = search.trim().toLowerCase();
+    if (q) {
+      list = list.filter((r) => r.name.toLowerCase().includes(q));
+    }
+    return list;
+  }, [rows, search, selectedType]);
+
+  // Load histogram on detail
   useEffect(() => {
     if (mode !== "detail" || !selectedName) return;
     setLoadingDetail(true);
     invoke<Bucket[]>("get_stock_histogram", { name: selectedName })
-      .then((res) => setBuckets(res))
+      .then(setBuckets)
       .catch((err) => {
         console.error(err);
         alert(String(err));
@@ -48,14 +82,9 @@ export default function ViewStockTab() {
       .finally(() => setLoadingDetail(false));
   }, [mode, selectedName]);
 
-  const filtered = useMemo(() => {
-    const q = search.trim().toLowerCase();
-    if (!q) return rows;
-    return rows.filter(r => r.name.toLowerCase().includes(q));
-  }, [rows, search]);
-
   const columns: GridColDef[] = [
     { field: "name", headerName: "产品", flex: 1, minWidth: 160 },
+    { field: "type", headerName: "类型", width: 140, valueGetter: (_value, row) => row.type ?? "未分类" },
     { field: "total_quantity", headerName: "数量", type: "number", width: 120 },
   ];
 
@@ -84,18 +113,12 @@ export default function ViewStockTab() {
             <div style={{ opacity: 0.7, padding: 12 }}>暂无该产品的库存</div>
           ) : (
             <Plot
-              data={[{
-                type: "bar",
-                x,
-                y,
-                hovertemplate: "到期日：%{x}<br>数量：%{y}<extra></extra>",
-              } as Partial<Plotly.PlotData>]}
+              data={[{ type: "bar", x, y, hovertemplate: "到期日：%{x}<br>数量：%{y}<extra></extra>" } as Partial<Plotly.PlotData>]}
               layout={{
                 margin: { t: 16, r: 16, b: 48, l: 48 },
                 xaxis: { title: "到期日", type: "category", categoryorder: "array", categoryarray: x, tickangle: -45 },
                 yaxis: { title: "数量", rangemode: "tozero" },
-                paper_bgcolor: "rgba(0,0,0,0)",
-                plot_bgcolor: "rgba(0,0,0,0)",
+                paper_bgcolor: "rgba(0,0,0,0)", plot_bgcolor: "rgba(0,0,0,0)",
               } as Partial<Plotly.Layout>}
               config={{ responsive: true, displayModeBar: false }}
               style={{ width: "100%", height: "100%" }}
@@ -105,7 +128,6 @@ export default function ViewStockTab() {
                 if (!pt) return;
                 const expiry = String(pt.x);
                 const qty = Number(pt.y);
-                // (3) Future: open quantity editor
                 alert(`未来可编辑：${selectedName}\n到期日：${expiry}\n当前数量：${qty}`);
               }}
             />
@@ -119,6 +141,26 @@ export default function ViewStockTab() {
   return (
     <Container>
       <div style={{ display: "flex", gap: 8 }}>
+        <FormControl size="small" style={{ minWidth: 160 }}>
+          <InputLabel id="type-filter-label">类型</InputLabel>
+          <Select
+            labelId="type-filter-label"
+            label="类型"
+            value={selectedType}
+            onChange={(e) => setSelectedType(String(e.target.value))}
+          >
+            {typeOptions.map((t) =>
+              t === ALL ? (
+                <MenuItem key={t} value={t}>(全部)</MenuItem>
+              ) : t === UNCLASSIFIED ? (
+                <MenuItem key={t} value={t}>(未分类)</MenuItem>
+              ) : (
+                <MenuItem key={t} value={t}>{t}</MenuItem>
+              )
+            )}
+          </Select>
+        </FormControl>
+
         <input
           type="search"
           value={search}
@@ -134,9 +176,8 @@ export default function ViewStockTab() {
           rows={filtered.map(r => ({ id: r.name, ...r }))}
           columns={columns}
           disableColumnMenu
-          autoPageSize={true}
+          autoPageSize
           pageSizeOptions={[10, 25, 50]}
-          initialState={{ pagination: { paginationModel: { pageSize: 25 } } }}
           onRowClick={(p) => { setSelectedName(p.row.name); setMode("detail"); }}
           sx={{
             borderRadius: 1,
