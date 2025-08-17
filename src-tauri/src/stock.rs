@@ -12,6 +12,12 @@ pub struct StockChange {
     pub qty: i64,
 }
 
+#[derive(Debug, Serialize, Deserialize)]
+pub struct StockLot {
+    pub expiry_date: String,
+    pub qty: i64,
+}
+
 #[tauri::command]
 pub async fn get_in_stock_products() -> Result<Vec<String>, String> {
     task::spawn_blocking(move || {
@@ -38,6 +44,50 @@ pub async fn get_in_stock_products() -> Result<Vec<String>, String> {
                     out.push(name);
                 }
             }
+            Ok(out)
+        })
+    })
+    .await
+    .map_err(|e| e.to_string())?
+}
+
+#[tauri::command]
+pub async fn get_stock_lots(name: String) -> Result<Vec<StockLot>, String> {
+    task::spawn_blocking(move || {
+        let rt = tokio::runtime::Runtime::new().unwrap();
+        rt.block_on(async move {
+            // DB client
+            let config = crate::db::get_db_config()
+                .await
+                .map_err(|e| e.to_string())?;
+            let client = Client::from_config(config)
+                .await
+                .map_err(|e| e.to_string())?;
+
+            let sql = format!(
+                "SELECT expiry, quantity
+                 FROM Stock
+                 WHERE name = '{}' AND quantity > 0
+                 ORDER BY expiry",
+                sql_quote(&name)
+            );
+
+            let rows = client.execute(sql).await.map_err(|e| e.to_string())?.rows;
+
+            let mut out = Vec::new();
+            for r in rows {
+                let expiry: String = r
+                    .try_column::<&str>("expiry")
+                    .map_err(|e| e.to_string())?
+                    .to_string();
+                let qty: i64 = r.try_column::<i64>("quantity").map_err(|e| e.to_string())?;
+
+                out.push(StockLot {
+                    expiry_date: expiry,
+                    qty,
+                });
+            }
+
             Ok(out)
         })
     })
