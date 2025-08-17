@@ -137,11 +137,11 @@ export default function ProductManagementPane() {
           mode={modalMode}
           product={selectedProduct}
           onClose={() => setShowModal(false)}
-          onSubmit={async (data) => {
+          onSubmit={async (data, oldName) => {
             if (modalMode === "add") {
               await invoke("add_product", { product: data });
             } else {
-              await invoke("update_product", { product: data });
+              await invoke("update_product", { product: data, old_name: oldName } );
             }
             setShowModal(false);
             fetchProducts();

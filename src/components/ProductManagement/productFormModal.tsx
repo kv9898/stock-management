@@ -8,7 +8,7 @@ import "./productFormModal.css";
 type ProductFormProps = {
   mode: "add" | "edit";
   product?: Product;
-  onSubmit: (data: Product) => void;
+  onSubmit: (data: Product, oldName?: string) => void;
   onClose: () => void;
 };
 
@@ -19,6 +19,7 @@ export default function ProductFormModal({
   onClose,
 }: ProductFormProps) {
   const [name, setName] = useState("");
+  const [originalName, setOriginalName] = useState<string | undefined>(undefined);
   const [price, setPrice] = useState<number | null>(null);
   const [picture, setPicture] = useState<string | null>(null); // Raw base64 payload for backend
   const [pictureURL, setPictureURL] = useState<string | null>(null); // Data URL for <img src=...>
@@ -34,6 +35,7 @@ export default function ProductFormModal({
           price: product.price,
         });
         setName(result.name);
+        setOriginalName(result.name);
         setPrice(result.price);
         setType(result.type);
 
@@ -43,6 +45,7 @@ export default function ProductFormModal({
       })();
     } else {
       setName("");
+      setOriginalName(undefined);
       setPrice(null);
       setPicture(null);
       setPictureURL(null);
@@ -80,7 +83,7 @@ export default function ProductFormModal({
 
   const handleSubmit = () => {
     if (!name) return;
-    onSubmit({ name, price, picture, type }); // send RAW base64
+    onSubmit({ name, price, picture, type }, originalName); // send RAW base64
     onClose();
   };
 
@@ -91,7 +94,6 @@ export default function ProductFormModal({
         <input
           id="product-name"
           value={name}
-          disabled={mode === "edit"}
           onChange={(e) => setName(e.target.value)}
         />
 
