@@ -9,7 +9,7 @@ import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 type Props = {
   value: string | null;                    // "YYYY-MM-DD" | null
   onChange: (s: string | null) => void;
-  onEnterNext: () => void;
+  onEnterNext: (e: React.KeyboardEvent<HTMLInputElement>) => void
 };
 
 export const ExpiryDatePicker = forwardRef<HTMLInputElement, Props>(
@@ -36,12 +36,7 @@ export const ExpiryDatePicker = forwardRef<HTMLInputElement, Props>(
             textField: {
               size: "small",
               inputRef, // <-- critical: gives you the real input element
-              onKeyDown: (e) => {
-                if (e.key === "Enter") {
-                  e.preventDefault();
-                  onEnterNext();
-                }
-              },
+              onKeyDown: onEnterNext,
               sx: {
                 "& .MuiInputBase-root": {
                   backgroundColor: "var(--bg-highlight)",

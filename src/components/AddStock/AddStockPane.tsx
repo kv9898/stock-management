@@ -284,7 +284,7 @@ export default function AddStockPane() {
                       inputRefs.current[rowIdx][1] = el;
                     }}
                     onChange={(v) => onExpiryChange(r.id, v ?? "")}
-                    onEnterNext={() => handleEnter(null, rowIdx, 1)}
+                    onEnterNext={(e) => handleEnter(e, rowIdx, 1)}
                   />
                 </td>
 
