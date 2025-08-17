@@ -269,15 +269,6 @@ export default function AddStockPane() {
 
                 {/* Expiry date */}
                 <td>
-                  {/* <input
-                    type="date"
-                    value={r.expiry ?? ""}
-                    onChange={(e) => onExpiryChange(r.id, e.target.value)}
-                    ref={(el) => {
-                      inputRefs.current[rowIdx][1] = el;
-                    }}
-                    onKeyDown={(e) => handleEnter(e, rowIdx, 1)}
-                  /> */}
                   <ExpiryDatePicker
                     value={r.expiry ?? ""}
                     ref={(el) => {
