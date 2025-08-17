@@ -101,12 +101,27 @@ export default function ViewStockTab() {
   }, [mode, selectedName]);
 
   const columns: GridColDef[] = [
-    { field: "name", headerName: "产品", flex: 1, minWidth: 160 },
+    {
+      field: "name",
+      headerName: "产品",
+      flex: 1,
+      minWidth: 160,
+      sortComparator: (a, b) =>
+        String(a ?? "").localeCompare(String(b ?? ""), undefined, {
+          sensitivity: "base",
+          numeric: true,
+        }),
+    },
     {
       field: "type",
       headerName: "类型",
       width: 140,
       valueGetter: (_value, row) => row.type ?? "未分类",
+      sortComparator: (a, b) =>
+        (a ?? "未分类").localeCompare(b ?? "未分类", undefined, {
+          sensitivity: "base",
+          numeric: true,
+        }),
     },
     { field: "total_quantity", headerName: "数量", type: "number", width: 120 },
   ];
@@ -232,7 +247,16 @@ export default function ViewStockTab() {
           columns={columns}
           disableColumnMenu
           autoPageSize
-          pageSizeOptions={[10, 25, 50]}
+          // pageSizeOptions={[10, 25, 50]}
+          paginationModel={{page: 0, pageSize: 25}}
+          initialState={{
+            sorting: {
+              sortModel: [
+                { field: "type", sort: "asc" },
+                { field: "name", sort: "asc" },
+              ],
+            },
+          }}
           onRowClick={(p) => {
             setSelectedName(p.row.name);
             setMode("detail");
