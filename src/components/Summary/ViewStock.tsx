@@ -5,11 +5,23 @@ import { DataGrid, GridColDef } from "@mui/x-data-grid";
 import Plot from "react-plotly.js";
 import { FormControl, InputLabel, MenuItem, Select } from "@mui/material";
 
-type StockSummary = { name: string; total_quantity: number; type?: string | null };
+type StockSummary = {
+  name: string;
+  total_quantity: number;
+  type?: string | null;
+};
 type Bucket = { expiry: string; quantity: number };
 
 const Container: React.FC<{ children: React.ReactNode }> = ({ children }) => (
-  <div style={{ padding: 16, display: "flex", flexDirection: "column", gap: 12, height: "100%" }}>
+  <div
+    style={{
+      padding: 16,
+      display: "flex",
+      flexDirection: "column",
+      gap: 12,
+      height: "100%",
+    }}
+  >
     {children}
   </div>
 );
@@ -47,11 +59,17 @@ export default function ViewStockTab() {
       if (r.type == null) set.add(UNCLASSIFIED);
       else set.add(r.type);
     }
-    return [ALL, ...Array.from(set).sort((a, b) => {
-      if (a === UNCLASSIFIED) return 1;
-      if (b === UNCLASSIFIED) return -1;
-      return a.localeCompare(b, undefined, { sensitivity: "base", numeric: true });
-    })];
+    return [
+      ALL,
+      ...Array.from(set).sort((a, b) => {
+        if (a === UNCLASSIFIED) return 1;
+        if (b === UNCLASSIFIED) return -1;
+        return a.localeCompare(b, undefined, {
+          sensitivity: "base",
+          numeric: true,
+        });
+      }),
+    ];
   }, [rows]);
 
   // Filter locally: first by type, then by search
@@ -84,20 +102,28 @@ export default function ViewStockTab() {
 
   const columns: GridColDef[] = [
     { field: "name", headerName: "产品", flex: 1, minWidth: 160 },
-    { field: "type", headerName: "类型", width: 140, valueGetter: (_value, row) => row.type ?? "未分类" },
+    {
+      field: "type",
+      headerName: "类型",
+      width: 140,
+      valueGetter: (_value, row) => row.type ?? "未分类",
+    },
     { field: "total_quantity", headerName: "数量", type: "number", width: 120 },
   ];
 
   if (mode === "detail" && selectedName) {
-    const x = buckets.map(b => b.expiry);
-    const y = buckets.map(b => b.quantity);
+    const x = buckets.map((b) => b.expiry);
+    const y = buckets.map((b) => b.quantity);
     const total = y.reduce((s, n) => s + (n ?? 0), 0);
 
     return (
       <Container>
         <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
           <button
-            onClick={() => { setMode("list"); setSelectedName(null); }}
+            onClick={() => {
+              setMode("list");
+              setSelectedName(null);
+            }}
             style={{ padding: "6px 12px", borderRadius: 6 }}
           >
             ← 返回
@@ -113,13 +139,29 @@ export default function ViewStockTab() {
             <div style={{ opacity: 0.7, padding: 12 }}>暂无该产品的库存</div>
           ) : (
             <Plot
-              data={[{ type: "bar", x, y, hovertemplate: "到期日：%{x}<br>数量：%{y}<extra></extra>" } as Partial<Plotly.PlotData>]}
-              layout={{
-                margin: { t: 16, r: 16, b: 48, l: 48 },
-                xaxis: { title: "到期日", type: "category", categoryorder: "array", categoryarray: x, tickangle: -45 },
-                yaxis: { title: "数量", rangemode: "tozero" },
-                paper_bgcolor: "rgba(0,0,0,0)", plot_bgcolor: "rgba(0,0,0,0)",
-              } as Partial<Plotly.Layout>}
+              data={[
+                {
+                  type: "bar",
+                  x,
+                  y,
+                  hovertemplate: "到期日：%{x}<br>数量：%{y}<extra></extra>",
+                } as Partial<Plotly.PlotData>,
+              ]}
+              layout={
+                {
+                  margin: { t: 16, r: 16, b: 48, l: 48 },
+                  xaxis: {
+                    title: "到期日",
+                    type: "category",
+                    categoryorder: "array",
+                    categoryarray: x,
+                    tickangle: -45,
+                  },
+                  yaxis: { title: "数量", rangemode: "tozero" },
+                  paper_bgcolor: "rgba(0,0,0,0)",
+                  plot_bgcolor: "rgba(0,0,0,0)",
+                } as Partial<Plotly.Layout>
+              }
               config={{ responsive: true, displayModeBar: false }}
               style={{ width: "100%", height: "100%" }}
               useResizeHandler
@@ -128,7 +170,9 @@ export default function ViewStockTab() {
                 if (!pt) return;
                 const expiry = String(pt.x);
                 const qty = Number(pt.y);
-                alert(`未来可编辑：${selectedName}\n到期日：${expiry}\n当前数量：${qty}`);
+                alert(
+                  `未来可编辑：${selectedName}\n到期日：${expiry}\n当前数量：${qty}`
+                );
               }}
             />
           )}
@@ -151,11 +195,17 @@ export default function ViewStockTab() {
           >
             {typeOptions.map((t) =>
               t === ALL ? (
-                <MenuItem key={t} value={t}>(全部)</MenuItem>
+                <MenuItem key={t} value={t}>
+                  (全部)
+                </MenuItem>
               ) : t === UNCLASSIFIED ? (
-                <MenuItem key={t} value={t}>(未分类)</MenuItem>
+                <MenuItem key={t} value={t}>
+                  (未分类)
+                </MenuItem>
               ) : (
-                <MenuItem key={t} value={t}>{t}</MenuItem>
+                <MenuItem key={t} value={t}>
+                  {t}
+                </MenuItem>
               )
             )}
           </Select>
@@ -167,18 +217,26 @@ export default function ViewStockTab() {
           onChange={(e) => setSearch(e.target.value)}
           placeholder="搜索产品…"
           onKeyDown={(e) => e.key === "Escape" && setSearch("")}
-          style={{ flex: 1, padding: "8px 10px", borderRadius: 6, border: "1px solid var(--border)" }}
+          style={{
+            flex: 1,
+            padding: "8px 10px",
+            borderRadius: 6,
+            border: "1px solid var(--border)",
+          }}
         />
       </div>
 
       <div style={{ flex: 1 }}>
         <DataGrid
-          rows={filtered.map(r => ({ id: r.name, ...r }))}
+          rows={filtered.map((r) => ({ id: r.name, ...r }))}
           columns={columns}
           disableColumnMenu
           autoPageSize
           pageSizeOptions={[10, 25, 50]}
-          onRowClick={(p) => { setSelectedName(p.row.name); setMode("detail"); }}
+          onRowClick={(p) => {
+            setSelectedName(p.row.name);
+            setMode("detail");
+          }}
           sx={{
             borderRadius: 1,
             bgcolor: "background.default",
