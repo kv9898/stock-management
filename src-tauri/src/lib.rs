@@ -5,7 +5,7 @@ mod summary;
 
 use db::init_db_tokens;
 use product::{add_product, delete_product, get_all_products, get_product, update_product};
-use stock::{add_stock, get_in_stock_products, get_stock_lots, remove_stock};
+use stock::{add_stock, edit_stock, get_in_stock_products, get_stock_lots, remove_stock};
 use summary::{get_stock_histogram, get_stock_overview};
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
@@ -25,6 +25,7 @@ pub fn run() {
             update_product,
             add_stock,
             remove_stock,
+            edit_stock,
             get_in_stock_products,
             get_stock_lots,
             get_stock_overview,
