@@ -100,6 +100,22 @@ export default function ViewStockTab() {
       .finally(() => setLoadingDetail(false));
   }, [mode, selectedName]);
 
+  const rowsForGrid = [...filtered] // pre-sorted
+    .sort((a, b) => {
+      const t1 = a.type ?? "未分类";
+      const t2 = b.type ?? "未分类";
+      const byType = t1.localeCompare(t2, undefined, {
+        sensitivity: "base",
+        numeric: true,
+      });
+      if (byType) return byType;
+      return a.name.localeCompare(b.name, undefined, {
+        sensitivity: "base",
+        numeric: true,
+      });
+    })
+    .map((r) => ({ id: r.name, ...r }));
+
   const columns: GridColDef[] = [
     {
       field: "name",
@@ -243,20 +259,12 @@ export default function ViewStockTab() {
 
       <div style={{ flex: 1 }}>
         <DataGrid
-          rows={filtered.map((r) => ({ id: r.name, ...r }))}
+          rows={rowsForGrid}
           columns={columns}
           disableColumnMenu
           autoPageSize
           // pageSizeOptions={[10, 25, 50]}
-          paginationModel={{page: 0, pageSize: 25}}
-          initialState={{
-            sorting: {
-              sortModel: [
-                { field: "type", sort: "asc" },
-                { field: "name", sort: "asc" },
-              ],
-            },
-          }}
+          paginationModel={{ page: 0, pageSize: 25 }}
           onRowClick={(p) => {
             setSelectedName(p.row.name);
             setMode("detail");
