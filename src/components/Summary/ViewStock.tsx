@@ -7,7 +7,7 @@ import Plot from "react-plotly.js";
 type StockSummary = { name: string; total_quantity: number };
 type Bucket = { expiry: string; quantity: number };
 
-export default function StockTab() {
+export default function ViewStockTab() {
   const [mode, setMode] = useState<"list" | "detail">("list");
   const [search, setSearch] = useState("");
   const [rows, setRows] = useState<StockSummary[]>([]);
