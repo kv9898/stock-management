@@ -6,9 +6,9 @@ export type Bucket = { expiry: string; quantity: number };
 type Props = {
   data: Bucket[];
   loading?: boolean;
-  height?: number | string;              // e.g. 480 or "100%"
+  height?: number | string; // e.g. 480 or "100%"
   showTodayLine?: boolean;
-  todayColor?: string;                   // optional manual override
+  todayColor?: string; // optional manual override
   onBarClick?: (args: { expiry: string; quantity: number }) => void;
 };
 
@@ -34,7 +34,9 @@ function usePrefersDark() {
 // Read a CSS variable with fallback
 function cssVar(name: string, fallback: string) {
   if (typeof window === "undefined") return fallback;
-  const v = getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+  const v = getComputedStyle(document.documentElement)
+    .getPropertyValue(name)
+    .trim();
   return v || fallback;
 }
 
@@ -49,10 +51,11 @@ export default function StockExpiryChart({
   const isDark = usePrefersDark();
 
   if (loading) return <div style={{ opacity: 0.7, padding: 12 }}>加载中…</div>;
-  if (!data.length) return <div style={{ opacity: 0.7, padding: 12 }}>暂无该产品的库存</div>;
+  if (!data.length)
+    return <div style={{ opacity: 0.7, padding: 12 }}>暂无该产品的库存</div>;
 
-  const x = data.map(d => d.expiry);        // "YYYY-MM-DD"
-  const y = data.map(d => d.quantity);
+  const x = data.map((d) => d.expiry); // "YYYY-MM-DD"
+  const y = data.map((d) => d.quantity);
   const maxY = Math.max(0, ...y);
 
   // UTC parse to avoid TZ shifts
@@ -63,15 +66,19 @@ export default function StockExpiryChart({
   let barWidthMs = 20 * 24 * 3600 * 1000;
   if (xsMs.length > 1) {
     let minGap = Infinity;
-    for (let i = 1; i < xsMs.length; i++) minGap = Math.min(minGap, xsMs[i] - xsMs[i - 1]);
+    for (let i = 1; i < xsMs.length; i++)
+      minGap = Math.min(minGap, xsMs[i] - xsMs[i - 1]);
     if (isFinite(minGap)) barWidthMs = Math.floor(minGap * 0.6);
   }
 
   const todayISO = new Date().toISOString().slice(0, 10);
 
   // Theme-aware colors from your CSS vars (with sensible fallbacks)
-  const textColor   = cssVar("--text",   isDark ? "#e6e6e6" : "#222");
-  const borderColor = cssVar("--border", isDark ? "rgba(255,255,255,.25)" : "rgba(0,0,0,.2)");
+  const textColor = cssVar("--text", isDark ? "#e6e6e6" : "#222");
+  const borderColor = cssVar(
+    "--border",
+    isDark ? "rgba(255,255,255,.25)" : "rgba(0,0,0,.2)"
+  );
   const accentColor = todayColor || cssVar("--accent", textColor);
 
   return (
@@ -86,46 +93,67 @@ export default function StockExpiryChart({
             hovertemplate: "到期日：%{x}<br>数量：%{y}<extra></extra>",
           } as Partial<Plotly.PlotData>,
         ]}
-        layout={{
-          template: isDark ? "plotly_dark" : "plotly_white",
-          paper_bgcolor: "rgba(0,0,0,0)",
-          plot_bgcolor: "rgba(0,0,0,0)",
-          font: { color: textColor },
-          margin: { t: 8, r: 16, b: 56, l: 56 },
-          bargap: 0.35,
-          xaxis: {
-            type: "date",
-            tickformat: "%Y-%m-%d",
-            tickangle: -45,
-            ticks: "outside",
-            showgrid: true,
-            gridcolor: borderColor,
-            linecolor: borderColor,
-            zerolinecolor: borderColor,
-          },
-          yaxis: {
-            title: "数量",
-            rangemode: "tozero",
-            gridcolor: borderColor,
-            linecolor: borderColor,
-            zerolinecolor: borderColor,
-          },
-          shapes: showTodayLine
-            ? [{
-                type: "line",
-                xref: "x", yref: "y",
-                x0: todayISO, x1: todayISO, y0: 0, y1: maxY * 1.08,
-                line: { width: 2, dash: "dot", color: accentColor },
-              }]
-            : [],
-          annotations: showTodayLine
-            ? [{
-                x: todayISO, y: maxY * 1.08, xref: "x", yref: "y",
-                text: "今天", showarrow: false, yanchor: "bottom",
-                font: { color: accentColor },
-              }]
-            : [],
-        } as Partial<Plotly.Layout>}
+        layout={
+          {
+            template: isDark ? "plotly_dark" : "plotly_white",
+            paper_bgcolor: "rgba(0,0,0,0)",
+            plot_bgcolor: "rgba(0,0,0,0)",
+            font: { color: textColor },
+            margin: { t: 8, r: 16, b: 56, l: 56 },
+            bargap: 0.35,
+            xaxis: {
+              type: "date",
+              tickformat: "%Y-%m-%d",
+              hoverformat: "%Y-%m-%d",
+              tickangle: -45,
+              ticks: "outside",
+              tickformatstops: [
+                { dtickrange: [null, "M1"], value: "%Y-%m-%d" }, // day-level
+                { dtickrange: ["M1", "M12"], value: "%Y-%m" }, // month-level
+                { dtickrange: ["M12", null], value: "%Y" }, // year-level
+              ],
+              showgrid: true,
+              gridcolor: borderColor,
+              linecolor: borderColor,
+              zerolinecolor: borderColor,
+            },
+            yaxis: {
+              title: "数量",
+              rangemode: "tozero",
+              gridcolor: borderColor,
+              linecolor: borderColor,
+              zerolinecolor: borderColor,
+            },
+            shapes: showTodayLine
+              ? [
+                  {
+                    type: "line",
+                    xref: "x",
+                    yref: "y",
+                    x0: todayISO,
+                    x1: todayISO,
+                    y0: 0,
+                    y1: maxY * 1.08,
+                    line: { width: 2, dash: "dot", color: accentColor },
+                  },
+                ]
+              : [],
+            annotations: showTodayLine
+              ? [
+                  {
+                    x: todayISO,
+                    y: maxY * 1.08,
+                    xref: "x",
+                    yref: "y",
+                    text: "今天",
+                    showarrow: false,
+                    yanchor: "bottom",
+                    font: { color: accentColor },
+                  },
+                ]
+              : [],
+          } as Partial<Plotly.Layout>
+        }
         config={{ responsive: true, displayModeBar: false }}
         style={{ width: "100%", height: "100%" }}
         useResizeHandler
