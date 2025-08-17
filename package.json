@@ -19,8 +19,10 @@
     "@tauri-apps/plugin-opener": "^2",
     "dayjs": "^1.11.13",
     "fuzzaldrin-plus": "^0.6.0",
+    "plotly.js-dist-min": "^3.1.0",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
+    "react-plotly.js": "^2.6.0",
     "react-select": "^5.10.2",
     "uuid": "^11.1.0"
   },
@@ -29,6 +31,7 @@
     "@types/fuzzaldrin-plus": "^0.6.5",
     "@types/react": "^19.1.8",
     "@types/react-dom": "^19.1.6",
+    "@types/react-plotly.js": "^2.6.3",
     "@vitejs/plugin-react": "^4.6.0",
     "typescript": "~5.8.3",
     "vite": "^7.0.4"
