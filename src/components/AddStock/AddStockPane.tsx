@@ -276,6 +276,7 @@ export default function AddStockPane() {
                     }}
                     onChange={(v) => onExpiryChange(r.id, v ?? "")}
                     onEnterNext={(e) => handleEnter(e, rowIdx, 1)}
+                    onFinish={() => handleEnter(null, rowIdx, 1)}
                   />
                 </td>
 
