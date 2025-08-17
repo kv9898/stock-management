@@ -1,11 +1,12 @@
 import ProductManagementPane from "./components/ProductManagement/productManagementPane";
 import AddStockPane from "./components/Stock/AddStockPane";
 import RemoveStockPane from "./components/Stock/RemoveStockPane";
+import ViewStockTab from "./components/Summary/ViewStock";
 
 import './tabs.css'
 
 export const tabs = [
-  { key: "dataAnalysis", label: "数据分析" },
+  { key: "viewStock", label: "查看库存" },
   { key: "addStock", label: "添加库存" },
   { key: "removeStock", label: "移除库存" },
   { key: "expiryWarnings", label: "过期预警" },
@@ -14,8 +15,8 @@ export const tabs = [
 
 export const renderTabContent = (activeTab: string) => {
   switch (activeTab) {
-    case "dataAnalysis":
-      return <h2>数据分析</h2>;
+    case "viewStock":
+      return <ViewStockTab />;
     case "addStock":
       return <AddStockPane />;
     case "removeStock":
