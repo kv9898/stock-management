@@ -23,6 +23,7 @@
     }
   },
   "bundle": {
+    "publisher": "Dianyi Yang",
     "active": false,
     "category": "Business",
     "targets": "app",
