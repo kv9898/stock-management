@@ -221,3 +221,62 @@ pub async fn remove_stock(changes: Vec<StockChange>) -> Result<(), String> {
     .await
     .map_err(|e| e.to_string())?
 }
+
+#[tauri::command]
+pub async fn edit_stock(name: String, expiry_date: String, quantity: i64) -> Result<(), String> {
+    task::spawn_blocking(move || {
+        let rt = tokio::runtime::Runtime::new().unwrap();
+        rt.block_on(async move {
+            if quantity < 0 {
+                return Err("数量不能为负数。".into());
+            }
+
+            let config = crate::db::get_db_config()
+                .await
+                .map_err(|e| e.to_string())?;
+            let client = Client::from_config(config)
+                .await
+                .map_err(|e| e.to_string())?;
+
+            // Enforce FKs per-connection (so invalid product names can't be inserted)
+            client
+                .execute("PRAGMA foreign_keys = ON;")
+                .await
+                .map_err(|e| e.to_string())?;
+
+            let tx = client.transaction().await.map_err(|e| e.to_string())?;
+
+            let name_q = sql_quote(&name);
+            let expiry_q = sql_quote(&expiry_date);
+
+            if quantity == 0 {
+                // Remove the lot entirely when set to 0
+                let del_sql = format!(
+                    "DELETE FROM Stock WHERE name='{}' AND expiry='{}';",
+                    name_q, expiry_q
+                );
+                tx.execute(del_sql).await.map_err(|e| e.to_string())?;
+            } else {
+                // Upsert to the exact quantity (requires UNIQUE(name,expiry) index you already have)
+                let id = sql_quote(&Uuid::new_v4().to_string());
+                let upsert_sql = format!(
+                    "INSERT INTO Stock (id, name, expiry, quantity)
+                     VALUES ('{}','{}','{}',{})
+                     ON CONFLICT(name, expiry)
+                     DO UPDATE SET quantity = excluded.quantity;",
+                    id, name_q, expiry_q, quantity
+                );
+                let res = tx.execute(upsert_sql).await.map_err(|e| e.to_string())?;
+                if res.rows_affected == 0 {
+                    return Err("设置失败：未影响任何行。".into());
+                }
+            }
+
+            let commit_res = tx.commit().await;
+            ignore_empty_baton_commit(commit_res)?;
+            Ok(())
+        })
+    })
+    .await
+    .map_err(|e| e.to_string())?
+}

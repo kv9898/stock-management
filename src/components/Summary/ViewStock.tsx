@@ -165,12 +165,16 @@ export default function ViewStockTab() {
         <div style={{ flex: 1, minHeight: 320 }}>
           <StockExpiryChart
             data={buckets}
+            productName={selectedName!}
             loading={loadingDetail}
             height="100%" // fill parent area
-            onBarClick={({ expiry, quantity }) => {
-              alert(
-                `未来可编辑：${selectedName}\n到期日：${expiry}\n当前数量：${quantity}`
-              );
+            onUpdated={async () => {
+              const [newBuckets, newOverview] = await Promise.all([
+                invoke<Bucket[]>("get_stock_histogram", { name: selectedName }),
+                invoke<StockSummary[]>("get_stock_overview"),
+              ]);
+              setBuckets(newBuckets);
+              setRows(newOverview);
             }}
           />
         </div>
