@@ -7,6 +7,13 @@ import Plot from "react-plotly.js";
 type StockSummary = { name: string; total_quantity: number };
 type Bucket = { expiry: string; quantity: number };
 
+// Shared container
+const Container: React.FC<{ children: React.ReactNode }> = ({ children }) => (
+  <div style={{ padding: 16, display: "flex", flexDirection: "column", gap: 12, height: "100%" }}>
+    {children}
+  </div>
+);
+
 export default function ViewStockTab() {
   const [mode, setMode] = useState<"list" | "detail">("list");
   const [search, setSearch] = useState("");
@@ -51,13 +58,6 @@ export default function ViewStockTab() {
     { field: "name", headerName: "产品", flex: 1, minWidth: 160 },
     { field: "total_quantity", headerName: "数量", type: "number", width: 120 },
   ];
-
-  // Shared container
-  const Container: React.FC<{ children: React.ReactNode }> = ({ children }) => (
-    <div style={{ padding: 16, display: "flex", flexDirection: "column", gap: 12, height: "100%" }}>
-      {children}
-    </div>
-  );
 
   if (mode === "detail" && selectedName) {
     const x = buckets.map(b => b.expiry);
