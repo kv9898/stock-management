@@ -1,5 +1,5 @@
 import ProductManagementPane from "./components/ProductManagement/productManagementPane";
-import AddStockPane from "./components/AddStock/AddStockPane";
+import AddStockPane from "./components/Stock/AddStockPane";
 
 import './tabs.css'
 
