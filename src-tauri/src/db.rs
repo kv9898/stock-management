@@ -4,6 +4,7 @@ use base64::{engine::general_purpose, Engine as _};
 use libsql_client::Config;
 use once_cell::sync::OnceCell;
 use std::collections::HashMap;
+use std::fmt::Display;
 use std::fs;
 use tauri::path::BaseDirectory;
 use tauri::{App, Manager};
@@ -81,5 +82,25 @@ pub fn to_sql_null_or_string(v: &Option<String>) -> String {
         None => "NULL".to_string(),
         Some(s) if s.trim().is_empty() => "NULL".to_string(),
         Some(s) => format!("'{}'", sql_quote(s)),
+    }
+}
+
+/// libsql sometimes returns this *exact* message even when the server committed.
+pub const EMPTY_BATON_MSG: &str = "Stream closed: server returned empty baton";
+
+/// If `res` is `Err` with the exact empty-baton message, log and return Ok(()),
+/// otherwise propagate the error as String.
+pub fn ignore_empty_baton_commit<E: Display>(res: Result<(), E>) -> Result<(), String> {
+    match res {
+        Ok(()) => Ok(()),
+        Err(e) => {
+            let msg = e.to_string();
+            if msg == EMPTY_BATON_MSG {
+                eprintln!("[DB][commit_ignore] ignored: {}", msg);
+                Ok(())
+            } else {
+                Err(msg)
+            }
+        }
     }
 }

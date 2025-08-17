@@ -3,7 +3,7 @@ use serde::{Deserialize, Serialize};
 use tokio::task;
 use uuid::Uuid;
 
-use crate::db::sql_quote;
+use crate::db::{ignore_empty_baton_commit, sql_quote};
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct StockChange {
@@ -212,8 +212,9 @@ pub async fn remove_stock(changes: Vec<StockChange>) -> Result<(), String> {
                 tx.execute(del_sql).await.map_err(|e| e.to_string())?;
             }
 
-            // 4) Commit
-            tx.commit().await.map_err(|e| e.to_string())?;
+            // 4) Commit, note we need to handle potential empty baton error message gracefully
+            let commit_res = tx.commit().await;
+            ignore_empty_baton_commit(commit_res)?;
             Ok(())
         })
     })
