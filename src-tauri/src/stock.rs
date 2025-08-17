@@ -13,6 +13,39 @@ pub struct StockChange {
 }
 
 #[tauri::command]
+pub async fn get_in_stock_products() -> Result<Vec<String>, String> {
+    task::spawn_blocking(move || {
+        let rt = tokio::runtime::Runtime::new().unwrap();
+        rt.block_on(async move {
+            let config = crate::db::get_db_config()
+                .await
+                .map_err(|e| e.to_string())?;
+            let client = Client::from_config(config)
+                .await
+                .map_err(|e| e.to_string())?;
+
+            let sql =
+                "SELECT DISTINCT name FROM Stock WHERE quantity > 0 ORDER BY name COLLATE NOCASE";
+            let rows = client.execute(sql).await.map_err(|e| e.to_string())?.rows;
+
+            let mut out = Vec::new();
+            for r in rows {
+                let name: String = r
+                    .try_column::<&str>("name")
+                    .map_err(|e| e.to_string())?
+                    .to_string();
+                if !name.is_empty() {
+                    out.push(name);
+                }
+            }
+            Ok(out)
+        })
+    })
+    .await
+    .map_err(|e| e.to_string())?
+}
+
+#[tauri::command]
 pub async fn add_stock(changes: Vec<StockChange>) -> Result<(), String> {
     task::spawn_blocking(move || {
         let rt = tokio::runtime::Runtime::new().unwrap();
