@@ -277,15 +277,16 @@ pub async fn add_product(product: Product) -> Result<(), String> {
     .map_err(|e| e.to_string())?
 }
 
-#[tauri::command]
-pub async fn update_product(product: Product, old_name: Option<String>) -> Result<(), String> {
-    use crate::db::{
-        get_db_config, sql_quote, to_sql_null_or_blob_hex, to_sql_null_or_int,
-        to_sql_null_or_string,
-    };
-    use libsql_client::Client;
-    use tokio::task;
+#[derive(Deserialize, Debug)]
+pub struct UpdateProductArgs {
+    product: Product,
+    #[serde(default)] // if key is missing, becomes None (not an error)
+    old_name: Option<String>,
+}
 
+#[tauri::command]
+pub async fn update_product(args: UpdateProductArgs) -> Result<(), String> {
+    let product = args.product;
     task::spawn_blocking(move || {
         let rt = tokio::runtime::Runtime::new().unwrap();
         rt.block_on(async move {
@@ -305,7 +306,7 @@ pub async fn update_product(product: Product, old_name: Option<String>) -> Resul
             let tx = client.transaction().await.map_err(|e| e.to_string())?;
 
             // normalize inputs
-            let old = old_name.unwrap_or_else(|| product.name.clone());
+            let old = args.old_name.unwrap_or_else(|| product.name.clone());
             let old_q = sql_quote(&old);
             let new_q = sql_quote(&product.name);
 
