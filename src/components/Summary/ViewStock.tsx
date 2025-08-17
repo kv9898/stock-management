@@ -134,6 +134,7 @@ export default function ViewStockTab() {
           rows={filtered.map(r => ({ id: r.name, ...r }))}
           columns={columns}
           disableColumnMenu
+          autoPageSize={true}
           pageSizeOptions={[10, 25, 50]}
           initialState={{ pagination: { paginationModel: { pageSize: 25 } } }}
           onRowClick={(p) => { setSelectedName(p.row.name); setMode("detail"); }}
