@@ -5,12 +5,13 @@ import { DataGrid, GridColDef } from "@mui/x-data-grid";
 import Plot from "react-plotly.js";
 import { FormControl, InputLabel, MenuItem, Select } from "@mui/material";
 
+import StockExpiryChart, { Bucket } from "./Chart";
+
 type StockSummary = {
   name: string;
   total_quantity: number;
   type?: string | null;
 };
-type Bucket = { expiry: string; quantity: number };
 
 const Container: React.FC<{ children: React.ReactNode }> = ({ children }) => (
   <div
@@ -164,49 +165,16 @@ export default function ViewStockTab() {
         </div>
 
         <div style={{ flex: 1, minHeight: 320 }}>
-          {loadingDetail ? (
-            <div style={{ opacity: 0.7, padding: 12 }}>加载中…</div>
-          ) : buckets.length === 0 ? (
-            <div style={{ opacity: 0.7, padding: 12 }}>暂无该产品的库存</div>
-          ) : (
-            <Plot
-              data={[
-                {
-                  type: "bar",
-                  x,
-                  y,
-                  hovertemplate: "到期日：%{x}<br>数量：%{y}<extra></extra>",
-                } as Partial<Plotly.PlotData>,
-              ]}
-              layout={
-                {
-                  margin: { t: 16, r: 16, b: 48, l: 48 },
-                  xaxis: {
-                    title: "到期日",
-                    type: "category",
-                    categoryorder: "array",
-                    categoryarray: x,
-                    tickangle: -45,
-                  },
-                  yaxis: { title: "数量", rangemode: "tozero" },
-                  paper_bgcolor: "rgba(0,0,0,0)",
-                  plot_bgcolor: "rgba(0,0,0,0)",
-                } as Partial<Plotly.Layout>
-              }
-              config={{ responsive: true, displayModeBar: false }}
-              style={{ width: "100%", height: "100%" }}
-              useResizeHandler
-              onClick={(ev: any) => {
-                const pt = ev?.points?.[0];
-                if (!pt) return;
-                const expiry = String(pt.x);
-                const qty = Number(pt.y);
-                alert(
-                  `未来可编辑：${selectedName}\n到期日：${expiry}\n当前数量：${qty}`
-                );
-              }}
-            />
-          )}
+          <StockExpiryChart
+            data={buckets}
+            loading={loadingDetail}
+            height="100%" // fill parent area
+            onBarClick={({ expiry, quantity }) => {
+              alert(
+                `未来可编辑：${selectedName}\n到期日：${expiry}\n当前数量：${quantity}`
+              );
+            }}
+          />
         </div>
       </Container>
     );
