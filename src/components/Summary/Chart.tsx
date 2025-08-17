@@ -1,15 +1,18 @@
 import * as React from "react";
 import Plot from "react-plotly.js";
 
+import { invoke } from "@tauri-apps/api/core";
+
 export type Bucket = { expiry: string; quantity: number };
 
 type Props = {
   data: Bucket[];
+  productName?: string; // for editing stock
+  onUpdated?: () => void; // ask parent to refresh after save
   loading?: boolean;
   height?: number | string; // e.g. 480 or "100%"
   showTodayLine?: boolean;
   todayColor?: string; // optional manual override
-  onBarClick?: (args: { expiry: string; quantity: number }) => void;
 };
 
 // System dark-mode hook (no MUI)
@@ -42,13 +45,45 @@ function cssVar(name: string, fallback: string) {
 
 export default function StockExpiryChart({
   data,
+  productName,
+  onUpdated,
   loading = false,
   height = "100%",
   showTodayLine = true,
   todayColor,
-  onBarClick,
 }: Props) {
   const isDark = usePrefersDark();
+
+  const handleInternalBarClick = React.useCallback(
+    async (expiry: string, quantity: number) => {
+      if (!productName) return; // nothing to save against
+      const input = window.prompt(
+        `编辑数量：\n产品：${productName}\n到期日：${expiry}\n当前数量：${quantity}\n\n请输入新的数量（0 = 删除该批次）：`,
+        String(quantity)
+      );
+      if (input == null) return; // cancelled
+
+      const newQty = Number(input);
+      if (!Number.isInteger(newQty) || newQty < 0) {
+        alert("请输入非负整数。");
+        return;
+      }
+
+      try {
+        console.log(`Expiry date: ${expiry}, new quantity: ${newQty}`);
+        await invoke("edit_stock", {
+          name: productName,
+          expiry_date: expiry,
+          quantity: newQty,
+        });
+        onUpdated?.(); // let parent refresh buckets & overview
+      } catch (e: any) {
+        console.error(e);
+        alert(String(e));
+      }
+    },
+    [productName, onUpdated]
+  );
 
   if (loading) return <div style={{ opacity: 0.7, padding: 12 }}>加载中…</div>;
   if (!data.length)
@@ -160,7 +195,9 @@ export default function StockExpiryChart({
         onClick={(ev: any) => {
           const pt = ev?.points?.[0];
           if (!pt) return;
-          onBarClick?.({ expiry: String(pt.x), quantity: Number(pt.y) });
+          const expiry = String(pt.x);
+          const qty = Number(pt.y);
+          handleInternalBarClick(expiry, qty); // chart handles it
         }}
       />
     </div>
