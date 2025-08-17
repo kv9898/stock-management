@@ -28,11 +28,12 @@ pub async fn get_stock_overview() -> Result<Vec<StockSummary>, String> {
             // Show all products, including those with 0 stock
             let sql = r#"
                 SELECT
-                  p.name AS name,
-                  COALESCE(SUM(s.quantity), 0) AS total_quantity
+                    p.name,
+                    SUM(s.quantity) AS total_quantity
                 FROM Product p
-                LEFT JOIN Stock s ON s.name = p.name
+                JOIN Stock s ON s.name = p.name
                 GROUP BY p.name
+                HAVING SUM(COALESCE(s.quantity, 0)) > 0
                 ORDER BY p.name COLLATE NOCASE;
             "#;
 
