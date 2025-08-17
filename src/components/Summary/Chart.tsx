@@ -72,7 +72,7 @@ export default function StockExpiryChart({
       try {
         await invoke("edit_stock", {
           name: productName,
-          expiry_date: expiry,
+          expiryDate: expiry,
           quantity: newQty,
         });
         onUpdated?.(); // let parent refresh buckets & overview
