@@ -2,7 +2,6 @@ import * as React from "react";
 import { useEffect, useMemo, useState } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import { DataGrid, GridColDef } from "@mui/x-data-grid";
-import Plot from "react-plotly.js";
 import { FormControl, InputLabel, MenuItem, Select } from "@mui/material";
 
 import StockExpiryChart, { Bucket } from "./Chart";
@@ -144,7 +143,6 @@ export default function ViewStockTab() {
   ];
 
   if (mode === "detail" && selectedName) {
-    const x = buckets.map((b) => b.expiry);
     const y = buckets.map((b) => b.quantity);
     const total = y.reduce((s, n) => s + (n ?? 0), 0);
 
