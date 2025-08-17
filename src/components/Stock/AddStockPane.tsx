@@ -1,10 +1,10 @@
 import { useEffect, useMemo, useState, useRef } from "react";
-import Select, { createFilter } from "react-select";
 import { invoke } from "@tauri-apps/api/core";
 import { v4 as uuidv4 } from 'uuid';
 
 import type { Product } from "../../types/product";
 import { ExpiryDatePicker } from "./ExpiryDatePicker";
+import ProductSelect from "./ProductSelect";
 
 import './AddStockPane.css'
 
@@ -243,26 +243,16 @@ export default function AddStockPane() {
               <tr key={r.id} className="product-row">
                 {/* Product select (React Select) */}
                 <td>
-                  <Select
-                    classNamePrefix="rs"
+                  <ProductSelect
                     options={productOptions}
-                    value={productOptions.find(o => o.value === r.product) || null}
-                    onChange={(opt) => {
-                      setRow(r.id, row => (row.product = (opt ? (opt as any).value : ""), row));
+                    value={r.product}
+                    onChange={(name) => {
+                      setRow(r.id, row => (row.product = name, row));
                       handleEnter(null, rowIdx, 0);
                     }}
-                    isClearable
-                    isSearchable
-                    placeholder="选择或搜索产品..."
-                    // portal to body so the menu isn't clipped by the scroll container
-                    menuPortalTarget={document.body}
-                    menuPosition="fixed"
-                    styles={selectStyles as any}
-                    // nicer filtering (case-insensitive, diacritics)
-                    filterOption={createFilter({ ignoreCase: true, ignoreAccents: true, trim: true })}
-                    ref={(el) => {
+                    inputRef={(el) => {
                       inputRefs.current[rowIdx] ||= [];
-                      inputRefs.current[rowIdx][0] = el ? (el as any).inputRef : null;
+                      inputRefs.current[rowIdx][0] = el;
                     }}
                   />
                 </td>
