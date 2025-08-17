@@ -70,7 +70,6 @@ export default function StockExpiryChart({
       }
 
       try {
-        console.log(`Expiry date: ${expiry}, new quantity: ${newQty}`);
         await invoke("edit_stock", {
           name: productName,
           expiry_date: expiry,
