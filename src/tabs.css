@@ -11,6 +11,12 @@
   overflow-y: auto;
 }
 
+/* push settings to bottom */
+.sidebar-bottom {
+  margin-top: auto;
+  border-top: 1px solid var(--border);
+}
+
 .sidebar button {
   width: 100%;
   padding: 1.75rem 1rem;
@@ -61,12 +67,6 @@
     background-color: #444;
     font-weight: 600;
   }
-}
-
-/* push settings to bottom */
-.sidebar-bottom {
-  margin-top: auto;
-  border-top: 1px solid var(--border);
 }
 
 /* make the sidebar sections flush so buttons can span edge-to-edge */
