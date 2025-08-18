@@ -5,7 +5,6 @@ use libsql_client::Config;
 use once_cell::sync::OnceCell;
 use std::collections::HashMap;
 use std::fmt::Display;
-use std::fs;
 use tauri::path::BaseDirectory;
 use tauri::{App, Manager};
 use tauri_plugin_fs::FsExt;
