@@ -1,10 +1,12 @@
 use anyhow::{anyhow, Result};
 use once_cell::sync::OnceCell;
+use serde::Serialize;
 use tauri::path::BaseDirectory;
 use tauri::{App, Manager};
 use tauri_plugin_fs::FsExt;
 use url::Url;
 
+#[derive(Clone, Serialize)]
 pub struct Config {
     pub url: String,
     pub token: String,
@@ -64,9 +66,9 @@ pub fn read_config(app: &App) -> Result<()> {
 }
 
 #[tauri::command]
-pub fn get_config() -> Result<Config> {
+pub fn get_config() -> Result<Config, String> {
     CONFIG
         .get()
         .cloned()
-        .ok_or_else(|| anyhow!("Config not initialized"))
+        .ok_or_else(|| "Config not initialized".to_string())
 }
