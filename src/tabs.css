@@ -1,9 +1,26 @@
 .sidebar {
   width: 160px;
   background-color: var(--bg-highlight);
-  border-right: 1px solid #ddd;
+  border-right: 1px solid var(--border);
   display: flex;
   flex-direction: column;
+}
+
+/* scrollable nav area */
+.sidebar-nav {
+  overflow-y: auto;
+}
+
+/* push settings to bottom */
+.sidebar-bottom {
+  margin-top: auto;
+  border-top: 1px solid var(--border);
+}
+
+/* make the sidebar sections flush so buttons can span edge-to-edge */
+.sidebar-nav,
+.sidebar-bottom {
+  padding: 0;
 }
 
 .sidebar button {
@@ -38,10 +55,18 @@
   font-weight: 600;
 }
 
+/* settings button */
+.icon-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  font-family: inherit;
+}
+
 @media (prefers-color-scheme: dark) {
   .sidebar {
     background-color: #1a1a1a;
-    border-right: 1px solid #444;
   }
 
   .sidebar button {
