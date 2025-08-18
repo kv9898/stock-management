@@ -73,10 +73,6 @@
   border-color: #396cd8;
 }
 
-.settings-text {
-  font-size: 0.9em;
-}
-
 @media (prefers-color-scheme: dark) {
   .sidebar {
     background-color: #1a1a1a;
