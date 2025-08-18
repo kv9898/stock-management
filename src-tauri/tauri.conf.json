@@ -1,6 +1,6 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
-  "productName": "stock-manager",
+  "productName": "USANA库存管理系统",
   "version": "0.1.0",
   "identifier": "com.dianyi.stock-manager",
   "build": {
