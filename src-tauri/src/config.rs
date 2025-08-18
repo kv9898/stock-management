@@ -62,3 +62,11 @@ pub fn read_config(app: &App) -> Result<()> {
         .map_err(|_| anyhow!("Config already read"))?;
     Ok(())
 }
+
+#[tauri::command]
+pub fn get_config() -> Result<Config> {
+    CONFIG
+        .get()
+        .cloned()
+        .ok_or_else(|| anyhow!("Config not initialized"))
+}
