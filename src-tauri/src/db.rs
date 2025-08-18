@@ -8,6 +8,7 @@ use std::fmt::Display;
 use std::fs;
 use tauri::path::BaseDirectory;
 use tauri::{App, Manager};
+use tauri_plugin_fs::FsExt;
 
 // Global, thread-safe, read-only once set
 pub static DB_TOKENS: OnceCell<(String, String)> = OnceCell::new();
@@ -19,7 +20,7 @@ pub fn init_db_tokens(app: &App) -> Result<()> {
         .resolve("resources/tokens.json", BaseDirectory::Resource)
         .map_err(|e| anyhow!(e.to_string()))?;
 
-    let content = fs::read_to_string(&path)?;
+    let content = app.handle().fs().read_to_string(path)?;
     let parsed: HashMap<String, String> = serde_json::from_str(&content)?;
     let url = parsed
         .get("URL")
