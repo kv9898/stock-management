@@ -61,11 +61,13 @@ input{
 }
 
 button {
+  background-color: var(--button-bg);
   cursor: pointer;
+  border: none;
 }
 
 button:hover {
-  border-color: #396cd8;
+  background-color: var(--button-hover);
 }
 
 button:active {
