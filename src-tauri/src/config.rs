@@ -18,7 +18,7 @@ pub fn read_config(app: &App) -> Result<()> {
     // Resolve bundled resource path
     let path = app
         .path()
-        .resolve("resources/tokens.json", BaseDirectory::Resource)
+        .resolve("resources/config.json", BaseDirectory::Resource)
         .map_err(|e| anyhow!(e.to_string()))?;
 
     let content = app.handle().fs().read_to_string(path)?;

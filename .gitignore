@@ -26,5 +26,5 @@ dist-ssr
 *.sw?
 
 # Secrets
-tokens.json
+config.json
 *.txt
