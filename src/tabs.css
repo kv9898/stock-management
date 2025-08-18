@@ -55,6 +55,28 @@
   font-weight: 600;
 }
 
+/* settings button */
+.icon-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.6em 1em;
+  font-family: inherit;
+}
+
+.icon-btn:hover {
+  background-color: var(--button-hover);
+}
+
+.icon-btn:active {
+  background-color: var(--row-hover);
+  border-color: #396cd8;
+}
+
+.settings-text {
+  font-size: 0.9em;
+}
+
 @media (prefers-color-scheme: dark) {
   .sidebar {
     background-color: #1a1a1a;
@@ -73,35 +95,4 @@
     background-color: #444;
     font-weight: 600;
   }
-}
-
-
-/* settings button */
-.icon-btn {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  width: 100%;
-  padding: 0.6em 1em;
-  font-size: 0.95em;
-  font-family: inherit;
-  background-color: var(--button-bg);
-  color: var(--button-text);
-  border: 1px solid transparent;
-  border-radius: 8px;
-  cursor: pointer;
-  transition: background-color 0.25s, border-color 0.25s;
-}
-
-.icon-btn:hover {
-  background-color: var(--button-hover);
-}
-
-.icon-btn:active {
-  background-color: var(--row-hover);
-  border-color: #396cd8;
-}
-
-.settings-text {
-  font-size: 0.9em;
 }
