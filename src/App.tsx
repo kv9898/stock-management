@@ -10,7 +10,7 @@ import SettingsModal from "./components/SettingsModal";
 import type { Config } from "./types/Config";
 
 function App() {
-  const [activeTab, setActiveTab] = useState("viewStock");
+  const [activeTab, setActiveTab] = useState("boot");
   const [showSettings, setShowSettings] = useState(false);
 
   // settings control
@@ -39,7 +39,7 @@ function App() {
         setInitialConfig(cfg);
         // verify (your Rust command runs in spawn_blocking)
         await invoke("verify_credentials", { url: cfg.url, token: cfg.token });
-        // OK -> nothing to do
+        setActiveTab("viewStock");
       } catch (e: any) {
         // Missing/invalid config -> force modal open & lock
         const msg =
@@ -71,7 +71,7 @@ function App() {
             className="icon-btn settings-btn"
             aria-label="打开设置"
             title="设置"
-            onClick={() => setShowSettings(true)}
+            onClick={() => openSettings(false)}
           >
             <Settings size={18} />
             <span className="settings-text">设置</span>
@@ -93,6 +93,7 @@ function App() {
           setLockSettings(false);
           setShowSettings(false);
           setSettingsError(null);
+          setActiveTab("viewStock");
         }}
       />
     </div>
