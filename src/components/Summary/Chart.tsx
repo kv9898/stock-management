@@ -1,4 +1,4 @@
-import * as React from "react";
+import { useState, useEffect, useCallback } from "react";
 import Plot from "react-plotly.js";
 
 import { invoke } from "@tauri-apps/api/core";
@@ -17,8 +17,8 @@ type Props = {
 
 // System dark-mode hook (no MUI)
 function usePrefersDark() {
-  const [dark, setDark] = React.useState(false);
-  React.useEffect(() => {
+  const [dark, setDark] = useState(false);
+  useEffect(() => {
     if (typeof window === "undefined" || !window.matchMedia) return;
     const mq = window.matchMedia("(prefers-color-scheme: dark)");
     const update = () => setDark(mq.matches);
@@ -52,9 +52,30 @@ export default function StockExpiryChart({
   showTodayLine = true,
   todayColor,
 }: Props) {
+  const [alertPeriod, setAlertPeriod] = useState<number>(0);
   const isDark = usePrefersDark();
 
-  const handleInternalBarClick = React.useCallback(
+  useEffect(() => {
+    invoke<number>("get_alert_period")
+      .then(setAlertPeriod)
+      .catch((err) => {
+        console.error("Failed to fetch alert_period:", err);
+        setAlertPeriod(0);
+      });
+  }, []);
+
+  // calculate colours for each bucket
+  const today = new Date();
+  const soonCutoff = new Date(today);
+  soonCutoff.setDate(today.getDate() + alertPeriod);
+  const colors = data.map((d) => {
+    const expiryDate = new Date(d.expiry + "T00:00:00"); // avoid TZ drift
+    if (expiryDate < today) return "#e74c3c"; // expired
+    if (expiryDate < soonCutoff) return "#f1c40f"; // soon-to-expire
+    return "#3498db"; // normal
+  });
+  
+  const handleInternalBarClick = useCallback(
     async (expiry: string, quantity: number) => {
       if (!productName) return; // nothing to save against
       const input = window.prompt(
@@ -125,6 +146,7 @@ export default function StockExpiryChart({
             y,
             width: barWidthMs,
             hovertemplate: "到期日：%{x}<br>数量：%{y}<extra></extra>",
+            marker: {color: colors}
           } as Partial<Plotly.PlotData>,
         ]}
         layout={
