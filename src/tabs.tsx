@@ -59,10 +59,10 @@ export function RenderedTabs({
       {/* add stock */}
       <div style={{ display: activeTab === "addStock" ? "block" : "none", height: "100%" }}>
         <AddStockPane
-          // refreshSignal={refresh.addStock}
-          // onDidSubmit={() => {
-          //   triggerRefresh("viewStock"); // adding stock affects summary
-          // }}
+          refreshSignal={refresh.addStock}
+          onDidSubmit={() => {
+            triggerRefresh("viewStock"); // adding stock affects summary
+          }}
         />
       </div>
 
