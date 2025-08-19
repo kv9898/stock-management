@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import "./App.css";
-import "./components/Modals.css"
+import "./components/Modals.css";
 import SidebarButton from "./components/sidebarButton";
 import { tabs, RenderedTabs } from "./tabs";
 
@@ -22,8 +22,10 @@ function App() {
   const [initialConfig, setInitialConfig] = useState<Config | null>(null);
 
   const [refresh, setRefresh] = useState(defaultRefreshCounters);
-  const triggerRefresh = (key: keyof typeof refresh) =>
-    setRefresh((r) => ({ ...r, [key]: r[key] + 1 }));
+  const triggerRefresh = (...keys: (keyof typeof refresh)[]) =>
+    setRefresh((r) =>
+      keys.reduce((acc, k) => ({ ...acc, [k]: acc[k] + 1 }), r)
+    );
 
   // helper to open modal and prefill current config
   const openSettings = async (lock = false, errorMsg?: string) => {
@@ -106,7 +108,8 @@ function App() {
           setLockSettings(false);
           setShowSettings(false);
           setSettingsError(null);
-          if (activeTab === "boot") { // only switch if we were in boot state
+          if (activeTab === "boot") {
+            // only switch if we were in boot state
             setActiveTab("viewStock");
           }
         }}

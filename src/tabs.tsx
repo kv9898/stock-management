@@ -39,7 +39,7 @@ export function RenderedTabs({
 }: {
   activeTab: TabKey;
   refresh: RefreshCounters;
-  triggerRefresh: (key: keyof typeof refresh) => void;
+  triggerRefresh: (...keys: (keyof typeof refresh)[]) => void;
 }) {
   return (
     <>
@@ -81,7 +81,7 @@ export function RenderedTabs({
         <AddLoanPane
           refreshSignal={refresh.addLoan}
           onDidSubmit={() => {
-            triggerRefresh("viewStock"); // loans adjust stock buckets
+            triggerRefresh("viewStock", "removeStock"); // loans adjust stock buckets
           }}
         />
       </div>
@@ -91,7 +91,7 @@ export function RenderedTabs({
         <ProductManagementPane
           refreshSignal={refresh.productManagement}
           onDidMutateProduct={() => {
-            triggerRefresh("viewStock"); // renames/types impact summary display
+            triggerRefresh("viewStock", "addStock", "removeStock", "addLoan"); // renames/types impact summary display
           }}
         />
       </div>
