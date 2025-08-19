@@ -1,4 +1,6 @@
 from libsql_client import create_client
+import os
+import sys
 import json
 from pathlib import Path
 
