@@ -1,4 +1,4 @@
-import * as React from "react";
+import { useState, useEffect, useCallback } from "react";
 import Plot from "react-plotly.js";
 
 import { invoke } from "@tauri-apps/api/core";
@@ -17,8 +17,8 @@ type Props = {
 
 // System dark-mode hook (no MUI)
 function usePrefersDark() {
-  const [dark, setDark] = React.useState(false);
-  React.useEffect(() => {
+  const [dark, setDark] = useState(false);
+  useEffect(() => {
     if (typeof window === "undefined" || !window.matchMedia) return;
     const mq = window.matchMedia("(prefers-color-scheme: dark)");
     const update = () => setDark(mq.matches);
@@ -54,7 +54,7 @@ export default function StockExpiryChart({
 }: Props) {
   const isDark = usePrefersDark();
 
-  const handleInternalBarClick = React.useCallback(
+  const handleInternalBarClick = useCallback(
     async (expiry: string, quantity: number) => {
       if (!productName) return; // nothing to save against
       const input = window.prompt(
