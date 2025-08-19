@@ -1,6 +1,6 @@
 use anyhow::{anyhow, Result};
 use serde::Serialize;
-use std::sync::OnceLock;
+use std::sync::{OnceLock, RwLock, RwLockReadGuard};
 use tauri::path::BaseDirectory;
 use tauri::{App, Manager};
 use tauri_plugin_fs::FsExt;
@@ -14,7 +14,7 @@ pub struct Config {
 }
 
 // Global, thread-safe, read-only once set
-pub static CONFIG: OnceLock<Config> = OnceLock::new();
+pub static CONFIG: OnceLock<RwLock<Config>> = OnceLock::new();
 
 fn normalize_url(s: &str) -> Result<String> {
     let with_scheme = if s.contains("://") {
@@ -55,22 +55,30 @@ pub fn read_config(app: &App) -> Result<()> {
         .ok_or_else(|| anyhow!("alert_period must be a positive integer"))?
         as u16;
 
+    let cfg = RwLock::new(Config {
+        url,
+        token,
+        alert_period,
+    });
+
     CONFIG
-        .set(Config {
-            url,
-            token,
-            alert_period,
-        })
+        .set(cfg)
         .map_err(|_| anyhow!("Config already read"))?;
     Ok(())
 }
 
+// Internal function to avoid cloning the lock guard unnecessarily
+pub fn config() -> Result<RwLockReadGuard<'static, Config>> {
+    let lock = CONFIG
+        .get()
+        .ok_or_else(|| anyhow!("Config not initialized"))?;
+    lock.read().map_err(|_| anyhow!("config lock poisoned"))
+}
+
 #[tauri::command]
 pub fn get_config() -> Result<Config, String> {
-    CONFIG
-        .get()
-        .cloned()
-        .ok_or_else(|| "Config not initialized".to_string())
+    let cfg = config().map_err(|e| e.to_string())?; // reuse internal helper
+    Ok(cfg.clone()) // needs Config: Clone + Serialize
 }
 
 // #[tauri::command]
