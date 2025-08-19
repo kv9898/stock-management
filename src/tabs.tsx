@@ -2,6 +2,7 @@ import ProductManagementPane from "./panes/ProductManagement/productManagementPa
 import AddStockPane from "./panes/Stock/AddStockPane";
 import RemoveStockPane from "./panes/Stock/RemoveStockPane";
 import ViewStockPane from "./panes/Summary/ViewStock";
+import AddLoanPane from "./panes/Loan/AddLoanPane";
 
 import './tabs.css'
 
@@ -9,7 +10,7 @@ export const tabs = [
   { key: "viewStock", label: "查看库存" },
   { key: "addStock", label: "添加库存" },
   { key: "removeStock", label: "移除库存" },
-  { key: "expiryWarnings", label: "过期预警" },
+  { key: "addLoan", label: "借货/归还" },
   { key: "productManagement", label: "产品信息管理" },
 ];
 
@@ -28,19 +29,8 @@ export const renderTabContent = (activeTab: string) => {
       return <AddStockPane />;
     case "removeStock":
       return <RemoveStockPane />;
-    case "expiryWarnings":
-      return (
-        <>
-          <h2>过期预警</h2>
-          {/* <ul>
-            {getExpiryWarnings().map((item) => (
-              <li key={item.id}>
-                {item.name} - Expires on {item.expiry}
-              </li>
-            ))}
-          </ul> */}
-        </>
-      );
+    case "addLoan":
+      return <AddLoanPane />;
     case "productManagement":
       return <ProductManagementPane />;
     default:
