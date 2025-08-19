@@ -30,7 +30,7 @@
 }
 
 /* --- Inputs --- */
-input[type="text"],
+.product-table-container input[type="text"],
 input[type="number"],
 input[type="file"] {
   padding: 10px 12px;
