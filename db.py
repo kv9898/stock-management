@@ -93,16 +93,17 @@ CREATE TABLE IF NOT EXISTS LoanHeader (
 """
 await client.execute(create_loan_header)
 
-# ## Detail table
-# create_transaction_detail = """
-# CREATE TABLE TransactionItem (
-#   id TEXT PRIMARY KEY NOT NULL,
-#   transaction_id TEXT NOT NULL,
-#   product_name TEXT NOT NULL,
-#   quantity INTEGER NOT NULL,
+## Item table
+create_loan_item = """
+CREATE TABLE IF NOT EXISTS LoanItem (
+  id            TEXT PRIMARY KEY NOT NULL,                              -- e.g. UUID
+  loan_id       TEXT NOT NULL,
+  product_name  TEXT NOT NULL,
+  quantity      INTEGER NOT NULL CHECK(quantity > 0),
 
-#   FOREIGN KEY (transaction_id) REFERENCES TransactionHeader(id),
-#   FOREIGN KEY (product_name) REFERENCES Product(name)
-# );
-# """
-# await client.execute(create_transaction_detail)
+  FOREIGN KEY (loan_id)      REFERENCES LoanHeader(id) ON DELETE CASCADE,
+  FOREIGN KEY (product_name) REFERENCES Product(name)
+);
+"""
+await client.execute(create_loan_item)
+
