@@ -91,7 +91,7 @@ export default function AddLoanPane() {
         note: null as string | null,
       },
       items: itemsPayload,
-      adjust_stock: adjustStock,
+      adjustStock: adjustStock,
     };
 
     try {
