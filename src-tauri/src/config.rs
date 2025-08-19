@@ -26,44 +26,30 @@ fn normalize_url(s: &str) -> Result<String> {
     Ok(url.into())
 }
 
-pub fn read_config(app: &App) -> Result<()> {
-    // Resolve bundled resource path
-    let path = app
-        .path()
-        .resolve("resources/config.json", BaseDirectory::Resource)
-        .map_err(|e| anyhow!(e.to_string()))?;
+/// Return appConfig path to config.json
+fn config_path(app: &AppHandle) -> Result<PathBuf> {
+    app.path()
+        .resolve("config.json", BaseDirectory::AppConfig)
+        .map_err(|e| anyhow!(e.to_string()))
+}
 
-    let content = app.handle().fs().read_to_string(path)?;
-    let parsed: serde_json::Value = serde_json::from_str(&content)?;
+pub fn init_config(app: &App) -> Result<()> {
+    let path = config_path(&app.handle())?;
 
-    let url = parsed
-        .get("URL")
-        .and_then(|v| v.as_str())
-        .ok_or_else(|| anyhow!("Missing URL"))?
-        .to_string();
-    let url = normalize_url(&url)?;
-
-    let token = parsed
-        .get("token")
-        .and_then(|v| v.as_str())
-        .ok_or_else(|| anyhow!("Missing token"))?
-        .to_string();
-    let alert_period = parsed
-        .get("alert_period")
-        .ok_or_else(|| anyhow!("Missing alert_period"))?
-        .as_u64()
-        .ok_or_else(|| anyhow!("alert_period must be a positive integer"))?
-        as u16;
-
-    let cfg = RwLock::new(Config {
-        url,
-        token,
-        alert_period,
-    });
+    let cfg: Config = if path.exists() {
+        let content = app.handle().fs().read_to_string(&path)?;
+        serde_json::from_str(&content)?
+    } else {
+        Config {
+            url: "".into(),
+            token: "".into(),
+            alert_period: ALERT_PERIOD_DEFAULT,
+        }
+    };
 
     CONFIG
-        .set(cfg)
-        .map_err(|_| anyhow!("Config already read"))?;
+        .set(RwLock::new(cfg))
+        .map_err(|_| anyhow!("Config already set"))?;
     Ok(())
 }
 
