@@ -141,9 +141,9 @@ export default function ViewStockTab() {
           numeric: true,
         }),
     },
-    { field: "expired", headerName: "已经过期", type: "number", width: 80 },
-    { field: "expire_soon", headerName: "近期过期", type: "number", width: 90 },
-    { field: "total_quantity", headerName: "总数量", type: "number", width: 100 },
+    { field: "expired", headerName: "过期", type: "number", width: 80 },
+    { field: "expire_soon", headerName: "近期", type: "number", width: 90 },
+    { field: "total_quantity", headerName: "总数", type: "number", width: 100 },
   ];
 
   if (mode === "detail" && selectedName) {
