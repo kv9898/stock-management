@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import { filter } from "fuzzaldrin-plus";
+import { DataGrid, GridColDef } from "@mui/x-data-grid";
 
 import ProductFormModal from "./productFormModal";
 import type { Product } from "../../types/product";
@@ -17,7 +18,6 @@ export default function ProductManagementPane() {
     const result = await invoke("get_all_products");
     setProducts(result as Product[]);
   };
-
   useEffect(() => {
     fetchProducts();
   }, []);
@@ -27,7 +27,6 @@ export default function ProductManagementPane() {
     setSelectedProduct(undefined);
     setShowModal(true);
   };
-
   const openEditModal = (product: Product) => {
     setModalMode("edit");
     setSelectedProduct(product);
@@ -35,8 +34,7 @@ export default function ProductManagementPane() {
   };
 
   const handleDelete = async (name: string) => {
-    const confirm = window.confirm(`确认删除商品：${name} 吗？ 删除后无法恢复！`);
-    if (!confirm) return;
+    if (!window.confirm(`确认删除商品：${name} 吗？ 删除后无法恢复！`)) return;
     try {
       await invoke("delete_product", { name });
       fetchProducts();
@@ -45,29 +43,95 @@ export default function ProductManagementPane() {
     }
   };
 
-  // Filter & sort with fuzzaldrin-plus
+  // Search (fuzzaldrin) + alphabetical sort
   const visibleProducts = useMemo(() => {
     const q = search.trim();
     let list = products;
-
     if (q) {
-      const enriched = products.map(product => ({
-          product,
-          key: `${product.name} ${product.type}`
+      const enriched = products.map((p) => ({
+        product: p,
+        key: `${p.name} ${p.type ?? ""}`,
       }));
-
-      const matches = filter(enriched, q, {
-        key: 'key',
-      });
-
-      list = matches.map(m => m.product);
+      list = filter(enriched, q, { key: "key" }).map((m) => m.product);
     }
-
-    // Always sort alphabetically by name
     return [...list].sort((a, b) =>
-      a.name.localeCompare(b.name, undefined, { sensitivity: "base", numeric: true })
+      a.name.localeCompare(b.name, undefined, {
+        sensitivity: "base",
+        numeric: true,
+      })
     );
   }, [products, search]);
+
+  // DataGrid rows/cols
+  const rows = useMemo(
+    () => visibleProducts.map((p) => ({ id: p.name, ...p })), // name is PK
+    [visibleProducts]
+  );
+
+  const columns: GridColDef[] = [
+    {
+      field: "name",
+      headerName: "名称",
+      flex: 1,
+      minWidth: 220,
+      sortable: true,
+      sortComparator: (a, b) =>
+        String(a ?? "").localeCompare(String(b ?? ""), undefined, {
+          sensitivity: "base",
+          numeric: true,
+        }),
+    },
+    {
+      field: "type",
+      headerName: "分类",
+      width: 140,
+      valueGetter: (_val, row) => row.type ?? "—",
+      sortComparator: (a, b) =>
+        (a ?? "—").localeCompare(b ?? "—", undefined, {
+          sensitivity: "base",
+          numeric: true,
+        }),
+    },
+    {
+      field: "price",
+      headerName: "会员单价",
+      type: "number",
+      width: 110,
+      valueGetter: (v) => v ?? 0,
+    },
+    {
+      field: "picture",
+      headerName: "图片",
+      width: 80,
+      align: "center",
+      headerAlign: "center",
+      sortable: false,
+      renderCell: (params) => (params.value ? "√" : ""),
+    },
+    {
+      field: "actions",
+      headerName: "操作",
+      width: 160,
+      sortable: false,
+      filterable: false,
+      renderCell: (params) => (
+        <div style={{ display: "flex", gap: 8 }}>
+          <button
+            className="action-btn"
+            onClick={() => openEditModal(params.row as Product)}
+          >
+            编辑
+          </button>
+          <button
+            className="action-btn delete"
+            onClick={() => handleDelete(params.row.name)}
+          >
+            删除
+          </button>
+        </div>
+      ),
+    },
+  ];
 
   return (
     <div className="product-pane">
@@ -78,52 +142,34 @@ export default function ProductManagementPane() {
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           placeholder="搜索产品名或类型…"
-          onKeyDown={(e) => {
-            if (e.key === "Escape") {
-              setSearch("");
-            }
+          onKeyDown={(e) => e.key === "Escape" && setSearch("")}
+          style={{
+            flex: 1,
+            padding: "8px 10px",
+            borderRadius: 6,
+            border: "1px solid var(--border)",
           }}
-          style={{ flex: 1, padding: "8px 10px", borderRadius: 6, border: "1px solid var(--border)" }}
         />
       </div>
 
-      <div className="product-table-container">
-        <table className="product-table">
-          <thead>
-            <tr>
-              <th>名称</th>
-              <th style={{ width: "140px" }}>分类</th>
-              <th style={{ width: "100px", textAlign: "right" }}>会员单价</th>
-              <th style={{ width: "50px", textAlign: "center" }}>图片</th>
-              <th style={{ width: "140px" }}>操作</th>
-            </tr>
-          </thead>
-          <tbody>
-            {visibleProducts.map((p) => (
-              <tr key={p.name} className="product-row">
-                <td className="name-cell">{p.name}</td>
-                <td>{p.type}</td>
-                <td style={{ textAlign: "right" }}>{p.price}</td>
-                <td style={{ textAlign: "center" }}>{p.picture ? "√" : ""}</td>
-                <td>
-                  <button className="action-btn" onClick={() => openEditModal(p)}>
-                    编辑
-                  </button>
-                  <button className="action-btn delete" onClick={() => handleDelete(p.name)}>
-                    删除
-                  </button>
-                </td>
-              </tr>
-            ))}
-            {visibleProducts.length === 0 && (
-              <tr>
-                <td colSpan={5} style={{ padding: 16, opacity: 0.6 }}>
-                  没有匹配的产品
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
+      {/* DataGrid table */}
+      <div style={{ flex: 1, minHeight: 0 }}>
+        <DataGrid
+          rows={rows}
+          columns={columns}
+          disableColumnMenu
+          autoPageSize
+          sx={{
+            borderRadius: 1,
+            bgcolor: "background.default",
+            "& .MuiDataGrid-row:hover": { backgroundColor: "action.hover" },
+          }}
+          slots={{
+            noRowsOverlay: () => (
+              <div style={{ padding: 16, opacity: 0.6 }}>没有匹配的产品</div>
+            ),
+          }}
+        />
       </div>
 
       <div className="footer-bar">
@@ -141,8 +187,11 @@ export default function ProductManagementPane() {
             if (modalMode === "add") {
               await invoke("add_product", { product: data });
             } else {
-              const payload = { product: data, old_name: oldName ?? selectedProduct?.name };
-              await invoke("update_product", {args: payload});
+              const payload = {
+                product: data,
+                old_name: oldName ?? selectedProduct?.name,
+              };
+              await invoke("update_product", { args: payload });
             }
             setShowModal(false);
             fetchProducts();
