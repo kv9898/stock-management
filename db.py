@@ -117,3 +117,24 @@ stmts = [
 ]
 await client.batch(stmts)
 
+
+## assign direction values to the LoanLedger view
+stmt = """
+CREATE VIEW IF NOT EXISTS LoanLedger AS
+SELECT
+  h.id            AS loan_id,
+  h.date          AS date,
+  h.direction     AS direction,
+  h.counterparty  AS counterparty,
+  i.product_name  AS product_name,
+  i.quantity      AS quantity,
+  CASE h.direction
+    WHEN 'loan_in'    THEN -1   -- stock leaves when we return later; treat as liability
+    WHEN 'loan_out'   THEN +1   -- stock currently out with counterparty
+    WHEN 'return_in'  THEN -1   -- offsets prior loan_out
+    WHEN 'return_out' THEN +1   -- offsets prior loan_in
+  END AS sign
+FROM LoanItem i
+JOIN LoanHeader h ON h.id = i.loan_id;
+"""
+await client.execute(stmt)
