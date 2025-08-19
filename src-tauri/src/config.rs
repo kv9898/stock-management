@@ -1,6 +1,6 @@
 use anyhow::{anyhow, Result};
-use once_cell::sync::OnceCell;
 use serde::Serialize;
+use std::sync::OnceLock;
 use tauri::path::BaseDirectory;
 use tauri::{App, Manager};
 use tauri_plugin_fs::FsExt;
@@ -14,7 +14,7 @@ pub struct Config {
 }
 
 // Global, thread-safe, read-only once set
-pub static CONFIG: OnceCell<Config> = OnceCell::new();
+pub static CONFIG: OnceLock<Config> = OnceLock::new();
 
 fn normalize_url(s: &str) -> Result<String> {
     let with_scheme = if s.contains("://") {
@@ -72,3 +72,8 @@ pub fn get_config() -> Result<Config, String> {
         .cloned()
         .ok_or_else(|| "Config not initialized".to_string())
 }
+
+// #[tauri::command]
+// pub fn write_config(handle: tauri::AppHandle, config: Config) -> Result<()> {
+//     CONFIG.set()
+// }
