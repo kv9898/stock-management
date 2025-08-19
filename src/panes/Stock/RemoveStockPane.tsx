@@ -4,7 +4,6 @@ import { invoke } from "@tauri-apps/api/core";
 import { v4 as uuidv4 } from "uuid";
 import ProductSelect from "../../components/LineItems/ProductSelect";
 import { ExpiryDatePicker } from "../../components/LineItems/ExpiryDatePicker";
-import "./AddStockPane.css";
 
 type Row = {
   id: string;

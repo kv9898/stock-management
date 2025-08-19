@@ -1,5 +1,6 @@
 // ProductSelect.tsx
 import Select, { createFilter } from "react-select";
+import "./ProductSelect.css"
 
 type Opt = { value: string; label: string };
 

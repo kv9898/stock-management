@@ -3,8 +3,6 @@ import { invoke } from "@tauri-apps/api/core";
 
 import type { Product } from "../../types/product";
 
-import './AddStockPane.css';
-
 import LineItemsTable from "../../components/LineItems/LineItemsTable";
 import { useLineItems, isItemComplete } from "../../components/LineItems/hook";
 
