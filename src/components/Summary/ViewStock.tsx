@@ -10,6 +10,7 @@ type StockSummary = {
   name: string;
   total_quantity: number;
   expire_soon: number;
+  expired: number;
   type?: string | null;
 };
 
@@ -140,8 +141,9 @@ export default function ViewStockTab() {
           numeric: true,
         }),
     },
+    { field: "expired", headerName: "已经过期", type: "number", width: 120 },
     { field: "expire_soon", headerName: "近期过期", type: "number", width: 120 },
-    { field: "total_quantity", headerName: "数量", type: "number", width: 120 },
+    { field: "total_quantity", headerName: "总数量", type: "number", width: 120 },
   ];
 
   if (mode === "detail" && selectedName) {
