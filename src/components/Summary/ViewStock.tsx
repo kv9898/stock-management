@@ -1,4 +1,4 @@
-import * as React from "react";
+import { FC, ReactNode } from "react";
 import { useEffect, useMemo, useState } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import { DataGrid, GridColDef } from "@mui/x-data-grid";
@@ -14,7 +14,7 @@ type StockSummary = {
   type?: string | null;
 };
 
-const Container: React.FC<{ children: React.ReactNode }> = ({ children }) => (
+const Container: FC<{ children: ReactNode }> = ({ children }) => (
   <div
     style={{
       padding: 16,
