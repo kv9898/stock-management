@@ -146,6 +146,7 @@ export default function StockExpiryChart({
             y,
             width: barWidthMs,
             hovertemplate: "到期日：%{x}<br>数量：%{y}<extra></extra>",
+            marker: {color: colors}
           } as Partial<Plotly.PlotData>,
         ]}
         layout={
