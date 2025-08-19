@@ -237,8 +237,6 @@ export default function ViewStockPane() {
           columns={columns}
           disableColumnMenu
           autoPageSize
-          // pageSizeOptions={[10, 25, 50]}
-          paginationModel={{ page: 0, pageSize: 25 }}
           onRowClick={(p) => {
             setSelectedName(p.row.name);
             setMode("detail");
