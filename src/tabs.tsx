@@ -79,10 +79,10 @@ export function RenderedTabs({
       {/* add loan */}
       <div style={{ display: activeTab === "addLoan" ? "block" : "none", height: "100%" }}>
         <AddLoanPane
-          // refreshSignal={refresh.addLoan}
-          // onDidSubmit={() => {
-          //   triggerRefresh("viewStock"); // loans adjust stock buckets
-          // }}
+          refreshSignal={refresh.addLoan}
+          onDidSubmit={() => {
+            triggerRefresh("viewStock"); // loans adjust stock buckets
+          }}
         />
       </div>
 
