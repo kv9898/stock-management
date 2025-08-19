@@ -64,6 +64,17 @@ export default function StockExpiryChart({
       });
   }, []);
 
+  // calculate colours for each bucket
+  const today = new Date();
+  const soonCutoff = new Date(today);
+  soonCutoff.setDate(today.getDate() + alertPeriod);
+  const colors = data.map((d) => {
+    const expiryDate = new Date(d.expiry + "T00:00:00"); // avoid TZ drift
+    if (expiryDate < today) return "#e74c3c"; // expired
+    if (expiryDate < soonCutoff) return "#f1c40f"; // soon-to-expire
+    return "#3498db"; // normal
+  });
+  
   const handleInternalBarClick = useCallback(
     async (expiry: string, quantity: number) => {
       if (!productName) return; // nothing to save against
