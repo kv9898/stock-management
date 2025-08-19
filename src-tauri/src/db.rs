@@ -2,7 +2,7 @@
 use crate::config::config;
 use anyhow::Result;
 use base64::{engine::general_purpose, Engine as _};
-use libsql_client::Config;
+use libsql_client::{Client, Config};
 use std::fmt::Display;
 
 pub async fn get_db_config() -> Result<Config> {
@@ -10,6 +10,14 @@ pub async fn get_db_config() -> Result<Config> {
 
     let client_config = Config::new(conf.url.as_str())?.with_auth_token(&conf.token);
     Ok(client_config)
+}
+
+pub async fn verify_db_connection(url: String, token: String) -> Result<()> {
+    let conf = Config::new(url.as_str())?.with_auth_token(&token);
+    let client = Client::from_config(conf).await?;
+
+    client.execute("SELECT 1").await?;
+    Ok(())
 }
 
 pub fn sql_quote(s: &str) -> String {
