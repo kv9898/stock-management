@@ -4,6 +4,7 @@ use anyhow::Result;
 use base64::{engine::general_purpose, Engine as _};
 use libsql_client::{Client, Config};
 use std::fmt::Display;
+use tokio::task;
 
 pub async fn get_db_config() -> Result<Config> {
     let conf = config()?;
@@ -14,16 +15,23 @@ pub async fn get_db_config() -> Result<Config> {
 
 #[tauri::command]
 pub async fn verify_credentials(url: String, token: String) -> Result<(), String> {
-    let conf = Config::new(url.as_str())
-        .map_err(|e| e.to_string())?
-        .with_auth_token(&token);
-    let client = Client::from_config(conf).await.map_err(|e| e.to_string())?;
+    task::spawn_blocking(move || {
+        let rt = tokio::runtime::Runtime::new().unwrap();
+        rt.block_on(async {
+            let conf = Config::new(url.as_str())
+                .map_err(|e| e.to_string())?
+                .with_auth_token(&token);
+            let client = Client::from_config(conf).await.map_err(|e| e.to_string())?;
 
-    client
-        .execute("SELECT 1")
-        .await
-        .map_err(|e| e.to_string())?;
-    Ok(())
+            client
+                .execute("SELECT 1")
+                .await
+                .map_err(|e| e.to_string())?;
+            Ok(())
+        })
+    })
+    .await
+    .map_err(|e| e.to_string())?
 }
 
 pub fn sql_quote(s: &str) -> String {
