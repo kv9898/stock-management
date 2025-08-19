@@ -9,6 +9,7 @@ import StockExpiryChart, { Bucket } from "./Chart";
 type StockSummary = {
   name: string;
   total_quantity: number;
+  expire_soon: number;
   type?: string | null;
 };
 
@@ -139,6 +140,7 @@ export default function ViewStockTab() {
           numeric: true,
         }),
     },
+    { field: "expire_soon", headerName: "近期过期", type: "number", width: 120 },
     { field: "total_quantity", headerName: "数量", type: "number", width: 120 },
   ];
 
