@@ -46,8 +46,9 @@ export default function RemoveStockPane({
   useEffect(() => {
     (async () => {
       try {
+        console.log("Refreshing RemoveStockPane due to signal:", refreshSignal);
         await fetchInStockProducts();
-        setLotsByProduct({}); // invalidate caches
+        reloadAllLotsAndRevalidate();
       } catch (e) {
         alert(String(e));
       }
@@ -82,6 +83,60 @@ export default function RemoveStockPane({
     const lots = await invoke<StockLot[]>("get_stock_lots", { name: product });
     setLotsByProduct((m) => ({ ...m, [product]: lots }));
   };
+
+  // Solution to not refreshing availability mid-row:
+      // helper: get available qty from a fetched lot list
+  const qtyFromLots = (lots: StockLot[], expiry: string | null) => {
+    if (!expiry) return 0;
+    const hit = lots.find(l => l.expiry_date === expiry);
+    return hit?.qty ?? 0;
+  };
+
+  /**
+   * Refetch lots for ALL products that appear in rows (fresh, no cache reuse),
+   * then revalidate every row:
+   *  - err = "该日期无库存" / "请选择日期" / null
+   *  - qty = latest availability from server (NOT the previous row.qty)
+   */
+  const reloadAllLotsAndRevalidate = useCallback(async () => {
+    // unique product names that appear in current rows
+    const names = Array.from(new Set(rows.map(r => r.product).filter(Boolean))) as string[];
+
+    if (names.length === 0) {
+      setLotsByProduct({});
+      return;
+    }
+
+    // fetch ALL lots fresh (no reliance on old cache)
+    const entries = await Promise.all(
+      names.map(async (name) => {
+        const lots = await invoke<StockLot[]>("get_stock_lots", { name });
+        return [name, lots] as const;
+      })
+    );
+
+    const fresh: Record<string, StockLot[]> = Object.fromEntries(entries);
+    setLotsByProduct(fresh);
+
+    // revalidate rows against fresh lots; qty comes from fresh lots
+    setRows(prev =>
+      prev.map(r => {
+        if (!r.product || !r.expiry) return r;
+
+        const lots = fresh[r.product] ?? [];
+        const ok = lots.some(l => l.expiry_date === r.expiry);
+        const availNow = ok ? qtyFromLots(lots, r.expiry) : 0;
+
+        return {
+          ...r,
+          err: !r.expiry ? "请选择日期" : (ok ? null : "该日期无库存"),
+          qty: ok ? availNow : null,          // <-- overwrite with fresh availability
+        };
+      })
+    );
+    console.log("First Row:", rows[0]);
+  }, [rows]);
+
 
   const availableQtyFor = (product: string, expiry: string | null) => {
     if (!product || !expiry) return 0;
