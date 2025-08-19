@@ -1,10 +1,16 @@
 use anyhow::{anyhow, Result};
 use serde::{Deserialize, Serialize};
-use std::sync::{OnceLock, RwLock, RwLockReadGuard};
+use std::fs::{create_dir_all, OpenOptions};
+use std::io::Write;
+use std::path::PathBuf;
+use std::sync::{OnceLock, RwLock, RwLockReadGuard, RwLockWriteGuard};
 use tauri::path::BaseDirectory;
 use tauri::{App, AppHandle, Manager};
 use tauri_plugin_fs::FsExt;
 use url::Url;
+
+// Default configs
+pub static ALERT_PERIOD_DEFAULT: u16 = 180;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Config {
@@ -61,6 +67,15 @@ pub fn config() -> Result<RwLockReadGuard<'static, Config>> {
     lock.read().map_err(|_| anyhow!("config lock poisoned"))
 }
 
+/// Get a writable guard
+pub fn config_mut() -> Result<RwLockWriteGuard<'static, Config>> {
+    CONFIG
+        .get()
+        .ok_or_else(|| anyhow!("Config not initialized"))?
+        .write()
+        .map_err(|_| anyhow!("Config lock poisoned"))
+}
+
 #[tauri::command]
 pub fn get_config() -> Result<Config, String> {
     let cfg = config().map_err(|e| e.to_string())?; // reuse internal helper
@@ -68,7 +83,55 @@ pub fn get_config() -> Result<Config, String> {
 }
 
 #[tauri::command]
-pub fn write_config(_handle: AppHandle, config: Config) -> Result<(), String> {
-    // Just stringify the config and return it as an error
-    Err(format!("Not implemented. Received config: {:?}", config))
+pub fn write_config(handle: AppHandle, new_cfg: Config) -> Result<(), String> {
+    // validate url before saving
+    if let Err(e) = normalize_url(&new_cfg.url) {
+        return Err(format!("Invalid URL: {e}"));
+    }
+
+    // TODO: add DB connection test here
+    // if verify_db_connection(&new_cfg).is_err() { return Err("DB connection failed".into()); }
+
+    // update in-memory
+    {
+        let mut cfg = config_mut().map_err(|e| e.to_string())?;
+        *cfg = new_cfg.clone();
+    }
+
+    // persist to disk using plugin-fs
+    let path = config_path(&handle).map_err(|e| e.to_string())?;
+    let json = serde_json::to_string_pretty(&new_cfg).map_err(|e| e.to_string())?;
+
+    // make sure the directory exists
+    if let Some(parent) = path.parent() {
+        if let Err(e) = create_dir_all(parent) {
+            return Err(format!(
+                "Failed to create config dir {}: {e}",
+                parent.display()
+            ));
+        }
+    } else {
+        return Err("Resolved config path has no parent directory".into());
+    }
+
+    // open with write+create+truncate
+    // let mut opts = OpenOptions::new();
+    // opts.write(true).create(true);
+
+    // let mut file = handle
+    //     .fs()
+    //     .open(path.clone(), opts)
+    //     .map_err(|e| format!("Failed to open config file: {e}"))?;
+
+    let mut file = OpenOptions::new()
+        .write(true)
+        .create(true)
+        .truncate(true)
+        .open(&path)
+        .map_err(|e| format!("Failed to open config file: {e}"))?;
+
+    file.write_all(json.as_bytes())
+        .map_err(|e| format!("Failed to write config: {e}"))?;
+
+    Ok(())
 }

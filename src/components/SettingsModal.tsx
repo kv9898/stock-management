@@ -61,7 +61,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ open, onClose }) => {
 
     try {
       // Rust: #[tauri::command] pub fn write_config(handle: AppHandle, config: Config) -> Result<()>
-      await invoke("write_config", { config: form });
+      await invoke("write_config", { newCfg: form });
       onClose();
     } catch (e: any) {
       setError(typeof e === "string" ? e : (e?.message ?? "保存失败"));
