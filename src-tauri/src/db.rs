@@ -1,17 +1,15 @@
 // src-tauri/src/db.rs
-use crate::config::CONFIG;
-use anyhow::{anyhow, Result};
+use crate::config::config;
+use anyhow::Result;
 use base64::{engine::general_purpose, Engine as _};
 use libsql_client::Config;
 use std::fmt::Display;
 
 pub async fn get_db_config() -> Result<Config> {
-    let conf = CONFIG
-        .get()
-        .ok_or_else(|| anyhow!("DB tokens not initialized"))?;
+    let conf = config()?;
 
-    let config = Config::new(conf.url.as_str())?.with_auth_token(&conf.token);
-    Ok(config)
+    let client_config = Config::new(conf.url.as_str())?.with_auth_token(&conf.token);
+    Ok(client_config)
 }
 
 pub fn sql_quote(s: &str) -> String {
