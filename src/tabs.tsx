@@ -59,40 +59,40 @@ export function RenderedTabs({
       {/* add stock */}
       <div style={{ display: activeTab === "addStock" ? "block" : "none", height: "100%" }}>
         <AddStockPane
-          refreshSignal={refresh.addStock}
-          onDidSubmit={() => {
-            triggerRefresh("viewStock"); // adding stock affects summary
-          }}
+          // refreshSignal={refresh.addStock}
+          // onDidSubmit={() => {
+          //   triggerRefresh("viewStock"); // adding stock affects summary
+          // }}
         />
       </div>
 
       {/* remove stock */}
       <div style={{ display: activeTab === "removeStock" ? "block" : "none", height: "100%" }}>
         <RemoveStockPane
-          refreshSignal={refresh.removeStock}
-          onDidSubmit={() => {
-            triggerRefresh("viewStock");
-          }}
+          // refreshSignal={refresh.removeStock}
+          // onDidSubmit={() => {
+          //   triggerRefresh("viewStock");
+          // }}
         />
       </div>
 
       {/* add loan */}
       <div style={{ display: activeTab === "addLoan" ? "block" : "none", height: "100%" }}>
         <AddLoanPane
-          refreshSignal={refresh.addLoan}
-          onDidSubmit={() => {
-            triggerRefresh("viewStock"); // loans adjust stock buckets
-          }}
+          // refreshSignal={refresh.addLoan}
+          // onDidSubmit={() => {
+          //   triggerRefresh("viewStock"); // loans adjust stock buckets
+          // }}
         />
       </div>
 
       {/* product management */}
       <div style={{ display: activeTab === "productManagement" ? "block" : "none", height: "100%" }}>
         <ProductManagementPane
-          refreshSignal={refresh.productManagement}
-          onDidMutateProduct={() => {
-            triggerRefresh("viewStock"); // renames/types impact summary display
-          }}
+          // refreshSignal={refresh.productManagement}
+          // onDidMutateProduct={() => {
+          //   triggerRefresh("viewStock"); // renames/types impact summary display
+          // }}
         />
       </div>
     </>

@@ -1,5 +1,5 @@
 import { FC, ReactNode } from "react";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useCallback } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import { DataGrid, GridColDef } from "@mui/x-data-grid";
 import { FormControl, InputLabel, MenuItem, Select } from "@mui/material";
@@ -31,7 +31,7 @@ const Container: FC<{ children: ReactNode }> = ({ children }) => (
 const ALL = "__ALL__";
 const UNCLASSIFIED = "__UNCLASSIFIED__";
 
-export default function ViewStockPane() {
+export default function ViewStockPane({ refreshSignal = 0 }: { refreshSignal?: number }) {
   const [mode, setMode] = useState<"list" | "detail">("list");
   const [search, setSearch] = useState("");
   const [rows, setRows] = useState<StockSummary[]>([]);
@@ -44,15 +44,57 @@ export default function ViewStockPane() {
   const [buckets, setBuckets] = useState<Bucket[]>([]);
   const [loadingDetail, setLoadingDetail] = useState(false);
 
-  // Fetch everything once
+  // ---- fetchers -------------------------------------------------------------
+
+  const fetchOverview = useCallback(async () => {
+    const data = await invoke<StockSummary[]>("get_stock_overview");
+    setRows(data);
+  }, []);
+
+  const fetchHistogram = useCallback(async (name: string) => {
+    setLoadingDetail(true);
+    try {
+      const data = await invoke<Bucket[]>("get_stock_histogram", { name });
+      setBuckets(data);
+    } finally {
+      setLoadingDetail(false);
+    }
+  }, []);
+
+  // initial load
   useEffect(() => {
-    invoke<StockSummary[]>("get_stock_overview")
-      .then(setRows)
-      .catch((err) => {
+    fetchOverview().catch((err) => {
+      console.error(err);
+      alert(String(err));
+    });
+  }, [fetchOverview]);
+
+  // refresh on signal; also keep detail view in sync if it’s open
+  useEffect(() => {
+    (async () => {
+      try {
+        await fetchOverview();
+        if (mode === "detail" && selectedName) {
+          await fetchHistogram(selectedName);
+        }
+      } catch (err) {
         console.error(err);
         alert(String(err));
-      });
-  }, []);
+      }
+    })();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [refreshSignal]); // only when parent bumps the counter
+
+  // when entering detail mode or changing selection, (re)load histogram
+  useEffect(() => {
+    if (mode !== "detail" || !selectedName) return;
+    fetchHistogram(selectedName).catch((err) => {
+      console.error(err);
+      alert(String(err));
+    });
+  }, [mode, selectedName, fetchHistogram]);
+
+  // --------------------------------------------------------------------------
 
   // Distinct types from data
   const typeOptions = useMemo(() => {
@@ -88,19 +130,6 @@ export default function ViewStockPane() {
     }
     return list;
   }, [rows, search, selectedType]);
-
-  // Load histogram on detail
-  useEffect(() => {
-    if (mode !== "detail" || !selectedName) return;
-    setLoadingDetail(true);
-    invoke<Bucket[]>("get_stock_histogram", { name: selectedName })
-      .then(setBuckets)
-      .catch((err) => {
-        console.error(err);
-        alert(String(err));
-      })
-      .finally(() => setLoadingDetail(false));
-  }, [mode, selectedName]);
 
   const rowsForGrid = [...filtered] // pre-sorted
     .sort((a, b) => {
