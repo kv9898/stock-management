@@ -85,12 +85,12 @@ export default function AddLoanPane() {
 
       <div className="footer-bar" style={{ gap: 12, display: "flex", alignItems: "center" }}>
         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-          <label style={{ whiteSpace: "nowrap" }}>往来单位</label>
+          <label style={{ whiteSpace: "nowrap" }}>对方姓名</label>
           <input
             type="text"
             value={counterparty}
             onChange={(e) => setCounterparty(e.target.value)}
-            placeholder="例如：门店A / 供货商B"
+            placeholder="例如：徐丽"
             style={{ width: 220 }}
           />
         </div>
