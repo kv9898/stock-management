@@ -1,5 +1,6 @@
 mod config;
 mod db;
+mod loan;
 mod product;
 mod stock;
 mod summary;
