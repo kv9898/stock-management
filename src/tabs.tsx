@@ -89,10 +89,10 @@ export function RenderedTabs({
       {/* product management */}
       <div style={{ display: activeTab === "productManagement" ? "block" : "none", height: "100%" }}>
         <ProductManagementPane
-          // refreshSignal={refresh.productManagement}
-          // onDidMutateProduct={() => {
-          //   triggerRefresh("viewStock"); // renames/types impact summary display
-          // }}
+          refreshSignal={refresh.productManagement}
+          onDidMutateProduct={() => {
+            triggerRefresh("viewStock"); // renames/types impact summary display
+          }}
         />
       </div>
     </>

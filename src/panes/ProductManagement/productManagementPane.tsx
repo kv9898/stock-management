@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useCallback } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import { filter } from "fuzzaldrin-plus";
 import { DataGrid, GridColDef } from "@mui/x-data-grid";
@@ -7,20 +7,32 @@ import ProductFormModal from "./productFormModal";
 import type { Product } from "../../types/product";
 import "./productManagementPane.css";
 
-export default function ProductManagementPane() {
+export default function ProductManagementPane({
+  refreshSignal = 0,
+  onDidMutateProduct,
+}: {
+  refreshSignal?: number;
+  onDidMutateProduct?: () => void;
+}) {
   const [products, setProducts] = useState<Product[]>([]);
   const [search, setSearch] = useState("");
   const [showModal, setShowModal] = useState(false);
   const [modalMode, setModalMode] = useState<"add" | "edit">("add");
   const [selectedProduct, setSelectedProduct] = useState<Product | undefined>();
 
-  const fetchProducts = async () => {
-    const result = await invoke("get_all_products");
-    setProducts(result as Product[]);
-  };
-  useEffect(() => {
-    fetchProducts();
+  const fetchProducts = useCallback(async () => {
+    const result = await invoke<Product[]>("get_all_products");
+    setProducts(result);
   }, []);
+
+  // initial + on refreshSignal
+  useEffect(() => {
+    fetchProducts().catch((e) => console.error(e));
+  }, [fetchProducts]);
+
+  useEffect(() => {
+    fetchProducts().catch((e) => console.error(e));
+  }, [refreshSignal, fetchProducts]);
 
   const openAddModal = () => {
     setModalMode("add");
@@ -37,7 +49,8 @@ export default function ProductManagementPane() {
     if (!window.confirm(`确认删除商品：${name} 吗？ 删除后无法恢复！`)) return;
     try {
       await invoke("delete_product", { name });
-      fetchProducts();
+      await fetchProducts();
+      onDidMutateProduct?.(); // e.g. trigger viewStock refresh
     } catch (err: any) {
       alert(err);
     }
@@ -194,7 +207,8 @@ export default function ProductManagementPane() {
               await invoke("update_product", { args: payload });
             }
             setShowModal(false);
-            fetchProducts();
+            await fetchProducts();
+            onDidMutateProduct?.(); // e.g. refresh viewStock summary
           }}
         />
       )}
