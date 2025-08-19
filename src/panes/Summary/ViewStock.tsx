@@ -203,7 +203,7 @@ export default function ViewStockPane({
           minHeight: 0,
         }}
       >
-        <div style={{ display: "flex", gap: 8 }}>
+        <div style={{ display: "flex", gap: 8, marginBottom: 8 }}>
           <FormControl size="small" style={{ minWidth: 160 }}>
             <InputLabel id="type-filter-label">类型</InputLabel>
             <Select
