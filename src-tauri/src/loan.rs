@@ -16,8 +16,8 @@ pub struct LoanHeaderIn {
 pub struct LoanItemIn {
     pub id: String, // UUID from frontend
     pub product_name: String,
-    pub quantity: i64,  // > 0
-    pub expiry: String, // "YYYY-MM-DD"
+    pub quantity: i64,          // > 0
+    pub expiry: Option<String>, // "YYYY-MM-DD"
 }
 
 #[inline]
@@ -104,7 +104,11 @@ pub async fn create_loan(
                     let delta = dir_delta(&header.direction, it.quantity)?;
                     if delta < 0 {
                         let name_q = sql_quote(&it.product_name);
-                        let expiry_q = sql_quote(&it.expiry);
+                        let expiry = it
+                            .expiry
+                            .as_ref()
+                            .ok_or_else(|| format!("必须提供到期日：{}", it.product_name))?;
+                        let expiry_q = sql_quote(expiry);
                         let rs = tx
                             .execute(format!(
                                 "SELECT quantity FROM Stock WHERE name='{}' AND expiry='{}';",
@@ -120,7 +124,7 @@ pub async fn create_loan(
                         if current + delta < 0 {
                             return Err(format!(
                                 "库存不足：{}（到期 {}）当前 {}，欲减少 {}",
-                                it.product_name, it.expiry, current, -delta
+                                it.product_name, expiry, current, -delta
                             ));
                         }
                     }
@@ -141,11 +145,10 @@ pub async fn create_loan(
             for it in &items {
                 let it_id_q = sql_quote(&it.id);
                 let name_q = sql_quote(&it.product_name);
-                let expiry_q = sql_quote(&it.expiry);
                 let sql_item = format!(
-                    "INSERT INTO LoanItem (id, loan_id, product_name, quantity, expiry)
-                     VALUES ('{}','{}','{}', {}, '{}');",
-                    it_id_q, hdr_id_q, name_q, it.quantity, expiry_q
+                    "INSERT INTO LoanItem (id, loan_id, product_name, quantity)
+                     VALUES ('{}','{}','{}', {});",
+                    it_id_q, hdr_id_q, name_q, it.quantity
                 );
                 tx.execute(sql_item).await.map_err(|e| e.to_string())?;
             }
@@ -155,7 +158,11 @@ pub async fn create_loan(
                 for it in &items {
                     let delta = dir_delta(&header.direction, it.quantity)?;
                     let name_q = sql_quote(&it.product_name);
-                    let expiry_q = sql_quote(&it.expiry);
+                    let expiry = it
+                        .expiry
+                        .as_ref()
+                        .ok_or_else(|| format!("必须提供到期日：{}", it.product_name))?;
+                    let expiry_q = sql_quote(expiry);
                     let upsert = format!(
                         "INSERT INTO Stock (id, name, expiry, quantity)
                          VALUES (lower(hex(randomblob(16))), '{name}', '{expiry}', {delta})
