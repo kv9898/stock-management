@@ -12,11 +12,17 @@ pub async fn get_db_config() -> Result<Config> {
     Ok(client_config)
 }
 
-pub async fn verify_db_connection(url: String, token: String) -> Result<()> {
-    let conf = Config::new(url.as_str())?.with_auth_token(&token);
-    let client = Client::from_config(conf).await?;
+#[tauri::command]
+pub async fn verify_credentials(url: String, token: String) -> Result<(), String> {
+    let conf = Config::new(url.as_str())
+        .map_err(|e| e.to_string())?
+        .with_auth_token(&token);
+    let client = Client::from_config(conf).await.map_err(|e| e.to_string())?;
 
-    client.execute("SELECT 1").await?;
+    client
+        .execute("SELECT 1")
+        .await
+        .map_err(|e| e.to_string())?;
     Ok(())
 }
 
