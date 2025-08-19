@@ -4,7 +4,7 @@ mod product;
 mod stock;
 mod summary;
 
-use config::{get_config, init_config, wire_verify_on_startup, write_config};
+use config::{get_alert_period, get_config, init_config, wire_verify_on_startup, write_config};
 use db::verify_credentials;
 use product::{add_product, delete_product, get_all_products, get_product, update_product};
 use stock::{add_stock, edit_stock, get_in_stock_products, get_stock_lots, remove_stock};
@@ -35,6 +35,7 @@ pub fn run() {
             get_stock_histogram,
             get_config,
             write_config,
+            get_alert_period,
             verify_credentials,
         ])
         .run(tauri::generate_context!())

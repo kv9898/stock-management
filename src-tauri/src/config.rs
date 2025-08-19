@@ -161,3 +161,9 @@ pub fn write_config(handle: AppHandle, new_cfg: Config) -> Result<(), String> {
 
     Ok(())
 }
+
+#[tauri::command]
+pub fn get_alert_period() -> Result<u16, String> {
+    let cfg = config().map_err(|e| e.to_string())?; // reuse internal helper
+    Ok(cfg.alert_period)
+}
