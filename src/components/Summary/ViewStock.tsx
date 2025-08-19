@@ -9,6 +9,8 @@ import StockExpiryChart, { Bucket } from "./Chart";
 type StockSummary = {
   name: string;
   total_quantity: number;
+  expire_soon: number;
+  expired: number;
   type?: string | null;
 };
 
@@ -131,7 +133,7 @@ export default function ViewStockTab() {
     {
       field: "type",
       headerName: "类型",
-      width: 140,
+      width: 80,
       valueGetter: (_value, row) => row.type ?? "未分类",
       sortComparator: (a, b) =>
         (a ?? "未分类").localeCompare(b ?? "未分类", undefined, {
@@ -139,7 +141,9 @@ export default function ViewStockTab() {
           numeric: true,
         }),
     },
-    { field: "total_quantity", headerName: "数量", type: "number", width: 120 },
+    { field: "expired", headerName: "过期", type: "number", width: 80 },
+    { field: "expire_soon", headerName: "近期", type: "number", width: 90 },
+    { field: "total_quantity", headerName: "总数", type: "number", width: 100 },
   ];
 
   if (mode === "detail" && selectedName) {
