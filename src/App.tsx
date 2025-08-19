@@ -1,5 +1,6 @@
 import { useState } from "react";
 import "./App.css";
+import "./components/Modals.css"
 import SidebarButton from "./components/sidebarButton";
 import { tabs, renderTabContent } from "./tabs";
 

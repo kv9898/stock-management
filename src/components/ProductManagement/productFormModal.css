@@ -96,42 +96,6 @@ input[type="file"]::file-selector-button:hover {
   box-shadow: 0 0 0 1px var(--border) inset;
 }
 
-/* --- Action row --- */
-.modal-actions {
-  display: flex;
-  gap: 10px;
-}
-
-/* Equal-width buttons; inherit theme colors */
-.modal-actions .btn {
-  flex: 1;
-  padding: 10px 12px;
-  border-radius: 8px;
-  border: 1px solid var(--border);
-  background-color: var(--button-bg);
-  color: var(--button-text);
-  font-weight: 500;
-  cursor: pointer;
-  transition: background-color 0.15s ease, transform 0.02s ease;
-  text-align: center;
-}
-.modal-actions .btn:hover {
-  background-color: var(--button-hover);
-}
-.modal-actions .btn:active {
-  transform: translateY(1px);
-}
-
-/* Primary action can be slightly emphasized */
-.modal-actions .btn.primary {
-  background-color: #3b82f6;
-  color: white;
-  border-color: #3b82f6;
-}
-.modal-actions .btn.primary:hover {
-  background-color: #2f6fd6;
-}
-
 /* Optional: dark-specific fine-tuning */
 @media (prefers-color-scheme: dark) {
   .modal-overlay { background-color: rgba(0, 0, 0, 0.55); }
