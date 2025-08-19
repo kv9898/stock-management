@@ -9,6 +9,7 @@ pub struct StockSummary {
     pub name: String,
     pub total_quantity: i64,
     pub expire_soon: i64,
+    pub expired: i64,
     pub r#type: Option<String>,
 }
 
@@ -45,7 +46,15 @@ pub async fn get_stock_overview() -> Result<Vec<StockSummary>, String> {
                       THEN COALESCE(s.quantity, 0)
                       ELSE 0
                     END
-                  ) AS expire_soon
+                  ) AS expire_soon,
+                  SUM(
+                    CASE
+                      WHEN s.expiry IS NOT NULL
+                       AND DATE(s.expiry) < DATE('now')
+                      THEN COALESCE(s.quantity, 0)
+                      ELSE 0
+                    END
+                  ) AS expired
                 FROM Stock s
                 JOIN Product p ON p.name = s.name
                 GROUP BY p.name, ptype
@@ -64,11 +73,13 @@ pub async fn get_stock_overview() -> Result<Vec<StockSummary>, String> {
                     .to_string();
                 let total_quantity: i64 = row.try_column::<i64>("total_quantity").unwrap_or(0);
                 let expire_soon: i64 = row.try_column::<i64>("expire_soon").unwrap_or(0);
+                let expired: i64 = row.try_column::<i64>("expired").unwrap_or(0);
                 let r#type = row.try_column::<&str>("ptype").ok().map(|s| s.to_string());
                 out.push(StockSummary {
                     name,
                     total_quantity,
                     expire_soon,
+                    expired,
                     r#type,
                 });
             }
