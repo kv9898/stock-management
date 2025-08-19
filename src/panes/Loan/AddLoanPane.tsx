@@ -9,12 +9,22 @@ import { useLineItems, isItemComplete } from "../../components/LineItems/hook";
 
 export default function AddLoanPane() {
   const [products, setProducts] = useState<Product[]>([]);
-  const { rows, setRow, removeRow, reset, inputRefs, nonGhostRows, handleEnter } = useLineItems();
+  const {
+    rows,
+    setRow,
+    removeRow,
+    reset,
+    inputRefs,
+    nonGhostRows,
+    handleEnter,
+  } = useLineItems();
 
   // footer fields
   const [counterparty, setCounterparty] = useState("");
   const [direction, setDirection] = useState<Direction>("loan_out");
-  const [txnDate, setTxnDate] = useState<string>(() => new Date().toISOString().slice(0, 10));
+  const [txnDate, setTxnDate] = useState<string>(() =>
+    new Date().toISOString().slice(0, 10)
+  );
   const [adjustStock, setAdjustStock] = useState<boolean>(true);
 
   useEffect(() => {
@@ -22,7 +32,10 @@ export default function AddLoanPane() {
       const list = await invoke<Product[]>("get_all_products");
       setProducts(
         [...list].sort((a, b) =>
-          a.name.localeCompare(b.name, undefined, { sensitivity: "base", numeric: true })
+          a.name.localeCompare(b.name, undefined, {
+            sensitivity: "base",
+            numeric: true,
+          })
         )
       );
     })();
@@ -85,34 +98,53 @@ export default function AddLoanPane() {
         handleEnter={handleEnter}
       />
 
-      <div className="footer-bar" style={{ gap: 12, display: "flex", alignItems: "center" }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+      <div
+        className="footer-bar"
+        style={{ gap: 12, display: "flex", alignItems: "center" }}
+      >
+        <div style={{ display: "flex", alignItems: "center", gap: 8, flex: 1 }}>
           <label style={{ whiteSpace: "nowrap" }}>对方姓名</label>
           <input
             type="text"
             value={counterparty}
             onChange={(e) => setCounterparty(e.target.value)}
             placeholder="例如：徐丽"
-            style={{ width: 220 }}
+            style={{ width: "100%" }}
           />
         </div>
 
         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
           <label>方向</label>
-          <select value={direction} onChange={(e) => setDirection(e.target.value as Direction)}>
-            <option value="loan_out">借出（我们出）</option>
-            <option value="loan_in">借入（我们收）</option>
-            <option value="return_in">归还入库（对方还给我们）</option>
-            <option value="return_out">归还出库（我们还给对方）</option>
+          <select
+            value={direction}
+            style={{ width: 80 }}
+            onChange={(e) => setDirection(e.target.value as Direction)}
+          >
+            <option value="loan_out">借出</option>
+            <option value="loan_in">借入）</option>
+            <option value="return_in">还入</option>
+            <option value="return_out">还出</option>
           </select>
         </div>
 
         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
           <label>日期</label>
-          <input type="date" value={txnDate} onChange={(e) => setTxnDate(e.target.value)} />
+          <input
+            type="date"
+            style={{ width: 160 }}
+            value={txnDate}
+            onChange={(e) => setTxnDate(e.target.value)}
+          />
         </div>
 
-        <label style={{ display: "flex", alignItems: "center", gap: 6, marginLeft: 8 }}>
+        <label
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: 6,
+            marginLeft: 8,
+          }}
+        >
           <input
             type="checkbox"
             checked={adjustStock}
@@ -122,7 +154,9 @@ export default function AddLoanPane() {
         </label>
 
         <div style={{ marginLeft: "auto" }}>
-          <button className="add-btn" onClick={submit}>提交借还</button>
+          <button className="add-btn" onClick={submit}>
+            提交借还
+          </button>
         </div>
       </div>
     </div>
