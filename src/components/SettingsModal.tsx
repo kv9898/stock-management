@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { invoke } from "@tauri-apps/api/core";
+import {Config} from "../types/Config";
 
 type SettingsModalProps = {
   open: boolean;
