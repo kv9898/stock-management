@@ -93,7 +93,9 @@ function App() {
           setLockSettings(false);
           setShowSettings(false);
           setSettingsError(null);
-          setActiveTab("viewStock");
+          if (activeTab === "boot") { // only switch if we were in boot state
+            setActiveTab("viewStock");
+          }
         }}
       />
     </div>
