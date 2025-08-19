@@ -1,3 +1,4 @@
+use crate::db::verify_credentials;
 use anyhow::{anyhow, Result};
 use serde::{Deserialize, Serialize};
 use std::fs::{create_dir_all, OpenOptions};
@@ -5,6 +6,7 @@ use std::io::Write;
 use std::path::PathBuf;
 use std::sync::{OnceLock, RwLock, RwLockReadGuard, RwLockWriteGuard};
 use tauri::path::BaseDirectory;
+use tauri::Emitter;
 use tauri::{App, AppHandle, Manager};
 use tauri_plugin_fs::FsExt;
 use url::Url;
@@ -57,6 +59,30 @@ pub fn init_config(app: &App) -> Result<()> {
         .set(RwLock::new(cfg))
         .map_err(|_| anyhow!("Config already set"))?;
     Ok(())
+}
+
+pub fn wire_verify_on_startup(app: &App) {
+    let handle = app.handle().clone();
+
+    if let Some(lock) = CONFIG.get() {
+        // take a read lock to access fields
+        let (url, token) = match lock.read() {
+            Ok(cfg) => (cfg.url.clone(), cfg.token.clone()),
+            Err(_) => {
+                let _ = handle.emit("config:invalid", "Config lock poisoned");
+                return;
+            }
+        };
+
+        tauri::async_runtime::spawn(async move {
+            if let Err(err_msg) = verify_credentials(url, token).await {
+                let _ = handle.emit("config:invalid", err_msg);
+            }
+        });
+    } else {
+        // No config yet -> ask UI to open Settings
+        let _ = app.emit("config:invalid", "Missing config".to_string());
+    }
 }
 
 // Internal function to avoid cloning the lock guard unnecessarily

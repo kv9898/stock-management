@@ -15,6 +15,13 @@ export const tabs = [
 
 export const renderTabContent = (activeTab: string) => {
   switch (activeTab) {
+    case "boot":
+      return (
+        <div style={{ opacity: 0.7, padding: "1rem" }}>
+          <h2 style={{ marginTop: 0 }}>正在载入数据…</h2>
+          <div>正在检查数据库配置与连接，请稍候。</div>
+        </div>
+      );
     case "viewStock":
       return <ViewStockTab />;
     case "addStock":

@@ -4,7 +4,8 @@ mod product;
 mod stock;
 mod summary;
 
-use config::{get_config, init_config, write_config};
+use config::{get_config, init_config, wire_verify_on_startup, write_config};
+use db::verify_credentials;
 use product::{add_product, delete_product, get_all_products, get_product, update_product};
 use stock::{add_stock, edit_stock, get_in_stock_products, get_stock_lots, remove_stock};
 use summary::{get_stock_histogram, get_stock_overview};
@@ -15,6 +16,7 @@ pub fn run() {
         .plugin(tauri_plugin_fs::init())
         .setup(|app| {
             init_config(app)?;
+            wire_verify_on_startup(app);
             Ok(())
         })
         .plugin(tauri_plugin_opener::init())
@@ -33,6 +35,7 @@ pub fn run() {
             get_stock_histogram,
             get_config,
             write_config,
+            verify_credentials,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
