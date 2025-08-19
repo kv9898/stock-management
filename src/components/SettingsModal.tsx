@@ -128,7 +128,7 @@ const SettingsModal: React.FC<Props> = ({
           <input
             type="number"
             min={0}
-            max={731}
+            max={3650}
             value={form.alert_period}
             onChange={onChange("alert_period")}
           />
