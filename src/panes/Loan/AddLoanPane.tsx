@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useCallback } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import { v4 as uuidv4 } from "uuid";
 import type { Product } from "../../types/product";
@@ -7,7 +7,13 @@ import type { Direction } from "../../types/loan";
 import LineItemsTable from "../../components/LineItems/LineItemsTable";
 import { useLineItems } from "../../components/LineItems/hook";
 
-export default function AddLoanPane() {
+export default function AddLoanPane({
+  refreshSignal = 0,
+  onDidSubmit,
+}: {
+  refreshSignal?: number;
+  onDidSubmit?: () => void;
+}) {
   const [products, setProducts] = useState<Product[]>([]);
   const {
     rows,
@@ -27,19 +33,27 @@ export default function AddLoanPane() {
   );
   const [adjustStock, setAdjustStock] = useState<boolean>(true);
 
-  useEffect(() => {
-    (async () => {
-      const list = await invoke<Product[]>("get_all_products");
-      setProducts(
-        [...list].sort((a, b) =>
-          a.name.localeCompare(b.name, undefined, {
-            sensitivity: "base",
-            numeric: true,
-          })
-        )
-      );
-    })();
+  // fetchers ----------------------------------------------------------
+  const fetchProducts = useCallback(async () => {
+    const list = await invoke<Product[]>("get_all_products");
+    setProducts(
+      [...list].sort((a, b) =>
+        a.name.localeCompare(b.name, undefined, {
+          sensitivity: "base",
+          numeric: true,
+        })
+      )
+    );
   }, []);
+
+  // initial + on refreshSignal
+  useEffect(() => {
+    fetchProducts().catch((e) => console.error(e));
+  }, [fetchProducts]);
+
+  useEffect(() => {
+    fetchProducts().catch((e) => console.error(e));
+  }, [refreshSignal, fetchProducts]);
 
   const productOptions = useMemo(
     () => products.map((p) => ({ value: p.name, label: p.name })),
@@ -91,6 +105,7 @@ export default function AddLoanPane() {
         note: null as string | null,
       },
       items: itemsPayload,
+      // IMPORTANT: camelCase here → Tauri maps to snake_case in Rust
       adjustStock: adjustStock,
     };
 
@@ -101,6 +116,7 @@ export default function AddLoanPane() {
       setDirection("loan_out");
       setTxnDate(new Date().toISOString().slice(0, 10));
       setAdjustStock(true);
+      onDidSubmit?.(); // notify parent so it can trigger viewStock refresh
       alert("提交成功！");
     } catch (e: any) {
       console.error(e);
@@ -142,7 +158,7 @@ export default function AddLoanPane() {
             onChange={(e) => setDirection(e.target.value as Direction)}
           >
             <option value="loan_out">借出</option>
-            <option value="loan_in">借入</option> {/* fixed typo */}
+            <option value="loan_in">借入</option>
             <option value="return_in">还入</option>
             <option value="return_out">还出</option>
           </select>

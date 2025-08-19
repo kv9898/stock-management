@@ -1,22 +1,31 @@
 import { useEffect, useState } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import "./App.css";
-import "./components/Modals.css"
+import "./components/Modals.css";
 import SidebarButton from "./components/sidebarButton";
-import { tabs, renderTabContent } from "./tabs";
+import { tabs, RenderedTabs } from "./tabs";
 
 import { Settings } from "lucide-react"; // icon
 import SettingsModal from "./components/SettingsModal";
 import type { Config } from "./types/Config";
 
+import type { TabKey } from "./tabs";
+import { defaultRefreshCounters } from "./tabs";
+
 function App() {
-  const [activeTab, setActiveTab] = useState("boot");
+  const [activeTab, setActiveTab] = useState<TabKey>("boot");
   const [showSettings, setShowSettings] = useState(false);
 
   // settings control
   const [lockSettings, setLockSettings] = useState(false);
   const [settingsError, setSettingsError] = useState<string | null>(null);
   const [initialConfig, setInitialConfig] = useState<Config | null>(null);
+
+  const [refresh, setRefresh] = useState(defaultRefreshCounters);
+  const triggerRefresh = (...keys: (keyof typeof refresh)[]) =>
+    setRefresh((r) =>
+      keys.reduce((acc, k) => ({ ...acc, [k]: acc[k] + 1 }), r)
+    );
 
   // helper to open modal and prefill current config
   const openSettings = async (lock = false, errorMsg?: string) => {
@@ -60,7 +69,7 @@ function App() {
               label={tab.label}
               tabKey={tab.key}
               activeTab={activeTab}
-              setActiveTab={setActiveTab}
+              setActiveTab={(k) => setActiveTab(k as TabKey)}
             />
           ))}
         </nav>
@@ -79,7 +88,13 @@ function App() {
         </div>
       </aside>
 
-      <main className="content">{renderTabContent(activeTab)}</main>
+      <main className="content">
+        <RenderedTabs
+          activeTab={activeTab}
+          refresh={refresh}
+          triggerRefresh={triggerRefresh}
+        />
+      </main>
 
       <SettingsModal
         open={showSettings}
@@ -93,7 +108,8 @@ function App() {
           setLockSettings(false);
           setShowSettings(false);
           setSettingsError(null);
-          if (activeTab === "boot") { // only switch if we were in boot state
+          if (activeTab === "boot") {
+            // only switch if we were in boot state
             setActiveTab("viewStock");
           }
         }}
