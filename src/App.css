@@ -78,6 +78,10 @@ button {
   background-color: var(--button-bg);
   cursor: pointer;
   border: 1px solid var(--border);
+  
+}
+
+.content button{
   height: 40px;
 }
 
