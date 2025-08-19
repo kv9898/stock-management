@@ -107,3 +107,13 @@ CREATE TABLE IF NOT EXISTS LoanItem (
 """
 await client.execute(create_loan_item)
 
+## Helpful indexes to speed up queries
+stmts = [
+    "CREATE INDEX IF NOT EXISTS idx_loanheader_date         ON LoanHeader(date)",
+    "CREATE INDEX IF NOT EXISTS idx_loanheader_counterparty ON LoanHeader(counterparty)",
+    "CREATE INDEX IF NOT EXISTS idx_loanheader_direction    ON LoanHeader(direction)",
+    "CREATE INDEX IF NOT EXISTS idx_loanitem_loan_id        ON LoanItem(loan_id)",
+    "CREATE INDEX IF NOT EXISTS idx_loanitem_product_name   ON LoanItem(product_name)",
+]
+await client.batch(stmts)
+
