@@ -133,7 +133,7 @@ export default function ViewStockTab() {
     {
       field: "type",
       headerName: "类型",
-      width: 140,
+      width: 80,
       valueGetter: (_value, row) => row.type ?? "未分类",
       sortComparator: (a, b) =>
         (a ?? "未分类").localeCompare(b ?? "未分类", undefined, {
@@ -141,9 +141,9 @@ export default function ViewStockTab() {
           numeric: true,
         }),
     },
-    { field: "expired", headerName: "已经过期", type: "number", width: 120 },
-    { field: "expire_soon", headerName: "近期过期", type: "number", width: 120 },
-    { field: "total_quantity", headerName: "总数量", type: "number", width: 120 },
+    { field: "expired", headerName: "已经过期", type: "number", width: 80 },
+    { field: "expire_soon", headerName: "近期过期", type: "number", width: 90 },
+    { field: "total_quantity", headerName: "总数量", type: "number", width: 100 },
   ];
 
   if (mode === "detail" && selectedName) {
