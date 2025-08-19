@@ -83,11 +83,12 @@ await client.execute("CREATE UNIQUE INDEX IF NOT EXISTS stock_name_expiry_uq ON 
 ## Header table
 create_loan_header = """
 CREATE TABLE IF NOT EXISTS LoanHeader (
-  id           TEXT PRIMARY KEY NOT NULL,                         -- e.g. a UUID
-  date         TEXT NOT NULL,                                     -- YYYY-MM-DD
-  direction    TEXT NOT NULL CHECK(direction IN ('borrow','lend')),-- borrow: we borrow from them; lend: we lend to them
-  counterparty TEXT NOT NULL,                                     -- person/company name
-  note         TEXT                                               -- optional memo
+  id           TEXT PRIMARY KEY NOT NULL,                               -- e.g. UUID
+  date         TEXT NOT NULL,                                           -- YYYY-MM-DD
+  direction    TEXT NOT NULL CHECK(direction IN
+                   ('loan_in','loan_out','return_in','return_out')),
+  counterparty TEXT NOT NULL,                                           -- person/company
+  note         TEXT                                                     -- optional
 );
 """
 await client.execute(create_loan_header)
