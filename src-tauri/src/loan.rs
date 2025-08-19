@@ -1,4 +1,4 @@
-use crate::db::{get_db_config, sql_quote};
+use crate::db::{get_db_config, ignore_empty_baton_commit, sql_quote};
 use libsql_client::Client;
 use serde::Deserialize;
 use tokio::task;
@@ -35,7 +35,6 @@ pub async fn create_loan(
     items: Vec<LoanItemIn>,
     adjust_stock: Option<bool>,
 ) -> Result<(), String> {
-    // basic validation
     if items.is_empty() {
         return Err("至少需要一条明细项".into());
     }
@@ -51,108 +50,135 @@ pub async fn create_loan(
     task::spawn_blocking(move || {
         let rt = tokio::runtime::Runtime::new().unwrap();
         rt.block_on(async move {
-            let db_cfg = get_db_config().await.map_err(|e| e.to_string())?;
-            let client = Client::from_config(db_cfg)
+            // 1) connect
+            let config = get_db_config().await.map_err(|e| e.to_string())?;
+            let client = Client::from_config(config)
                 .await
                 .map_err(|e| e.to_string())?;
 
-            // Always good to ensure FKs on this connection
+            // FK enforcement (needed for CASCADE on LoanItem.loan_id / Product FK, etc.)
             client
                 .execute("PRAGMA foreign_keys = ON;")
                 .await
                 .map_err(|e| e.to_string())?;
 
-            // Start TX
-            client
-                .execute("BEGIN IMMEDIATE;")
-                .await
-                .map_err(|e| e.to_string())?;
+            // 2) begin tx
+            let tx = client.transaction().await.map_err(|e| e.to_string())?;
 
-            // Insert header
-            let note_sql = match &header.note {
-                Some(s) => format!("'{}'", sql_quote(s)),
-                None => "NULL".to_string(),
-            };
-            let sql_header = format!(
-                "INSERT INTO LoanHeader (id, date, direction, counterparty, note)
-                 VALUES ('{}','{}','{}','{}', {});",
-                sql_quote(&header.id),
-                sql_quote(&header.date),
-                sql_quote(&header.direction),
-                sql_quote(&header.counterparty),
-                note_sql
-            );
-            if let Err(e) = client.execute(sql_header).await {
-                let _ = client.execute("ROLLBACK;").await;
-                return Err(e.to_string());
+            // normalize/quote once
+            let hdr_id_q = sql_quote(&header.id);
+            let date_q = sql_quote(&header.date);
+            let dir_q = sql_quote(&header.direction);
+            let cp_q = sql_quote(&header.counterparty);
+            let note_sql = header
+                .note
+                .as_ref()
+                .map(|s| format!("'{}'", sql_quote(s)))
+                .unwrap_or_else(|| "NULL".to_string());
+
+            // 3) checks inside the tx
+
+            // 3a) direction is valid
+            if !matches!(
+                header.direction.as_str(),
+                "loan_in" | "loan_out" | "return_in" | "return_out"
+            ) {
+                return Err(format!("非法方向：{}", header.direction));
             }
 
-            // Insert items
+            // 3b) verify all products exist (keeps error clear before FK error surfaces)
             for it in &items {
-                let sql_item = format!(
-                    "INSERT INTO LoanItem (id, loan_id, product_name, quantity, expiry)
-                     VALUES ('{}','{}','{}', {}, '{}');",
-                    sql_quote(&it.id),
-                    sql_quote(&header.id),
-                    sql_quote(&it.product_name),
-                    it.quantity,
-                    sql_quote(&it.expiry),
-                );
-                if let Err(e) = client.execute(sql_item).await {
-                    let _ = client.execute("ROLLBACK;").await;
-                    return Err(e.to_string());
+                let p_q = sql_quote(&it.product_name);
+                let exists = tx
+                    .execute(format!(
+                        "SELECT 1 FROM Product WHERE name='{}' LIMIT 1;",
+                        p_q
+                    ))
+                    .await
+                    .map_err(|e| e.to_string())?;
+                if exists.rows.is_empty() {
+                    return Err(format!("产品不存在：{}", it.product_name));
                 }
             }
 
-            // Optionally adjust Stock
-            if adjust_stock.unwrap_or(true) {
+            // 3c) if decreasing stock, ensure not going negative
+            //     (we check current quantity per (name, expiry) pair)
+            let will_adjust = adjust_stock.unwrap_or(true);
+            if will_adjust {
                 for it in &items {
                     let delta = dir_delta(&header.direction, it.quantity)?;
-
-                    // Prevent negative stock
                     if delta < 0 {
-                        let sel = format!(
-                            "SELECT quantity FROM Stock WHERE name='{}' AND expiry='{}';",
-                            sql_quote(&it.product_name),
-                            sql_quote(&it.expiry)
-                        );
-                        let res = client.execute(sel).await.map_err(|e| e.to_string())?;
-                        let current: i64 = res
+                        let name_q = sql_quote(&it.product_name);
+                        let expiry_q = sql_quote(&it.expiry);
+                        let rs = tx
+                            .execute(format!(
+                                "SELECT quantity FROM Stock WHERE name='{}' AND expiry='{}';",
+                                name_q, expiry_q
+                            ))
+                            .await
+                            .map_err(|e| e.to_string())?;
+                        let current: i64 = rs
                             .rows
                             .get(0)
                             .and_then(|row| row.try_column::<i64>("quantity").ok())
                             .unwrap_or(0);
                         if current + delta < 0 {
-                            let _ = client.execute("ROLLBACK;").await;
                             return Err(format!(
                                 "库存不足：{}（到期 {}）当前 {}，欲减少 {}",
                                 it.product_name, it.expiry, current, -delta
                             ));
                         }
                     }
+                }
+            }
 
-                    // Upsert with delta (id is a random blob when inserting new row)
+            // 4) perform inserts
+
+            // 4a) header
+            let sql_header = format!(
+                "INSERT INTO LoanHeader (id, date, direction, counterparty, note)
+                 VALUES ('{}','{}','{}','{}', {});",
+                hdr_id_q, date_q, dir_q, cp_q, note_sql
+            );
+            let _ = tx.execute(sql_header).await.map_err(|e| e.to_string())?;
+
+            // 4b) items
+            for it in &items {
+                let it_id_q = sql_quote(&it.id);
+                let name_q = sql_quote(&it.product_name);
+                let expiry_q = sql_quote(&it.expiry);
+                let sql_item = format!(
+                    "INSERT INTO LoanItem (id, loan_id, product_name, quantity, expiry)
+                     VALUES ('{}','{}','{}', {}, '{}');",
+                    it_id_q, hdr_id_q, name_q, it.quantity, expiry_q
+                );
+                let _ = tx.execute(sql_item).await.map_err(|e| e.to_string())?;
+            }
+
+            // 4c) adjust Stock if requested
+            if will_adjust {
+                for it in &items {
+                    let delta = dir_delta(&header.direction, it.quantity)?;
+                    let name_q = sql_quote(&it.product_name);
+                    let expiry_q = sql_quote(&it.expiry);
+
+                    // upsert (respects UNIQUE(name, expiry))
                     let upsert = format!(
                         "INSERT INTO Stock (id, name, expiry, quantity)
                          VALUES (lower(hex(randomblob(16))), '{name}', '{expiry}', {delta})
                          ON CONFLICT(name, expiry)
                          DO UPDATE SET quantity = quantity + {delta};",
-                        name = sql_quote(&it.product_name),
-                        expiry = sql_quote(&it.expiry),
+                        name = name_q,
+                        expiry = expiry_q,
                         delta = delta
                     );
-                    if let Err(e) = client.execute(upsert).await {
-                        let _ = client.execute("ROLLBACK;").await;
-                        return Err(e.to_string());
-                    }
+                    let _ = tx.execute(upsert).await.map_err(|e| e.to_string())?;
                 }
             }
 
-            // Commit TX
-            if let Err(e) = client.execute("COMMIT;").await {
-                let _ = client.execute("ROLLBACK;").await;
-                return Err(e.to_string());
-            }
+            // 5) commit using your helper
+            let res = tx.commit().await;
+            ignore_empty_baton_commit(res)?;
             Ok(())
         })
     })
