@@ -6,12 +6,6 @@ type SettingsModalProps = {
   onClose: () => void;
 };
 
-type Config = {
-  url: string;
-  token: string;
-  alert_period: number; // u16 on Rust side
-};
-
 const clamp = (n: number, min: number, max: number) => Math.min(Math.max(n, min), max);
 
 const SettingsModal: React.FC<SettingsModalProps> = ({ open, onClose }) => {
