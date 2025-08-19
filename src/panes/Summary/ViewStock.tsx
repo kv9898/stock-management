@@ -31,7 +31,7 @@ const Container: FC<{ children: ReactNode }> = ({ children }) => (
 const ALL = "__ALL__";
 const UNCLASSIFIED = "__UNCLASSIFIED__";
 
-export default function ViewStockTab() {
+export default function ViewStockPane() {
   const [mode, setMode] = useState<"list" | "detail">("list");
   const [search, setSearch] = useState("");
   const [rows, setRows] = useState<StockSummary[]>([]);

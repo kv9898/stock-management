@@ -1,7 +1,7 @@
 import ProductManagementPane from "./panes/ProductManagement/productManagementPane";
 import AddStockPane from "./panes/Stock/AddStockPane";
 import RemoveStockPane from "./panes/Stock/RemoveStockPane";
-import ViewStockTab from "./panes/Summary/ViewStock";
+import ViewStockPane from "./panes/Summary/ViewStock";
 
 import './tabs.css'
 
@@ -23,7 +23,7 @@ export const renderTabContent = (activeTab: string) => {
         </div>
       );
     case "viewStock":
-      return <ViewStockTab />;
+      return <ViewStockPane />;
     case "addStock":
       return <AddStockPane />;
     case "removeStock":
