@@ -52,7 +52,17 @@ export default function StockExpiryChart({
   showTodayLine = true,
   todayColor,
 }: Props) {
+  const [alertPeriod, setAlertPeriod] = useState<number>(0);
   const isDark = usePrefersDark();
+
+  useEffect(() => {
+    invoke<number>("get_alert_period")
+      .then(setAlertPeriod)
+      .catch((err) => {
+        console.error("Failed to fetch alert_period:", err);
+        setAlertPeriod(0);
+      });
+  }, []);
 
   const handleInternalBarClick = useCallback(
     async (expiry: string, quantity: number) => {
