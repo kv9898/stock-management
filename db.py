@@ -76,18 +76,19 @@ await client.execute(stock_sql)
   ## make sure that the pair (name, expiry) is unique in this table.
 await client.execute("CREATE UNIQUE INDEX IF NOT EXISTS stock_name_expiry_uq ON Stock(name, expiry);")
 
-# # Transactions
+# Borrowing / Lending
 
-# ## Header table
-# create_transaction_header = """
-# CREATE TABLE IF NOT EXISTS TransactionHeader (
-#   id TEXT PRIMARY KEY NOT NULL,
-#   date TEXT NOT NULL,
-#   type TEXT CHECK(type IN ('buy', 'sell')) NOT NULL,
-#   total_amount INTEGER
-# );
-# """
-# await client.execute(create_transaction_header)
+## Header table
+create_loan_header = """
+CREATE TABLE IF NOT EXISTS LoanHeader (
+  id           TEXT PRIMARY KEY NOT NULL,                         -- e.g. a UUID
+  date         TEXT NOT NULL,                                     -- YYYY-MM-DD
+  direction    TEXT NOT NULL CHECK(direction IN ('borrow','lend')),-- borrow: we borrow from them; lend: we lend to them
+  counterparty TEXT NOT NULL,                                     -- person/company name
+  note         TEXT                                               -- optional memo
+);
+"""
+await client.execute(create_loan_header)
 
 # ## Detail table
 # create_transaction_detail = """
