@@ -1,12 +1,12 @@
 use anyhow::{anyhow, Result};
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 use std::sync::{OnceLock, RwLock, RwLockReadGuard};
 use tauri::path::BaseDirectory;
-use tauri::{App, Manager};
+use tauri::{App, AppHandle, Manager};
 use tauri_plugin_fs::FsExt;
 use url::Url;
 
-#[derive(Clone, Serialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Config {
     pub url: String,
     pub token: String,
@@ -81,7 +81,8 @@ pub fn get_config() -> Result<Config, String> {
     Ok(cfg.clone()) // needs Config: Clone + Serialize
 }
 
-// #[tauri::command]
-// pub fn write_config(handle: tauri::AppHandle, config: Config) -> Result<()> {
-//     CONFIG.set()
-// }
+#[tauri::command]
+pub fn write_config(_handle: AppHandle, config: Config) -> Result<(), String> {
+    // Just stringify the config and return it as an error
+    Err(format!("Not implemented. Received config: {:?}", config))
+}
