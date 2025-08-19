@@ -1,7 +1,7 @@
-import ProductManagementPane from "./components/ProductManagement/productManagementPane";
-import AddStockPane from "./components/Stock/AddStockPane";
-import RemoveStockPane from "./components/Stock/RemoveStockPane";
-import ViewStockTab from "./components/Summary/ViewStock";
+import ProductManagementPane from "./panes/ProductManagement/productManagementPane";
+import AddStockPane from "./panes/Stock/AddStockPane";
+import RemoveStockPane from "./panes/Stock/RemoveStockPane";
+import ViewStockTab from "./panes/Summary/ViewStock";
 
 import './tabs.css'
 
