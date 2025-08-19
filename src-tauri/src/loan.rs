@@ -1,4 +1,4 @@
-use crate::db::{get_db_config, ignore_empty_baton_commit, sql_quote};
+use crate::db::{get_db_config, ignore_empty_baton_commit, sql_quote, to_sql_null_or_string};
 use libsql_client::Client;
 use serde::Deserialize;
 use tokio::task;
@@ -56,7 +56,7 @@ pub async fn create_loan(
                 .await
                 .map_err(|e| e.to_string())?;
 
-            // FK enforcement (needed for CASCADE on LoanItem.loan_id / Product FK, etc.)
+            // IMPORTANT: enable FKs
             client
                 .execute("PRAGMA foreign_keys = ON;")
                 .await
@@ -65,16 +65,12 @@ pub async fn create_loan(
             // 2) begin tx
             let tx = client.transaction().await.map_err(|e| e.to_string())?;
 
-            // normalize/quote once
+            // normalize / quote
             let hdr_id_q = sql_quote(&header.id);
             let date_q = sql_quote(&header.date);
             let dir_q = sql_quote(&header.direction);
             let cp_q = sql_quote(&header.counterparty);
-            let note_sql = header
-                .note
-                .as_ref()
-                .map(|s| format!("'{}'", sql_quote(s)))
-                .unwrap_or_else(|| "NULL".to_string());
+            let note_sql = to_sql_null_or_string(&header.note);
 
             // 3) checks inside the tx
 
@@ -86,7 +82,7 @@ pub async fn create_loan(
                 return Err(format!("非法方向：{}", header.direction));
             }
 
-            // 3b) verify all products exist (keeps error clear before FK error surfaces)
+            // 3b) verify all products exist (clear error before FK)
             for it in &items {
                 let p_q = sql_quote(&it.product_name);
                 let exists = tx
@@ -101,8 +97,7 @@ pub async fn create_loan(
                 }
             }
 
-            // 3c) if decreasing stock, ensure not going negative
-            //     (we check current quantity per (name, expiry) pair)
+            // 3c) if decreasing stock, ensure not going negative for (name, expiry)
             let will_adjust = adjust_stock.unwrap_or(true);
             if will_adjust {
                 for it in &items {
@@ -140,7 +135,7 @@ pub async fn create_loan(
                  VALUES ('{}','{}','{}','{}', {});",
                 hdr_id_q, date_q, dir_q, cp_q, note_sql
             );
-            let _ = tx.execute(sql_header).await.map_err(|e| e.to_string())?;
+            tx.execute(sql_header).await.map_err(|e| e.to_string())?;
 
             // 4b) items
             for it in &items {
@@ -152,17 +147,15 @@ pub async fn create_loan(
                      VALUES ('{}','{}','{}', {}, '{}');",
                     it_id_q, hdr_id_q, name_q, it.quantity, expiry_q
                 );
-                let _ = tx.execute(sql_item).await.map_err(|e| e.to_string())?;
+                tx.execute(sql_item).await.map_err(|e| e.to_string())?;
             }
 
-            // 4c) adjust Stock if requested
+            // 4c) adjust Stock if requested (UPSERT on (name, expiry))
             if will_adjust {
                 for it in &items {
                     let delta = dir_delta(&header.direction, it.quantity)?;
                     let name_q = sql_quote(&it.product_name);
                     let expiry_q = sql_quote(&it.expiry);
-
-                    // upsert (respects UNIQUE(name, expiry))
                     let upsert = format!(
                         "INSERT INTO Stock (id, name, expiry, quantity)
                          VALUES (lower(hex(randomblob(16))), '{name}', '{expiry}', {delta})
@@ -172,7 +165,7 @@ pub async fn create_loan(
                         expiry = expiry_q,
                         delta = delta
                     );
-                    let _ = tx.execute(upsert).await.map_err(|e| e.to_string())?;
+                    tx.execute(upsert).await.map_err(|e| e.to_string())?;
                 }
             }
 
