@@ -2,11 +2,10 @@ import { useEffect, useMemo, useState } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import { v4 as uuidv4 } from "uuid";
 import type { Product } from "../../types/product";
+import type { Direction } from "../../types/loan";
 
 import LineItemsTable from "../../components/LineItems/LineItemsTable";
 import { useLineItems, isItemComplete } from "../../components/LineItems/hook";
-
-type Direction = "loan_in" | "loan_out" | "return_in" | "return_out";
 
 export default function AddLoanPane() {
   const [products, setProducts] = useState<Product[]>([]);
@@ -16,6 +15,7 @@ export default function AddLoanPane() {
   const [counterparty, setCounterparty] = useState("");
   const [direction, setDirection] = useState<Direction>("loan_out");
   const [txnDate, setTxnDate] = useState<string>(() => new Date().toISOString().slice(0, 10));
+  const [adjustStock, setAdjustStock] = useState<boolean>(true);
 
   useEffect(() => {
     (async () => {
@@ -57,6 +57,7 @@ export default function AddLoanPane() {
         quantity: r.qty!,
         expiry: r.expiry!,
       })),
+      adjust_stock: adjustStock,
     };
 
     try {
@@ -65,6 +66,7 @@ export default function AddLoanPane() {
       setCounterparty("");
       setDirection("loan_out");
       setTxnDate(new Date().toISOString().slice(0, 10));
+      setAdjustStock(true);
       alert("提交成功！");
     } catch (e: any) {
       console.error(e);
@@ -109,6 +111,15 @@ export default function AddLoanPane() {
           <label>日期</label>
           <input type="date" value={txnDate} onChange={(e) => setTxnDate(e.target.value)} />
         </div>
+
+        <label style={{ display: "flex", alignItems: "center", gap: 6, marginLeft: 8 }}>
+          <input
+            type="checkbox"
+            checked={adjustStock}
+            onChange={(e) => setAdjustStock(e.target.checked)}
+          />
+          更改库存
+        </label>
 
         <div style={{ marginLeft: "auto" }}>
           <button className="add-btn" onClick={submit}>提交借还</button>
