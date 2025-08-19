@@ -1,5 +1,5 @@
 // RemoveStockPane.tsx
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState, useCallback } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import { v4 as uuidv4 } from "uuid";
 import ProductSelect from "../../components/LineItems/ProductSelect";
@@ -16,23 +16,43 @@ type Row = {
 type StockLot = { expiry_date: string; qty: number };
 
 const makeEmptyRow = (): Row => ({ id: uuidv4(), product: "", expiry: null, qty: null });
-
 const isRowEmpty = (r: Row) => !r.product && !r.expiry && r.qty == null;
 const isRowComplete = (r: Row) => !!r.product && !!r.expiry && r.qty != null && !r.err;
 
-export default function RemoveStockPane() {
+export default function RemoveStockPane({
+  refreshSignal = 0,
+  onDidSubmit,
+}: {
+  refreshSignal?: number;
+  onDidSubmit?: () => void;
+}) {
   const [products, setProducts] = useState<string[]>([]);
   const [rows, setRows] = useState<Row[]>([makeEmptyRow()]);
   const [lotsByProduct, setLotsByProduct] = useState<Record<string, StockLot[]>>({});
   const inputRefs = useRef<(HTMLInputElement | null)[][]>([]);
 
-  // fetch products that have stock
+  // ---- fetchers ----------------------------------------------------
+  const fetchInStockProducts = useCallback(async () => {
+    const list = await invoke<string[]>("get_in_stock_products");
+    setProducts(list);
+  }, []);
+
+  // initial load
+  useEffect(() => {
+    fetchInStockProducts().catch((e) => alert(String(e)));
+  }, [fetchInStockProducts]);
+
+  // refresh on signal: refresh the products and clear lot cache to force re-load
   useEffect(() => {
     (async () => {
-      const list = await invoke<string[]>("get_in_stock_products");
-      setProducts(list);
+      try {
+        await fetchInStockProducts();
+        setLotsByProduct({}); // invalidate caches
+      } catch (e) {
+        alert(String(e));
+      }
     })();
-  }, []);
+  }, [refreshSignal, fetchInStockProducts]);
 
   const productOptions = useMemo(
     () => products.map((p) => ({ value: p, label: p })),
@@ -67,9 +87,9 @@ export default function RemoveStockPane() {
     if (!product || !expiry) return 0;
     const lot = lotsByProduct[product]?.find((l) => l.expiry_date === expiry);
     return lot?.qty ?? 0;
-  };
+    };
 
-  // Enter navigation (same as yours)
+  // Enter navigation
   function handleEnter(
     e: React.KeyboardEvent<HTMLInputElement> | null,
     rowIdx: number,
@@ -119,9 +139,11 @@ export default function RemoveStockPane() {
     try {
       await invoke("remove_stock", { changes: payload });
       alert("移除成功！");
+      // notify parent (e.g. to refresh viewStock)
+      onDidSubmit?.();
+
       // refresh products & lots because inventory changed
-      const newProducts = await invoke<string[]>("get_in_stock_products");
-      setProducts(newProducts);
+      await fetchInStockProducts();
       setLotsByProduct({});
       setRows([makeEmptyRow()]);
     } catch (e: any) {
@@ -160,7 +182,7 @@ export default function RemoveStockPane() {
                         setRow(r.id, (row) => {
                           row.product = name;
                           // if current expiry isn’t valid for new product, clear it
-                          if (row.expiry && !lotsByProduct[name]?.some(l => l.expiry_date === row.expiry)) {
+                          if (row.expiry && !(lotsByProduct[name] ?? []).some(l => l.expiry_date === row.expiry)) {
                             row.expiry = null;
                           }
                           row.err = null;
@@ -179,9 +201,7 @@ export default function RemoveStockPane() {
                   <td>
                     <ExpiryDatePicker
                       value={r.expiry ?? ""}
-                      ref={(el) => {
-                        inputRefs.current[rowIdx][1] = el;
-                      }}
+                      ref={(el) => { inputRefs.current[rowIdx][1] = el; }}
                       onChange={(v) => {
                         const val = v ?? null;
                         setRow(r.id, (row) => {
@@ -190,7 +210,6 @@ export default function RemoveStockPane() {
                             ? (lotsByProduct[row.product] ?? []).some((l) => l.expiry_date === val)
                             : false;
                           row.err = ok ? null : (val ? "该日期无库存" : "请选择日期");
-                          // if qty > avail, clamp
                           const availNow = ok ? availableQtyFor(row.product, val) : 0;
                           if (row.qty != null && row.qty > availNow) row.qty = availNow || null;
                           return row;
@@ -199,7 +218,6 @@ export default function RemoveStockPane() {
                       onEnterNext={(e) => handleEnter(e ?? null, rowIdx, 1)}
                       onFinish={() => handleEnter(null, rowIdx, 1)}
                     />
-                    {/* simple helper text */}
                     {!expiryValid && r.expiry && (
                       <div style={{ fontSize: 12, color: "var(--danger, #f44)" }}>该日期无库存</div>
                     )}
@@ -226,9 +244,7 @@ export default function RemoveStockPane() {
                           return row;
                         });
                       }}
-                      ref={(el) => {
-                        inputRefs.current[rowIdx][2] = el;
-                      }}
+                      ref={(el) => { inputRefs.current[rowIdx][2] = el; }}
                       onKeyDown={(e) => handleEnter(e, rowIdx, 2)}
                     />
                     {r.expiry && (

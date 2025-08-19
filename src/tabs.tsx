@@ -69,10 +69,10 @@ export function RenderedTabs({
       {/* remove stock */}
       <div style={{ display: activeTab === "removeStock" ? "block" : "none", height: "100%" }}>
         <RemoveStockPane
-          // refreshSignal={refresh.removeStock}
-          // onDidSubmit={() => {
-          //   triggerRefresh("viewStock");
-          // }}
+          refreshSignal={refresh.removeStock}
+          onDidSubmit={() => {
+            triggerRefresh("viewStock");
+          }}
         />
       </div>
 
