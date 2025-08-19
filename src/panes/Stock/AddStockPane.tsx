@@ -1,12 +1,9 @@
-import { useEffect, useMemo, useState, useRef } from "react";
+import { useEffect, useMemo, useState} from "react";
 import { invoke } from "@tauri-apps/api/core";
-import { v4 as uuidv4 } from 'uuid';
 
 import type { Product } from "../../types/product";
-import { ExpiryDatePicker } from "../../components/LineItems/ExpiryDatePicker";
-import ProductSelect from "../../components/LineItems/ProductSelect";
 
-import './AddStockPane.css'
+import './AddStockPane.css';
 
 import LineItemsTable from "../../components/LineItems/LineItemsTable";
 import { useLineItems, isItemComplete } from "../../components/LineItems/hook";
