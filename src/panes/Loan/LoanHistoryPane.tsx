@@ -165,9 +165,7 @@ export default function LoanHistoryPane({
       field: "direction",
       headerName: "方向",
       width: 100,
-      renderCell: (params) => (
-          getDirectionLabel(params.value)
-      ),
+      renderCell: (params) => getDirectionLabel(params.value),
     },
     {
       field: "note",
@@ -181,27 +179,36 @@ export default function LoanHistoryPane({
       headerName: "操作",
       width: 150,
       renderCell: (params) => (
-        <div style={{ display: "flex", gap: 8 }}>
-          <Button
-            size="small"
-            variant="outlined"
-            onClick={() => setEditingLoanId(params.row.id)}
-            sx={{ minWidth: "auto", px: 1, fontSize: "0.75rem" }}
-          >
-            编辑
-          </Button>
-          <Button
-            size="small"
-            variant="outlined"
-            onClick={() => console.log("View details:", params.row.id)}
-            sx={{ minWidth: "auto", px: 1, fontSize: "0.75rem" }}
-          >
-            查看
-          </Button>
-        </div>
+        <Button
+          size="small"
+          variant="outlined"
+          color="error"
+          onClick={(e) => {
+            e.stopPropagation(); // Prevent triggering row click
+            if (confirm("确定要删除这条借贷记录吗？")) {
+              handleDeleteLoan(params.row.id);
+            }
+          }}
+          sx={{ minWidth: "auto", px: 1, fontSize: "0.75rem" }}
+        >
+          删除
+        </Button>
       ),
     },
   ];
+
+  const handleDeleteLoan = async (loanId: string) => {
+    try {
+      // TODO: Implement backend delete function
+      // await invoke("delete_loan", { loanId });
+      console.log("Deleting loan:", loanId);
+      fetchLoanHistory(); // Refresh the list
+      onDidSubmit?.(); // Notify parent to refresh other panes
+    } catch (err) {
+      console.error("Error deleting loan:", err);
+      alert("删除失败");
+    }
+  };
 
   if (error) {
     return (
