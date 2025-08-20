@@ -13,7 +13,7 @@ pub struct LoanHeader {
 }
 
 #[derive(Debug, Deserialize)]
-pub struct LoanItemIn {
+pub struct LoanItem {
     pub id: String, // UUID from frontend
     pub product_name: String,
     pub quantity: i64,          // > 0
@@ -32,7 +32,7 @@ fn dir_delta(direction: &str, qty: i64) -> Result<i64, String> {
 #[tauri::command]
 pub async fn create_loan(
     header: LoanHeader,
-    items: Vec<LoanItemIn>,
+    items: Vec<LoanItem>,
     adjust_stock: Option<bool>,
 ) -> Result<(), String> {
     if items.is_empty() {
