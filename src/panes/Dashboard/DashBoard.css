@@ -73,14 +73,6 @@
   content: "";
   position: absolute;
   inset: 0;
-  background-image:
-    repeating-linear-gradient(
-      -45deg,
-      rgba(0, 0, 0, .06) 0px,
-      rgba(0, 0, 0, .06) 10px,
-      transparent 10px,
-      transparent 20px
-    );
   pointer-events: none;
 }
 
