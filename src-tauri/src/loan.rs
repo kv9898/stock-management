@@ -1,9 +1,9 @@
 use crate::db::{get_db_config, ignore_empty_baton_commit, sql_quote, to_sql_null_or_string};
 use libsql_client::Client;
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 use tokio::task;
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Serialize)]
 pub struct LoanHeader {
     pub id: String,        // UUID from frontend
     pub date: String,      // "YYYY-MM-DD"
@@ -180,6 +180,66 @@ pub async fn create_loan(
             let res = tx.commit().await;
             ignore_empty_baton_commit(res)?;
             Ok(())
+        })
+    })
+    .await
+    .map_err(|e| e.to_string())?
+}
+
+#[tauri::command]
+pub async fn get_loan_history() -> Result<Vec<LoanHeader>, String> {
+    task::spawn_blocking(move || {
+        let rt = tokio::runtime::Runtime::new().unwrap();
+        rt.block_on(async move {
+            let config = get_db_config().await.map_err(|e| e.to_string())?;
+            let client = Client::from_config(config)
+                .await
+                .map_err(|e| e.to_string())?;
+
+            // Query to get all loan headers ordered by date (newest first)
+            let sql = r#"
+                SELECT id, date, direction, counterparty, note
+                FROM LoanHeader
+                ORDER BY date DESC, id DESC
+            "#;
+
+            let result = client.execute(sql).await.map_err(|e| e.to_string())?;
+
+            let mut loan_headers = Vec::new();
+
+            for row in result.rows {
+                let id = row
+                    .try_column::<&str>("id")
+                    .map_err(|_| "Failed to get id from loan header".to_string())?
+                    .to_string();
+
+                let date = row
+                    .try_column::<&str>("date")
+                    .map_err(|_| "Failed to get date from loan header".to_string())?
+                    .to_string();
+
+                let direction = row
+                    .try_column::<&str>("direction")
+                    .map_err(|_| "Failed to get direction from loan header".to_string())?
+                    .to_string();
+
+                let counterparty = row
+                    .try_column::<&str>("counterparty")
+                    .map_err(|_| "Failed to get counterparty from loan header".to_string())?
+                    .to_string();
+
+                let note = row.try_column::<&str>("note").ok().map(|s| s.to_string());
+
+                loan_headers.push(LoanHeader {
+                    id,
+                    date,
+                    direction,
+                    counterparty,
+                    note,
+                });
+            }
+
+            Ok(loan_headers)
         })
     })
     .await
