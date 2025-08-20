@@ -24,6 +24,23 @@ pub async fn get_dashboard_summary() -> Result<Config, String> {
                 .await
                 .map_err(|e| e.to_string())?;
 
+            // get net loan value
+            let rs = client
+            .execute(
+                r#"
+                SELECT
+                    COALESCE(SUM(ll.quantity * ll.sign * COALESCE(p.price, 0)), 0) * 1.0
+                    AS net_loan_value
+                FROM LoanLedger ll
+                LEFT JOIN Product p ON p.name = ll.product_name;
+                "#
+            )
+            .await
+            .map_err(|e| e.to_string())?;
+            
+            let row = rs.rows.get(0).ok_or("No data")?;
+            let net_loan_value: f64 = row.try_column::<f64>("net_loan_value").unwrap_or(0.0);
+
             // Calculate total values by expiry status
             let sql = format!(
                 r#"
@@ -78,7 +95,7 @@ pub async fn get_dashboard_summary() -> Result<Config, String> {
                 total_sellable_value,
                 expiring_soon_value,
                 expired_value,
-                net_loan_value: -5142.35, // TODO: Calculate actual net loan value
+                net_loan_value
             })
         })
     })
