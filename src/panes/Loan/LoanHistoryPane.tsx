@@ -227,6 +227,7 @@ export default function LoanHistoryPane({
           loading={loading}
           disableColumnMenu
           autoPageSize
+          onRowClick={(params) => setEditingLoanId(params.row.id)}
           sx={{
             height: "100%",
             borderRadius: 1,
