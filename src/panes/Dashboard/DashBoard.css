@@ -47,10 +47,10 @@
   transition: transform .15s ease, box-shadow .15s ease;
   position: relative;
   display: grid;
-  grid-template-columns: 64px 1fr;
+  grid-template-columns: auto 1fr;
   gap: 0.75rem;
   overflow: hidden;
-  align-items: stretch;
+  align-items: center;
   min-height: 108px;
 }
 
@@ -60,17 +60,16 @@
 }
 
 .dash-icon-left {
-  width: 64px;
-  height: 64px;
-  border-radius: 12px;
-  border: 1px solid var(--border);
-  background: var(--bg);
-  position: relative;
-  overflow: hidden;
+  width: auto;
+  height: auto;
+  border: none;
+  background: none;
+  border-radius: 0;
+  overflow: visible;
 }
 
 .dash-icon-left::after {
-  content: "";
+  content: none;
   position: absolute;
   inset: 0;
   pointer-events: none;
