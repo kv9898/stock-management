@@ -3,11 +3,13 @@ import AddStockPane from "./panes/Stock/AddStockPane";
 import RemoveStockPane from "./panes/Stock/RemoveStockPane";
 import ViewStockPane from "./panes/Summary/ViewStock";
 import AddLoanPane from "./panes/Loan/AddLoanPane";
+import DashboardPane from "./panes/Dashboard/DashboardPane";
 
 import './tabs.css'
 
 export type TabKey = 
   | "boot"
+  | "dashboard"
   | "viewStock"
   | "addStock"
   | "removeStock"
@@ -16,6 +18,7 @@ export type TabKey =
 
 export const tabs = [
   { key: "viewStock", label: "查看库存" },
+  { key: "dashboard", label: "价值总览" }, // not implemented yet
   { key: "addStock", label: "添加库存" },
   { key: "removeStock", label: "移除库存" },
   { key: "addLoan", label: "借货/归还" },
@@ -24,6 +27,7 @@ export const tabs = [
 
 export const defaultRefreshCounters = {
     viewStock: 0,
+    dashboard: 0,
     addStock: 0,
     removeStock: 0,
     addLoan: 0,
@@ -51,6 +55,18 @@ export function RenderedTabs({
         </div>
       </div>
 
+      {/* dashboard */}
+      <div style={{ display: activeTab === "dashboard" ? "block" : "none", height: "100%" }}>
+        <DashboardPane
+          // refreshSignal={refresh.dashboard}
+          totalSellableValue={270000} // placeholder, replace with actual data
+          expiringSoonValue={75000} // placeholder, replace with actual data
+          expiredValue={15000} // placeholder, replace with actual data
+          netLoanValue={-5000} // placeholder, replace with actual data
+          onRefresh={() => triggerRefresh("viewStock", "addStock", "removeStock", "addLoan")}
+        />
+      </div>
+
       {/* stock summary */}
       <div style={{ display: activeTab === "viewStock" ? "block" : "none", height: "100%" }}>
         <ViewStockPane refreshSignal={refresh.viewStock} />
@@ -61,7 +77,7 @@ export function RenderedTabs({
         <AddStockPane
           refreshSignal={refresh.addStock}
           onDidSubmit={() => {
-            triggerRefresh("viewStock"); // adding stock affects summary
+            triggerRefresh("viewStock", "dashboard"); // adding stock affects summary
           }}
         />
       </div>
@@ -71,7 +87,7 @@ export function RenderedTabs({
         <RemoveStockPane
           refreshSignal={refresh.removeStock}
           onDidSubmit={() => {
-            triggerRefresh("viewStock");
+            triggerRefresh("viewStock", "dashboard");
           }}
         />
       </div>
@@ -81,7 +97,7 @@ export function RenderedTabs({
         <AddLoanPane
           refreshSignal={refresh.addLoan}
           onDidSubmit={() => {
-            triggerRefresh("viewStock", "removeStock"); // loans adjust stock buckets
+            triggerRefresh("viewStock", "removeStock", "dashboard"); // loans adjust stock buckets
           }}
         />
       </div>
@@ -91,7 +107,7 @@ export function RenderedTabs({
         <ProductManagementPane
           refreshSignal={refresh.productManagement}
           onDidMutateProduct={() => {
-            triggerRefresh("viewStock", "addStock", "removeStock", "addLoan"); // renames/types impact summary display
+            triggerRefresh("viewStock", "addStock", "removeStock", "addLoan", "dashboard"); // renames/types impact summary display
           }}
         />
       </div>
