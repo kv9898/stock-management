@@ -4,6 +4,7 @@ import RemoveStockPane from "./panes/Stock/RemoveStockPane";
 import ViewStockPane from "./panes/Summary/ViewStock";
 import AddLoanPane from "./panes/Loan/AddLoanPane";
 import DashboardPane from "./panes/Dashboard/DashboardPane";
+import LoanHistoryPane from "./panes/Loan/LoanHistoryPane";
 
 import './tabs.css'
 
@@ -16,14 +17,16 @@ export type TabKey =
   | "addStock"
   | "removeStock"
   | "addLoan"
-  | "productManagement";
+  | "productManagement"
+  | "loanHistory";
 
 export const tabs = [
   { key: "viewStock", label: "查看库存" },
   { key: "dashboard", label: "价值总览" }, // not implemented yet
   { key: "addStock", label: "添加库存" },
   { key: "removeStock", label: "移除库存" },
-  { key: "addLoan", label: "借货/归还" },
+  { key: "loanHistory", label: "借货记录" },
+  { key: "addLoan", label: "新增借货/归还" },
   { key: "productManagement", label: "产品信息管理" },
 ];
 
@@ -32,6 +35,7 @@ export const defaultRefreshCounters = {
     dashboard: 0,
     addStock: 0,
     removeStock: 0,
+    loanHistory: 0,
     addLoan: 0,
     productManagement: 0,
   }
@@ -90,12 +94,22 @@ export function RenderedTabs({
         />
       </div>
 
+      {/* loan history */}
+      <div style={{ display: activeTab === "loanHistory" ? "block" : "none", height: "100%" }}>
+        <LoanHistoryPane
+          refreshSignal={refresh.loanHistory}
+          onDidSubmit={() => {
+            triggerRefresh("viewStock", "removeStock", "dashboard"); // loans impact stock buckets
+          }}
+        />
+      </div>
+
       {/* add loan */}
       <div style={{ display: activeTab === "addLoan" ? "block" : "none", height: "100%" }}>
         <AddLoanPane
           refreshSignal={refresh.addLoan}
           onDidSubmit={() => {
-            triggerRefresh("viewStock", "removeStock", "dashboard"); // loans adjust stock buckets
+            triggerRefresh("viewStock", "removeStock", "loanHistory", "dashboard"); // loans adjust stock buckets
           }}
         />
       </div>
@@ -105,7 +119,7 @@ export function RenderedTabs({
         <ProductManagementPane
           refreshSignal={refresh.productManagement}
           onDidMutateProduct={() => {
-            triggerRefresh("viewStock", "addStock", "removeStock", "addLoan", "dashboard"); // renames/types impact summary display
+            triggerRefresh("viewStock", "addStock", "removeStock", "loanHistory", "addLoan", "dashboard"); // renames/types impact summary display
           }}
         />
       </div>

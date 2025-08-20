@@ -1,10 +1,10 @@
 use crate::db::{get_db_config, ignore_empty_baton_commit, sql_quote, to_sql_null_or_string};
 use libsql_client::Client;
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 use tokio::task;
 
-#[derive(Debug, Deserialize)]
-pub struct LoanHeaderIn {
+#[derive(Debug, Deserialize, Serialize)]
+pub struct LoanHeader {
     pub id: String,        // UUID from frontend
     pub date: String,      // "YYYY-MM-DD"
     pub direction: String, // "loan_in" | "loan_out" | "return_in" | "return_out"
@@ -12,8 +12,8 @@ pub struct LoanHeaderIn {
     pub note: Option<String>,
 }
 
-#[derive(Debug, Deserialize)]
-pub struct LoanItemIn {
+#[derive(Debug, Deserialize, Serialize)]
+pub struct LoanItem {
     pub id: String, // UUID from frontend
     pub product_name: String,
     pub quantity: i64,          // > 0
@@ -31,8 +31,8 @@ fn dir_delta(direction: &str, qty: i64) -> Result<i64, String> {
 
 #[tauri::command]
 pub async fn create_loan(
-    header: LoanHeaderIn,
-    items: Vec<LoanItemIn>,
+    header: LoanHeader,
+    items: Vec<LoanItem>,
     adjust_stock: Option<bool>,
 ) -> Result<(), String> {
     if items.is_empty() {
@@ -180,6 +180,121 @@ pub async fn create_loan(
             let res = tx.commit().await;
             ignore_empty_baton_commit(res)?;
             Ok(())
+        })
+    })
+    .await
+    .map_err(|e| e.to_string())?
+}
+
+#[tauri::command]
+pub async fn get_loan_history() -> Result<Vec<LoanHeader>, String> {
+    task::spawn_blocking(move || {
+        let rt = tokio::runtime::Runtime::new().unwrap();
+        rt.block_on(async move {
+            let config = get_db_config().await.map_err(|e| e.to_string())?;
+            let client = Client::from_config(config)
+                .await
+                .map_err(|e| e.to_string())?;
+
+            // Query to get all loan headers ordered by date (newest first)
+            let sql = r#"
+                SELECT id, date, direction, counterparty, note
+                FROM LoanHeader
+                ORDER BY date DESC, id DESC
+            "#;
+
+            let result = client.execute(sql).await.map_err(|e| e.to_string())?;
+
+            let mut loan_headers = Vec::new();
+
+            for row in result.rows {
+                let id = row
+                    .try_column::<&str>("id")
+                    .map_err(|_| "Failed to get id from loan header".to_string())?
+                    .to_string();
+
+                let date = row
+                    .try_column::<&str>("date")
+                    .map_err(|_| "Failed to get date from loan header".to_string())?
+                    .to_string();
+
+                let direction = row
+                    .try_column::<&str>("direction")
+                    .map_err(|_| "Failed to get direction from loan header".to_string())?
+                    .to_string();
+
+                let counterparty = row
+                    .try_column::<&str>("counterparty")
+                    .map_err(|_| "Failed to get counterparty from loan header".to_string())?
+                    .to_string();
+
+                let note = row.try_column::<&str>("note").ok().map(|s| s.to_string());
+
+                loan_headers.push(LoanHeader {
+                    id,
+                    date,
+                    direction,
+                    counterparty,
+                    note,
+                });
+            }
+
+            Ok(loan_headers)
+        })
+    })
+    .await
+    .map_err(|e| e.to_string())?
+}
+
+#[tauri::command]
+pub async fn get_loan_items(loan_id: String) -> Result<Vec<LoanItem>, String> {
+    task::spawn_blocking(move || {
+        let rt = tokio::runtime::Runtime::new().unwrap();
+        rt.block_on(async move {
+            let config = get_db_config().await.map_err(|e| e.to_string())?;
+            let client = Client::from_config(config)
+                .await
+                .map_err(|e| e.to_string())?;
+
+            // Query to get all items for a specific loan
+            let sql = format!(
+                r#"
+                SELECT id, product_name, quantity
+                FROM LoanItem
+                WHERE loan_id = '{}'
+                ORDER BY product_name
+                "#,
+                sql_quote(&loan_id)
+            );
+
+            let result = client.execute(sql).await.map_err(|e| e.to_string())?;
+
+            let mut loan_items = Vec::new();
+
+            for row in result.rows {
+                let id = row
+                    .try_column::<&str>("id")
+                    .map_err(|_| "Failed to get id from loan item".to_string())?
+                    .to_string();
+
+                let product_name = row
+                    .try_column::<&str>("product_name")
+                    .map_err(|_| "Failed to get product_name from loan item".to_string())?
+                    .to_string();
+
+                let quantity = row
+                    .try_column::<i64>("quantity")
+                    .map_err(|_| "Failed to get quantity from loan item".to_string())?;
+
+                loan_items.push(LoanItem {
+                    id,
+                    product_name,
+                    quantity,
+                    expiry: None,
+                });
+            }
+
+            Ok(loan_items)
         })
     })
     .await
