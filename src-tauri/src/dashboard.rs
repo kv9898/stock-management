@@ -28,46 +28,51 @@ pub async fn get_dashboard_summary() -> Result<Config, String> {
             let sql = format!(
                 r#"
                 SELECT
-                  SUM(CASE
-                    WHEN s.expiry IS NULL OR DATE(s.expiry) >= DATE('now', '+{} day')
-                    THEN COALESCE(s.quantity, 0) * COALESCE(p.price, 0)
+                (SUM(
+                    CASE
+                    WHEN s.expiry IS NULL OR DATE(s.expiry) >= DATE('now')
+                    THEN COALESCE(s.quantity, 0) * COALESCE((SELECT price FROM Product WHERE name = s.name), 0)
                     ELSE 0
-                  END) AS total_good_value,
-                  
-                  SUM(CASE
+                    END
+                ) * 1.0) AS total_sellable_value,
+
+                (SUM(
+                    CASE
                     WHEN s.expiry IS NOT NULL
-                     AND DATE(s.expiry) >= DATE('now')
-                     AND DATE(s.expiry) < DATE('now', '+{} day')
-                    THEN COALESCE(s.quantity, 0) * COALESCE(p.price, 0)
+                    AND DATE(s.expiry) >= DATE('now')
+                    AND DATE(s.expiry) < DATE('now', '+{} day')
+                    THEN COALESCE(s.quantity, 0) * COALESCE((SELECT price FROM Product WHERE name = s.name), 0)
                     ELSE 0
-                  END) AS expiring_soon_value,
-                  
-                  SUM(CASE
+                    END
+                ) * 1.0) AS expiring_soon_value,
+
+                (SUM(
+                    CASE
                     WHEN s.expiry IS NOT NULL
-                     AND DATE(s.expiry) < DATE('now')
-                    THEN COALESCE(s.quantity, 0) * COALESCE(p.price, 0)
+                    AND DATE(s.expiry) < DATE('now')
+                    THEN COALESCE(s.quantity, 0) * COALESCE((SELECT price FROM Product WHERE name = s.name), 0)
                     ELSE 0
-                  END) AS expired_value
-                  
+                    END
+                ) * 1.0) AS expired_value
                 FROM Stock s
-                JOIN Product p ON p.name = s.name
                 WHERE s.quantity > 0
                 "#,
-                alert_period, alert_period
+                alert_period
             );
 
             let result = client.execute(sql).await.map_err(|e| e.to_string())?;
 
             let row = result.rows.get(0).ok_or("No data found")?;
 
-            let total_good_value: f64 = row.try_column::<f64>("total_good_value").unwrap_or(0.0);
+            let total_sellable_value: f64 = row.try_column::<f64>("total_sellable_value").unwrap_or(0.0);
+            println!("Total Sellable Value: {}", total_sellable_value);
 
             let expiring_soon_value: f64 =
                 row.try_column::<f64>("expiring_soon_value").unwrap_or(0.0);
-
-            let total_sellable_value = total_good_value + expiring_soon_value; // Total value includes both good and expiring soon
+            println!("Expiring Soon Value: {}", expiring_soon_value);
 
             let expired_value: f64 = row.try_column::<f64>("expired_value").unwrap_or(0.0);
+            println!("Expired Value: {}", expired_value);
 
             Ok(Config {
                 total_sellable_value,
