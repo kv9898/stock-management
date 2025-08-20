@@ -10,7 +10,7 @@ pub struct Config {
 }
 
 #[tauri::command]
-pub fn get_dashboard_summary() -> Result<Config, String> {
+pub async fn get_dashboard_summary() -> Result<Config, String> {
     // Dummy implementation, replace with actual logic to compute values
     Ok(Config {
         total_sellable_value: 271658.94,
