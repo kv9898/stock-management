@@ -1,7 +1,20 @@
-# Tauri + React + Typescript
+# Stock Management System
 
-This template should help get you started developing with Tauri, React and Typescript in Vite.
+A modern desktop application built with Tauri, React, and TypeScript for managing inventory, tracking stock values, and monitoring product expiry dates.
 
-## Recommended IDE Setup
+## 🚀 Tech Stack
 
-- [VS Code](https://code.visualstudio.com/) + [Tauri](https://marketplace.visualstudio.com/items?itemName=tauri-apps.tauri-vscode) + [rust-analyzer](https://marketplace.visualstudio.com/items?itemName=rust-lang.rust-analyzer)
+- **Frontend**: React + TypeScript + Vite
+- **Backend**: Rust + Tauri
+- **Database**: Turso (LibSQL) - Serverless SQLite
+- **Styling**: CSS Modules
+- **Icons**: Lucide React
+
+## 📋 Features
+
+- **Inventory Management**: Track stock quantities, expiry dates, and product details
+- **Value Dashboard**: Real-time financial overview with categorized stock values
+- **Expiry Monitoring**: Automatic alerts for expiring and expired products
+- **Product Catalog**: Manage product information and pricing
+- **Loan Tracking**: Track borrow/return transactions (net loan value)
+- **Responsive UI**: Clean, modern interface with real-time updates
