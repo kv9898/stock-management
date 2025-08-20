@@ -1,10 +1,12 @@
+import { ReactNode } from "react";
+
 export type Card = {
     key: string;
     title: string;
     value: number | undefined;
-    icon: JSX.Element;
+    icon: ReactNode;
     accentClass: string;
     valueClass: string;
-    chips?: JSX.Element;
+    chips?: ReactNode;
     subtitle?: string;
 }
