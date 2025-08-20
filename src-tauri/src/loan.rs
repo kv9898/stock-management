@@ -4,7 +4,7 @@ use serde::Deserialize;
 use tokio::task;
 
 #[derive(Debug, Deserialize)]
-pub struct LoanHeaderIn {
+pub struct LoanHeader {
     pub id: String,        // UUID from frontend
     pub date: String,      // "YYYY-MM-DD"
     pub direction: String, // "loan_in" | "loan_out" | "return_in" | "return_out"
@@ -31,7 +31,7 @@ fn dir_delta(direction: &str, qty: i64) -> Result<i64, String> {
 
 #[tauri::command]
 pub async fn create_loan(
-    header: LoanHeaderIn,
+    header: LoanHeader,
     items: Vec<LoanItemIn>,
     adjust_stock: Option<bool>,
 ) -> Result<(), String> {
