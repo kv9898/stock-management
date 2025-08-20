@@ -1,4 +1,5 @@
 mod config;
+mod dashboard;
 mod db;
 mod loan;
 mod product;
@@ -6,6 +7,7 @@ mod stock;
 mod summary;
 
 use config::{get_alert_period, get_config, init_config, wire_verify_on_startup, write_config};
+use dashboard::get_dashboard_summary;
 use db::verify_credentials;
 use loan::create_loan;
 use product::{add_product, delete_product, get_all_products, get_product, update_product};
@@ -40,6 +42,7 @@ pub fn run() {
             get_alert_period,
             verify_credentials,
             create_loan,
+            get_dashboard_summary,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
