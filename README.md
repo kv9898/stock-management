@@ -69,3 +69,31 @@ The application uses **Turso** (LibSQL) as its database backend. To set up:
     bun tauri build --bundles nsis
    ```
    This will create an installer in the `src-tauri/target/release/bundle` directory. Note that bundles are platform-specific.
+
+## 📁 Project Structure
+```
+src/
+├── components/          # Reusable UI components
+├── panes/              # Main application panes
+│   ├── Dashboard/      # Value overview dashboard
+│   ├── ViewStock/      # Stock management
+│   ├── AddStock/       # Add new stock
+│   ├── Product/        # Product catalog
+│   └── Settings/       # Configuration
+├── types/              # TypeScript type definitions
+├── App.css             # Global styles
+├── App.tsx             # Main application component
+├── main.tsx            # React entry point (wrapper of App)
+├── tabs.css            # Styles for the navigation sidebar
+├── tabs.tsx            # Controls navigation between panes
+├── theme.ts            # MUI theme configuration
+└── vite-env.d.ts       # Vite environment types
+
+src-tauri/
+├── src/
+│   ├── config.rs       # Configuration management
+│   ├── db.rs           # Database operations
+│   ├── dashboard.rs    # Dashboard value calculations
+│   └── main.rs         # Tauri entry point
+└── tauri.conf.json     # Tauri configuration
+```
