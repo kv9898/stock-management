@@ -144,3 +144,19 @@
 
 .accent-loan-neg .dash-pill { box-shadow: inset 0 0 0 999px rgba(239,68,68,.14); }
 .accent-loan-neg .dash-bar  { background: rgba(239,68,68,.9); }
+
+/* Value text tinting */
+.value-sellable { color: #15803d; }     /* green-700 */
+.value-soon     { color: #b45309; }     /* amber-700 */
+.value-expired  { color: #b91c1c; }     /* red-700 */
+.value-loan-pos { color: #15803d; }     /* green-700 */
+.value-loan-neg { color: #b91c1c; }     /* red-700 */
+
+/* Respect dark theme — keep readable but still tinted */
+@media (prefers-color-scheme: dark) {
+  .value-sellable { color: #34d399; }   /* green-400 */
+  .value-soon     { color: #fbbf24; }   /* amber-400 */
+  .value-expired  { color: #f87171; }   /* red-400 */
+  .value-loan-pos { color: #34d399; }
+  .value-loan-neg { color: #f87171; }
+}

@@ -1,4 +1,10 @@
-import { RefreshCw, DollarSign, Clock8, AlertTriangle, ArrowLeftRight } from "lucide-react";
+import {
+  RefreshCw,
+  DollarSign,
+  Clock8,
+  AlertTriangle,
+  ArrowLeftRight,
+} from "lucide-react";
 import "./DashBoard.css";
 
 type Props = {
@@ -18,7 +24,10 @@ type Props = {
 
 function formatCurrency(n: number | undefined, currency = "¥") {
   if (n === undefined || Number.isNaN(n)) return "—";
-  const s = new Intl.NumberFormat("zh-CN", { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(n);
+  const s = new Intl.NumberFormat("zh-CN", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  }).format(n);
   return `${currency}${s}`;
 }
 
@@ -41,6 +50,7 @@ export default function DashboardPane({
       value: totalSellableValue,
       icon: <DollarSign size={22} />,
       accentClass: "accent-sellable",
+      valueClass: "value-sellable",
       // show the relationship chips just for this card
       chips: (
         <div className="chips">
@@ -55,6 +65,7 @@ export default function DashboardPane({
       value: expiringSoonValue,
       icon: <Clock8 size={22} />,
       accentClass: "accent-soon",
+      valueClass: "value-soon",
     },
     {
       key: "expired",
@@ -62,6 +73,7 @@ export default function DashboardPane({
       value: expiredValue,
       icon: <AlertTriangle size={22} />,
       accentClass: "accent-expired",
+      valueClass: "value-expired",
     },
     {
       key: "loan",
@@ -69,6 +81,7 @@ export default function DashboardPane({
       value: netLoanValue,
       icon: <ArrowLeftRight size={22} />,
       accentClass: loanPositive ? "accent-loan-pos" : "accent-loan-neg",
+      valueClass: loanPositive ? "value-loan-pos" : "value-loan-neg",
       // tiny sign hint
       subtitle: loanPositive ? "（净资产）" : "（净负债）",
     },
@@ -93,14 +106,20 @@ export default function DashboardPane({
               <div className="dash-pill">{c.icon}</div>
               <div className="dash-title-row">
                 <div className="dash-title">{c.title}</div>
-                {c.subtitle && <div className="dash-subtitle">{c.subtitle}</div>}
+                {c.subtitle && (
+                  <div className="dash-subtitle">{c.subtitle}</div>
+                )}
               </div>
             </div>
 
             {c.chips}
 
-            <div className="dash-value">
-              {loading ? <span className="dash-skeleton" /> : formatCurrency(c.value, currency)}
+            <div className={`dash-value ${c.valueClass}`}>
+              {loading ? (
+                <span className="dash-skeleton" />
+              ) : (
+                formatCurrency(c.value, currency)
+              )}
             </div>
 
             <div className="dash-bar" />
