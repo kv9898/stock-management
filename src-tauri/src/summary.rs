@@ -29,7 +29,7 @@ pub async fn get_stock_overview() -> Result<Vec<StockSummary>, String> {
                 .await
                 .map_err(|e| e.to_string())?;
 
-            let alert_days = get_alert_period().map_err(|e| e.to_string())?;
+            let alert_days = get_alert_period().await?;
 
             // Only products that appear in Stock (i.e., have stock)
             let sql = format!(
