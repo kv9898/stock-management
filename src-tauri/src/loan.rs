@@ -12,7 +12,7 @@ pub struct LoanHeader {
     pub note: Option<String>,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Serialize)]
 pub struct LoanItem {
     pub id: String, // UUID from frontend
     pub product_name: String,
@@ -240,6 +240,61 @@ pub async fn get_loan_history() -> Result<Vec<LoanHeader>, String> {
             }
 
             Ok(loan_headers)
+        })
+    })
+    .await
+    .map_err(|e| e.to_string())?
+}
+
+#[tauri::command]
+pub async fn get_loan_items(loan_id: String) -> Result<Vec<LoanItem>, String> {
+    task::spawn_blocking(move || {
+        let rt = tokio::runtime::Runtime::new().unwrap();
+        rt.block_on(async move {
+            let config = get_db_config().await.map_err(|e| e.to_string())?;
+            let client = Client::from_config(config)
+                .await
+                .map_err(|e| e.to_string())?;
+
+            // Query to get all items for a specific loan
+            let sql = format!(
+                r#"
+                SELECT id, product_name, quantity
+                FROM LoanItem
+                WHERE loan_id = '{}'
+                ORDER BY product_name
+                "#,
+                sql_quote(&loan_id)
+            );
+
+            let result = client.execute(sql).await.map_err(|e| e.to_string())?;
+
+            let mut loan_items = Vec::new();
+
+            for row in result.rows {
+                let id = row
+                    .try_column::<&str>("id")
+                    .map_err(|_| "Failed to get id from loan item".to_string())?
+                    .to_string();
+
+                let product_name = row
+                    .try_column::<&str>("product_name")
+                    .map_err(|_| "Failed to get product_name from loan item".to_string())?
+                    .to_string();
+
+                let quantity = row
+                    .try_column::<i64>("quantity")
+                    .map_err(|_| "Failed to get quantity from loan item".to_string())?;
+
+                loan_items.push(LoanItem {
+                    id,
+                    product_name,
+                    quantity,
+                    expiry: None,
+                });
+            }
+
+            Ok(loan_items)
         })
     })
     .await
