@@ -37,3 +37,35 @@ The application uses **Turso** (LibSQL) as its database backend. To set up:
    Run the `db.py` script in an interactive console (because `async` is used). This script will read the database URL and token from storage and use them to create the necessary tables in the database. Main dependency used here is the `libsql_client` package.
 
    You may also use other libsql clients and run the SQL commands from `db.py` manually if you prefer.
+
+## 🔧 Development
+
+### Prerequisites
+
+- **Python** with `libsql_client` package and an interactive console: For running the database setup script.
+- **Bun** (for development): Dependency manager for JavaScript/TypeScript frontend.
+- **Rust toolchain (for development)**: For building the Tauri backend.
+
+1. **Clone and install dependencies**:
+   ```bash
+   git clone https://github.com/kv9898/stock-management.git
+   bun install
+   ```
+
+2. **Run development **:
+   ```bash
+   bun tauri dev
+   ```
+   Alternatively, if you are using a VS Code-based editor/IDE, you can use the provided launch configuration.
+
+3. **Build for production**:
+   ```bash
+   bun tauri build
+   ```
+   This will create a standalone executable for your platform in the `src-tauri/target/release` directory.
+
+   If you want a bundled installer, you may append the target installer (e.g. nsis, wsi, dmg) format to your build command. For example, for Windows:
+   ```bash
+    bun tauri build --bundles nsis
+   ```
+   This will create an installer in the `src-tauri/target/release/bundle` directory. Note that bundles are platform-specific.
