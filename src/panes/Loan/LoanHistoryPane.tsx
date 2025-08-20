@@ -9,7 +9,6 @@ import {
   Button,
   Typography,
   Box,
-  Chip,
 } from "@mui/material";
 import type { LoanHeader, LoanItem, Direction } from "../../types/loan";
 import type { Product } from "../../types/product";
@@ -149,21 +148,6 @@ export default function LoanHistoryPane({
     }
   };
 
-  const getDirectionColor = (direction: string) => {
-    switch (direction) {
-      case "loan_out":
-        return "warning";
-      case "loan_in":
-        return "success";
-      case "return_in":
-        return "info";
-      case "return_out":
-        return "error";
-      default:
-        return "default";
-    }
-  };
-
   const columns: GridColDef[] = [
     {
       field: "date",
@@ -182,11 +166,7 @@ export default function LoanHistoryPane({
       headerName: "方向",
       width: 100,
       renderCell: (params) => (
-        <Chip
-          label={getDirectionLabel(params.value)}
-          color={getDirectionColor(params.value) as any}
-          size="small"
-        />
+          getDirectionLabel(params.value)
       ),
     },
     {
