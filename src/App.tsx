@@ -10,7 +10,7 @@ import SettingsModal from "./components/SettingsModal";
 import type { Config } from "./types/Config";
 
 import type { TabKey } from "./tabs";
-import { defaultRefreshCounters } from "./tabs";
+import { defaultRefreshCounters, DEFAULT_TAB } from "./tabs";
 
 function App() {
   const [activeTab, setActiveTab] = useState<TabKey>("boot");
@@ -48,7 +48,7 @@ function App() {
         setInitialConfig(cfg);
         // verify (your Rust command runs in spawn_blocking)
         await invoke("verify_credentials", { url: cfg.url, token: cfg.token });
-        setActiveTab("viewStock");
+        setActiveTab(DEFAULT_TAB);
       } catch (e: any) {
         // Missing/invalid config -> force modal open & lock
         const msg =
@@ -110,7 +110,7 @@ function App() {
           setSettingsError(null);
           if (activeTab === "boot") {
             // only switch if we were in boot state
-            setActiveTab("viewStock");
+            setActiveTab(DEFAULT_TAB);
           }
         }}
       />

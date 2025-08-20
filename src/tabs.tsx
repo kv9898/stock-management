@@ -7,6 +7,8 @@ import DashboardPane from "./panes/Dashboard/DashboardPane";
 
 import './tabs.css'
 
+export const DEFAULT_TAB = "dashboard";
+
 export type TabKey = 
   | "boot"
   | "dashboard"
