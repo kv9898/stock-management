@@ -41,7 +41,6 @@ export default function DashboardPane({
     try {
       const result = await invoke<DashboardData>("get_dashboard_summary");
       setData(result);
-      console.log("Fetched dashboard data:", result);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to fetch dashboard data");
       console.error("Error fetching dashboard:", err);
