@@ -82,14 +82,11 @@ pub async fn get_dashboard_summary() -> Result<Config, String> {
             let row = result.rows.get(0).ok_or("No data found")?;
 
             let total_sellable_value: f64 = row.try_column::<f64>("total_sellable_value").unwrap_or(0.0);
-            println!("Total Sellable Value: {}", total_sellable_value);
 
             let expiring_soon_value: f64 =
                 row.try_column::<f64>("expiring_soon_value").unwrap_or(0.0);
-            println!("Expiring Soon Value: {}", expiring_soon_value);
 
             let expired_value: f64 = row.try_column::<f64>("expired_value").unwrap_or(0.0);
-            println!("Expired Value: {}", expired_value);
 
             Ok(Config {
                 total_sellable_value,
