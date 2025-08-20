@@ -98,7 +98,7 @@
 }
 
 .dash-title-row { display: flex; flex-direction: column; }
-.dash-title { font-size: .95rem; color: var(--text); }
+.dash-title { font-size: 1.25rem; color: var(--text); }
 .dash-subtitle { font-size: .8rem; opacity: .7; color: var(--text); }
 
 /* Relationship chips shown under "可售总价值" */
