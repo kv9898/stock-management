@@ -46,6 +46,9 @@
   box-shadow: 0 2px 4px rgba(0,0,0,0.08);
   transition: transform .15s ease, box-shadow .15s ease;
   position: relative;
+  display: grid;
+  grid-template-columns: 64px 1fr;
+  gap: 0.75rem;
   overflow: hidden;
 }
 
@@ -54,21 +57,45 @@
   box-shadow: 0 6px 12px rgba(0,0,0,0.14);
 }
 
+.dash-icon-left {
+  position: relative;
+  width: 64px;
+  display: grid;
+  place-items: center;
+}
+
+.dash-icon-left::before {
+  content: "";
+  position: absolute;
+  inset: 8px;
+  border-radius: 12px;
+  background:
+    /* diagonal stripes using accent-weak */
+    repeating-linear-gradient(
+      135deg,
+      var(--accent-weak, rgba(0,0,0,.08)) 0px,
+      var(--accent-weak, rgba(0,0,0,.08)) 6px,
+      transparent 6px,
+      transparent 12px
+    ),
+    /* soft radial glow using accent-strong */
+    radial-gradient(80% 80% at 30% 30%, var(--accent-strong, rgba(0,0,0,.12)), transparent 60%);
+  opacity: .9;
+}
+
+.dash-icon {
+  position: relative;
+  z-index: 1;
+  color: var(--accent, #3b82f6);
+}
+
+.dash-right { display: flex; flex-direction: column; }
+
 .dash-top {
   display: flex;
   align-items: center;
   gap: .75rem;
   margin-bottom: .25rem;
-}
-
-.dash-pill {
-  width: 36px;
-  height: 36px;
-  border-radius: 10px;
-  display: grid;
-  place-items: center;
-  border: 1px solid var(--border);
-  background: var(--bg);
 }
 
 .dash-title-row { display: flex; flex-direction: column; }
@@ -125,25 +152,11 @@
   100% { background-position: 200% 0; }
 }
 
-/* --- Accent colors (kept small + consistent in dark mode) --- */
-/* Sellable (green) */
-.accent-sellable .dash-pill { box-shadow: inset 0 0 0 999px rgba(34,197,94,.12); }
-.accent-sellable .dash-bar  { background: rgba(34,197,94,.85); }
-
-/* Expiring soon (amber) */
-.accent-soon .dash-pill { box-shadow: inset 0 0 0 999px rgba(245,158,11,.16); }
-.accent-soon .dash-bar  { background: rgba(245,158,11,.9); }
-
-/* Expired (red) */
-.accent-expired .dash-pill { box-shadow: inset 0 0 0 999px rgba(239,68,68,.14); }
-.accent-expired .dash-bar  { background: rgba(239,68,68,.9); }
-
-/* Loans: green when positive, red when negative */
-.accent-loan-pos .dash-pill { box-shadow: inset 0 0 0 999px rgba(34,197,94,.12); }
-.accent-loan-pos .dash-bar  { background: rgba(34,197,94,.85); }
-
-.accent-loan-neg .dash-pill { box-shadow: inset 0 0 0 999px rgba(239,68,68,.14); }
-.accent-loan-neg .dash-bar  { background: rgba(239,68,68,.9); }
+/* Accent variables per card — reused for icon tint + pattern + bar */.accent-sellable { --accent: #22c55e; --accent-weak: rgba(34,197,94,.12); --accent-strong: rgba(34,197,94,.18); }
+.accent-soon     { --accent: #f59e0b; --accent-weak: rgba(245,158,11,.16); --accent-strong: rgba(245,158,11,.22); }
+.accent-expired  { --accent: #ef4444; --accent-weak: rgba(239,68,68,.14); --accent-strong: rgba(239,68,68,.20); }
+.accent-loan-pos { --accent: #22c55e; --accent-weak: rgba(34,197,94,.12); --accent-strong: rgba(34,197,94,.18); }
+.accent-loan-neg { --accent: #ef4444; --accent-weak: rgba(239,68,68,.14); --accent-strong: rgba(239,68,68,.20); }
 
 /* Value text tinting */
 .value-sellable { color: #15803d; }     /* green-700 */

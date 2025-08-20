@@ -6,6 +6,7 @@ import {
   ArrowLeftRight,
 } from "lucide-react";
 import "./DashBoard.css";
+import type { Card } from "../../types/Card";
 
 type Props = {
   /** 1) Total sellable value = (total - expired); includes expiringSoon */
@@ -43,7 +44,7 @@ export default function DashboardPane({
   // decide loan color by sign (asset vs liability)
   const loanPositive = (netLoanValue ?? 0) >= 0;
 
-  const cards = [
+  const cards: Card[] = [
     {
       key: "sellable",
       title: "可售总价值",
@@ -102,26 +103,35 @@ export default function DashboardPane({
       <div className="dash-grid-2x2">
         {cards.map((c) => (
           <div key={c.key} className={`dash-card ${c.accentClass}`}>
-            <div className="dash-top">
-              <div className="dash-pill">{c.icon}</div>
-              <div className="dash-title-row">
-                <div className="dash-title">{c.title}</div>
-                {c.subtitle && (
-                  <div className="dash-subtitle">{c.subtitle}</div>
+            {/* LEFT ICON + PATTERN */}
+            <div className="dash-icon-left">
+              {/* SVG icon uses currentColor -> we tint via --accent */}
+              <div className="dash-icon">{c.icon}</div>
+            </div>
+
+            {/* RIGHT CONTENT */}
+            <div className="dash-right">
+              <div className="dash-top">
+                <div className="dash-title-row">
+                  <div className="dash-title">{c.title}</div>
+                  {"subtitle" in c && c.subtitle ? (
+                    <div className="dash-subtitle">{c.subtitle}</div>
+                  ) : null}
+                </div>
+              </div>
+
+              {"chips" in c && c.chips}
+
+              <div className={`dash-value ${c.valueClass}`}>
+                {loading ? (
+                  <span className="dash-skeleton" />
+                ) : (
+                  formatCurrency(c.value, currency)
                 )}
               </div>
             </div>
 
-            {c.chips}
-
-            <div className={`dash-value ${c.valueClass}`}>
-              {loading ? (
-                <span className="dash-skeleton" />
-              ) : (
-                formatCurrency(c.value, currency)
-              )}
-            </div>
-
+            {/* decorative bottom bar (kept) */}
             <div className="dash-bar" />
           </div>
         ))}
