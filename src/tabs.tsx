@@ -109,7 +109,7 @@ export function RenderedTabs({
         <AddLoanPane
           refreshSignal={refresh.addLoan}
           onDidSubmit={() => {
-            triggerRefresh("viewStock", "removeStock", "dashboard"); // loans adjust stock buckets
+            triggerRefresh("viewStock", "removeStock", "loanHistory", "dashboard"); // loans adjust stock buckets
           }}
         />
       </div>
@@ -119,7 +119,7 @@ export function RenderedTabs({
         <ProductManagementPane
           refreshSignal={refresh.productManagement}
           onDidMutateProduct={() => {
-            triggerRefresh("viewStock", "addStock", "removeStock", "addLoan", "dashboard"); // renames/types impact summary display
+            triggerRefresh("viewStock", "addStock", "removeStock", "loanHistory", "addLoan", "dashboard"); // renames/types impact summary display
           }}
         />
       </div>
