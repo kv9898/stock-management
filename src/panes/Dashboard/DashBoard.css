@@ -50,6 +50,8 @@
   grid-template-columns: 64px 1fr;
   gap: 0.75rem;
   overflow: hidden;
+  align-items: stretch;
+  min-height: 108px;
 }
 
 .dash-card:hover {
@@ -58,44 +60,49 @@
 }
 
 .dash-icon-left {
-  position: relative;
   width: 64px;
-  display: grid;
-  place-items: center;
+  height: 64px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  position: relative;
+  overflow: hidden;
 }
 
-.dash-icon-left::before {
+.dash-icon-left::after {
   content: "";
   position: absolute;
-  inset: 8px;
-  border-radius: 12px;
-  background:
-    /* diagonal stripes using accent-weak */
+  inset: 0;
+  background-image:
     repeating-linear-gradient(
-      135deg,
-      var(--accent-weak, rgba(0,0,0,.08)) 0px,
-      var(--accent-weak, rgba(0,0,0,.08)) 6px,
-      transparent 6px,
-      transparent 12px
-    ),
-    /* soft radial glow using accent-strong */
-    radial-gradient(80% 80% at 30% 30%, var(--accent-strong, rgba(0,0,0,.12)), transparent 60%);
-  opacity: .9;
+      -45deg,
+      rgba(0, 0, 0, .06) 0px,
+      rgba(0, 0, 0, .06) 10px,
+      transparent 10px,
+      transparent 20px
+    );
+  pointer-events: none;
 }
 
 .dash-icon {
-  position: relative;
-  z-index: 1;
-  color: var(--accent, #3b82f6);
+  width: 100%;
+  height: 100%;
+  display: grid;
+  place-items: center;
+  color: var(--accent, #6b7280); /* fallback gray */
 }
 
-.dash-right { display: flex; flex-direction: column; }
-
-.dash-top {
+.dash-right {
   display: flex;
-  align-items: center;
-  gap: .75rem;
-  margin-bottom: .25rem;
+  flex-direction: column;
+  min-height: 64px; /* matches icon height so we can bottom-align value */
+  height: 100%;
+}
+
+.dash-top { 
+  display: flex; 
+  align-items: baseline; 
+  gap: .5rem; 
 }
 
 .dash-title-row { display: flex; flex-direction: column; }
@@ -106,7 +113,7 @@
 .chips {
   display: flex;
   gap: .5rem;
-  margin: .25rem 0 .5rem 2.75rem; /* indent to align under title */
+  margin: .25rem 0 .5rem 0; /* indent to align under title */
   flex-wrap: wrap;
 }
 .chip {
@@ -125,7 +132,7 @@
   font-size: 1.7rem;
   font-weight: 700;
   color: var(--text);
-  margin-top: .25rem;
+  margin-top: auto;
 }
 
 .dash-bar {
@@ -153,17 +160,25 @@
 }
 
 /* Accent variables per card — reused for icon tint + pattern + bar */.accent-sellable { --accent: #22c55e; --accent-weak: rgba(34,197,94,.12); --accent-strong: rgba(34,197,94,.18); }
-.accent-soon     { --accent: #f59e0b; --accent-weak: rgba(245,158,11,.16); --accent-strong: rgba(245,158,11,.22); }
-.accent-expired  { --accent: #ef4444; --accent-weak: rgba(239,68,68,.14); --accent-strong: rgba(239,68,68,.20); }
-.accent-loan-pos { --accent: #22c55e; --accent-weak: rgba(34,197,94,.12); --accent-strong: rgba(34,197,94,.18); }
-.accent-loan-neg { --accent: #ef4444; --accent-weak: rgba(239,68,68,.14); --accent-strong: rgba(239,68,68,.20); }
+.accent-sellable { --accent: rgba(34,197,94,1); }
+.accent-sellable .dash-bar { background: rgba(34,197,94,.85); }
+.value-sellable { color: #16a34a; } /* green */
 
-/* Value text tinting */
-.value-sellable { color: #15803d; }     /* green-700 */
-.value-soon     { color: #b45309; }     /* amber-700 */
-.value-expired  { color: #b91c1c; }     /* red-700 */
-.value-loan-pos { color: #15803d; }     /* green-700 */
-.value-loan-neg { color: #b91c1c; }     /* red-700 */
+.accent-soon { --accent: rgba(245,158,11,1); }
+.accent-soon .dash-bar { background: rgba(245,158,11,.9); }
+.value-soon { color: #d97706; } /* amber */
+
+.accent-expired { --accent: rgba(239,68,68,1); }
+.accent-expired .dash-bar { background: rgba(239,68,68,.9); }
+.value-expired { color: #dc2626; } /* red */
+
+.accent-loan-pos { --accent: rgba(34,197,94,1); }
+.accent-loan-pos .dash-bar { background: rgba(34,197,94,.85); }
+.value-loan-pos { color: #16a34a; } /* green */
+
+.accent-loan-neg { --accent: rgba(239,68,68,1); }
+.accent-loan-neg .dash-bar { background: rgba(239,68,68,.9); }
+.value-loan-neg { color: #dc2626; } /* red */
 
 /* Respect dark theme — keep readable but still tinted */
 @media (prefers-color-scheme: dark) {

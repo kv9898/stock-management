@@ -91,7 +91,7 @@ export default function DashboardPane({
   return (
     <div className="dash-wrap">
       <div className="dash-header">
-        <h2>仪表盘</h2>
+        <h2>价值总览</h2>
         {onRefresh && (
           <button className="dash-refresh" onClick={onRefresh}>
             <RefreshCw size={16} />
