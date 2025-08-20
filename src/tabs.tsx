@@ -58,11 +58,7 @@ export function RenderedTabs({
       {/* dashboard */}
       <div style={{ display: activeTab === "dashboard" ? "block" : "none", height: "100%" }}>
         <DashboardPane
-          // refreshSignal={refresh.dashboard}
-          totalSellableValue={270000} // placeholder, replace with actual data
-          expiringSoonValue={75000} // placeholder, replace with actual data
-          expiredValue={15000} // placeholder, replace with actual data
-          netLoanValue={-5000} // placeholder, replace with actual data
+          refreshSignal={refresh.dashboard}
           onRefresh={() => triggerRefresh("viewStock", "addStock", "removeStock", "addLoan")}
         />
       </div>

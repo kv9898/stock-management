@@ -7,20 +7,14 @@ import {
 } from "lucide-react";
 import "./DashBoard.css";
 import type { Card } from "../../types/Card";
+import { useEffect, useState } from "react";
+import { invoke } from "@tauri-apps/api/core";
+import { DashboardData } from "../../types/dashboard";
 
 type Props = {
-  /** 1) Total sellable value = (total - expired); includes expiringSoon */
-  totalSellableValue?: number;
-  /** 2) Value of products which soon expire */
-  expiringSoonValue?: number;
-  /** 3) Value of products which has expired */
-  expiredValue?: number;
-  /** 4) Net value of borrowed/lent products (positive = net asset, negative = net liability) */
-  netLoanValue?: number;
-
   currency?: string;
-  loading?: boolean;
   onRefresh?: () => void;
+  refreshSignal?: number; // to trigger re-render when parent changes this
 };
 
 function formatCurrency(n: number | undefined, currency = "¥") {
@@ -33,22 +27,46 @@ function formatCurrency(n: number | undefined, currency = "¥") {
 }
 
 export default function DashboardPane({
-  totalSellableValue,
-  expiringSoonValue,
-  expiredValue,
-  netLoanValue,
   currency = "¥",
-  loading = false,
   onRefresh,
+  refreshSignal,
 }: Props) {
+  const [data, setData] = useState<DashboardData | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const fetchDashboardData = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const result = await invoke<DashboardData>("get_dashboard_summary");
+      setData(result);
+      console.log("Fetched dashboard data:", result);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to fetch dashboard data");
+      console.error("Error fetching dashboard:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchDashboardData();
+  }, [refreshSignal]);
+
+  const handleRefresh = () => {
+    fetchDashboardData();
+    onRefresh?.();
+  };
+
   // decide loan color by sign (asset vs liability)
-  const loanPositive = (netLoanValue ?? 0) >= 0;
+  const loanPositive = (data?.netLoanValue ?? 0) >= 0;
 
   const cards: Card[] = [
     {
       key: "sellable",
       title: "可售总价值",
-      value: totalSellableValue,
+      value: data?.totalSellableValue,
       icon: <DollarSign size={50} strokeWidth={2.4} />,
       accentClass: "accent-sellable",
       valueClass: "value-sellable",
@@ -63,7 +81,7 @@ export default function DashboardPane({
     {
       key: "soon",
       title: "即将过期价值",
-      value: expiringSoonValue,
+      value: data?.expiringSoonValue,
       icon: <Clock8 size={50} strokeWidth={2.4} />,
       accentClass: "accent-soon",
       valueClass: "value-soon",
@@ -71,7 +89,7 @@ export default function DashboardPane({
     {
       key: "expired",
       title: "已过期价值",
-      value: expiredValue,
+      value: data?.expiredValue,
       icon: <AlertTriangle size={50} strokeWidth={2.4} />,
       accentClass: "accent-expired",
       valueClass: "value-expired",
@@ -79,7 +97,7 @@ export default function DashboardPane({
     {
       key: "loan",
       title: "借/还净值",
-      value: netLoanValue,
+      value: data?.netLoanValue,
       icon: <ArrowLeftRight size={50} strokeWidth={2.4} />,
       accentClass: loanPositive ? "accent-loan-pos" : "accent-loan-neg",
       valueClass: loanPositive ? "value-loan-pos" : "value-loan-neg",
@@ -92,12 +110,10 @@ export default function DashboardPane({
     <div className="dash-wrap">
       <div className="dash-header">
         <h2>价值总览</h2>
-        {onRefresh && (
-          <button className="dash-refresh" onClick={onRefresh}>
-            <RefreshCw size={16} />
-            <span>刷新</span>
-          </button>
-        )}
+        <button className="dash-refresh" onClick={handleRefresh}>
+          <RefreshCw size={16} />
+          <span>刷新</span>
+        </button>
       </div>
 
       <div className="dash-grid-2x2">
