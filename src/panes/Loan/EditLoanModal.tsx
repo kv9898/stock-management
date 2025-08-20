@@ -40,10 +40,10 @@ export default function EditLoanModal({
     setLoading(true);
     try {
       // TODO: Implement backend functions
-      // const loanItems = await invoke<LoanItem[]>("get_loan_items", { loanId });
-      // const productList = await invoke<Product[]>("get_all_products");
-      // setItems(loanItems);
-      // setProducts(productList);
+      const loanItems = await invoke<LoanItem[]>("get_loan_items", { loanId: loan?.id});
+      const productList = await invoke<Product[]>("get_all_products");
+      setItems(loanItems);
+      setProducts(productList);
     } catch (err) {
       console.error("Error fetching loan details:", err);
     } finally {
