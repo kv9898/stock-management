@@ -62,6 +62,23 @@ export default function DashboardPane({
   // decide loan color by sign (asset vs liability)
   const loanPositive = (data?.netLoanValue ?? 0) >= 0;
 
+  if (error) {
+    return (
+      <div className="dash-wrap">
+        <div className="dash-header">
+          <h2>价值总览</h2>
+          <button className="dash-refresh" onClick={handleRefresh}>
+            <RefreshCw size={16} />
+            <span>重试</span>
+          </button>
+        </div>
+        <div style={{ padding: "2rem", textAlign: "center", color: "#666" }}>
+          <p>加载失败: {error}</p>
+        </div>
+      </div>
+    );
+  }
+
   const cards: Card[] = [
     {
       key: "sellable",
