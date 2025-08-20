@@ -46,7 +46,6 @@ export default function RemoveStockPane({
   useEffect(() => {
     (async () => {
       try {
-        console.log("Refreshing RemoveStockPane due to signal:", refreshSignal);
         await fetchInStockProducts();
         reloadAllLotsAndRevalidate();
       } catch (e) {
@@ -134,7 +133,6 @@ export default function RemoveStockPane({
         };
       })
     );
-    console.log("First Row:", rows[0]);
   }, [rows]);
 
 
