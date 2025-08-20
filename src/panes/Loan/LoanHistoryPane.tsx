@@ -15,32 +15,29 @@ import type { Product } from "../../types/product";
 
 interface EditLoanModalProps {
   open: boolean;
-  loanId: string | null;
+  loan: LoanHeader | null;
   onClose: () => void;
   onSave: () => void;
 }
 
-function EditLoanModal({ open, loanId, onClose, onSave }: EditLoanModalProps) {
-  const [loan, setLoan] = useState<LoanHeader | null>(null);
+function EditLoanModal({ open, loan, onClose, onSave }: EditLoanModalProps) {
   const [items, setItems] = useState<LoanItem[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
-    if (open && loanId) {
-      fetchLoanDetails();
+    if (open && loan) {
+      fetchLoanItems();
     }
-  }, [open, loanId]);
+  }, [open, loan]);
 
-  const fetchLoanDetails = async () => {
+  const fetchLoanItems = async () => {
     setLoading(true);
     try {
       // TODO: Implement backend functions
-      // const loanDetails = await invoke<LoanHeader>("get_loan_details", { loanId });
       // const loanItems = await invoke<LoanItem[]>("get_loan_items", { loanId });
       // const productList = await invoke<Product[]>("get_all_products");
-      // setLoan(loanDetails);
       // setItems(loanItems);
       // setProducts(productList);
     } catch (err) {
@@ -111,7 +108,7 @@ export default function LoanHistoryPane({
   const [loans, setLoans] = useState<LoanHeader[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [editingLoanId, setEditingLoanId] = useState<string | null>(null);
+  const [editingLoan, setEditingLoan] = useState<LoanHeader | null>(null);
 
   const fetchLoanHistory = async () => {
     setLoading(true);
@@ -234,7 +231,7 @@ export default function LoanHistoryPane({
           loading={loading}
           disableColumnMenu
           autoPageSize
-          onRowClick={(params) => setEditingLoanId(params.row.id)}
+          onRowClick={(params) => setEditingLoan(params.row)}
           sx={{
             height: "100%",
             borderRadius: 1,
@@ -245,9 +242,9 @@ export default function LoanHistoryPane({
       </Box>
 
       <EditLoanModal
-        open={!!editingLoanId}
-        loanId={editingLoanId}
-        onClose={() => setEditingLoanId(null)}
+        open={!!editingLoan}
+        loan={editingLoan}
+        onClose={() => setEditingLoan(null)}
         onSave={() => {
           fetchLoanHistory();
           onDidSubmit?.();
