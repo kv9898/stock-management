@@ -106,8 +106,7 @@ export default function LoanHistoryPane({
   const handleDeleteLoan = async (loanId: string) => {
     try {
       // TODO: Implement backend delete function
-      // await invoke("delete_loan", { loanId });
-      console.log("Deleting loan:", loanId);
+      await invoke("delete_loan", { loanId });
       fetchLoanHistory(); // Refresh the list
       onDidSubmit?.(); // Notify parent to refresh other panes
     } catch (err) {
