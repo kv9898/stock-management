@@ -187,6 +187,50 @@ pub async fn create_loan(
 }
 
 #[tauri::command]
+pub async fn delete_loan(loan_id: String) -> Result<(), String> {
+    task::spawn_blocking(move || {
+        let rt = tokio::runtime::Runtime::new().unwrap();
+        rt.block_on(async move {
+            let config = get_db_config().await.map_err(|e| e.to_string())?;
+            let client = Client::from_config(config)
+                .await
+                .map_err(|e| e.to_string())?;
+
+            // IMPORTANT: enable FKs to ensure proper cascade behavior
+            client
+                .execute("PRAGMA foreign_keys = ON;")
+                .await
+                .map_err(|e| e.to_string())?;
+
+            // Begin transaction
+            let tx = client.transaction().await.map_err(|e| e.to_string())?;
+
+            let loan_id_q = sql_quote(&loan_id);
+
+            // 1. First delete the loan items (child records)
+            let delete_items_sql = format!("DELETE FROM LoanItem WHERE loan_id = '{}';", loan_id_q);
+            tx.execute(delete_items_sql)
+                .await
+                .map_err(|e| e.to_string())?;
+
+            // 2. Then delete the loan header (parent record)
+            let delete_header_sql = format!("DELETE FROM LoanHeader WHERE id = '{}';", loan_id_q);
+            tx.execute(delete_header_sql)
+                .await
+                .map_err(|e| e.to_string())?;
+
+            // Commit the transaction
+            let res = tx.commit().await;
+            ignore_empty_baton_commit(res)?;
+
+            Ok(())
+        })
+    })
+    .await
+    .map_err(|e| e.to_string())?
+}
+
+#[tauri::command]
 pub async fn get_loan_history() -> Result<Vec<LoanHeader>, String> {
     task::spawn_blocking(move || {
         let rt = tokio::runtime::Runtime::new().unwrap();
