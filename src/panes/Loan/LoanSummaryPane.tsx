@@ -50,7 +50,6 @@ export default function LoanSummaryPane({
     counterparty: string;
     productName: string;
   } | null>(null);
-  const [editingLoanId, setEditingLoanId] = useState<string | null>(null);
 
   const fetchLoanSummary = useCallback(async () => {
     setLoading(true);
@@ -246,7 +245,6 @@ export default function LoanSummaryPane({
         productName={selectedTransaction?.productName || ""}
         onClose={() => setSelectedTransaction(null)}
         onEditTransaction={(loanId) => {
-          setEditingLoanId(loanId);
           onEditLoan?.(loanId); // Pass the loanId to parent
           setSelectedTransaction(null); // Close the modal
         }}
