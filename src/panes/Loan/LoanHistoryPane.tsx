@@ -3,7 +3,7 @@ import { invoke } from "@tauri-apps/api/core";
 import { DataGrid, GridColDef } from "@mui/x-data-grid";
 import { Button, Typography, Box } from "@mui/material";
 import type { LoanHeader } from "../../types/loan";
-import EditLoanModal from "./EditLoanModal";
+import EditLoanPane from "./EditLoanPane";
 
 interface LoanHistoryPaneProps {
   refreshSignal?: number;
@@ -128,36 +128,43 @@ export default function LoanHistoryPane({
     <Box
       sx={{ p: 2, height: "100%", display: "flex", flexDirection: "column" }}
     >
-      <Typography variant="h5" gutterBottom>
-        借贷记录
-      </Typography>
-
-      <Box sx={{ flex: 1, minHeight: 0 }}>
-        <DataGrid
-          rows={loans.map((loan) => ({ ...loan }))}
-          columns={columns}
-          loading={loading}
-          disableColumnMenu
-          autoPageSize
-          onRowClick={(params) => setEditingLoan(params.row)}
-          sx={{
-            height: "100%",
-            borderRadius: 1,
-            bgcolor: "background.default",
-            "& .MuiDataGrid-row:hover": { backgroundColor: "action.hover" },
+      {editingLoan ? (
+        <EditLoanPane
+          loan={editingLoan}
+          refreshSignal={refreshSignal}
+          onClose={() => setEditingLoan(null)}
+          onSave={() => {
+            fetchLoanHistory();
+            onDidSubmit?.();
           }}
         />
-      </Box>
+      ) : (
+        <>
+          <Typography variant="h5" gutterBottom>
+            借贷记录
+          </Typography>
 
-      <EditLoanModal
-        open={!!editingLoan}
-        loan={editingLoan}
-        onClose={() => setEditingLoan(null)}
-        onSave={() => {
-          fetchLoanHistory();
-          onDidSubmit?.();
-        }}
-      />
+          <Box sx={{ flex: 1, minHeight: 0 }}>
+            <DataGrid
+              rows={loans.map((loan) => ({ ...loan }))}
+              columns={columns}
+              loading={loading}
+              disableColumnMenu
+              autoPageSize
+              onRowClick={(params) => setEditingLoan(params.row)}
+              sx={{
+                height: "100%",
+                borderRadius: 1,
+                bgcolor: "background.default",
+                "& .MuiDataGrid-row:hover": {
+                  backgroundColor: "action.hover",
+                  cursor: "pointer",
+                },
+              }}
+            />
+          </Box>
+        </>
+      )}
     </Box>
   );
 }
