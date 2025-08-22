@@ -156,7 +156,6 @@ export default function LoanHistoryPane({
           refreshSignal={refreshSignal}
           onClose={() => {
             setEditingLoan(null);
-            setEditingLoan(null);
           }}
           onSave={() => {
             fetchLoanHistory();
