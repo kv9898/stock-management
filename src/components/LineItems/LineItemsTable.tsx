@@ -11,9 +11,19 @@ export type LineItemsTableProps = {
   setRow: (id: string, updater: (r: LineItem) => LineItem) => void;
   removeRow: (id: string) => void;
   inputRefs: React.MutableRefObject<(HTMLInputElement | null)[][]>;
-  handleEnter: (e: React.KeyboardEvent<HTMLInputElement> | null, rowIdx: number, colIdx: number) => void;
-  headers?: { product?: string; expiry?: string; qty?: string; actions?: string };
+  handleEnter: (
+    e: React.KeyboardEvent<HTMLInputElement> | null,
+    rowIdx: number,
+    colIdx: number
+  ) => void;
+  headers?: {
+    product?: string;
+    expiry?: string;
+    qty?: string;
+    actions?: string;
+  };
   disableDeleteOnSingle?: boolean;
+  showExpiry?: boolean;
 };
 
 export default function LineItemsTable({
@@ -25,6 +35,7 @@ export default function LineItemsTable({
   handleEnter,
   headers = { product: "产品", expiry: "有效期", qty: "数量", actions: "操作" },
   disableDeleteOnSingle = true,
+  showExpiry = true,
 }: LineItemsTableProps) {
   return (
     <div className="product-table-container">
@@ -32,7 +43,7 @@ export default function LineItemsTable({
         <thead>
           <tr>
             <th style={{ width: 380 }}>{headers.product}</th>
-            <th style={{ width: 140 }}>{headers.expiry}</th>
+            {showExpiry && <th style={{ width: 140 }}>{headers.expiry}</th>}
             <th style={{ width: 110 }}>{headers.qty}</th>
             <th style={{ width: 80 }}>{headers.actions}</th>
           </tr>
@@ -55,18 +66,22 @@ export default function LineItemsTable({
                 />
               </td>
 
-              <td>
-                <ExpiryDatePicker
-                  value={r.expiry ?? ""}
-                  ref={(el) => {
-                    inputRefs.current[rowIdx] ||= [];
-                    inputRefs.current[rowIdx][1] = el;
-                  }}
-                  onChange={(v) => setRow(r.id, (row) => ((row.expiry = v || null), row))}
-                  onEnterNext={(e) => handleEnter(e, rowIdx, 1)}
-                  onFinish={() => handleEnter(null, rowIdx, 1)}
-                />
-              </td>
+              {showExpiry && (
+                <td>
+                  <ExpiryDatePicker
+                    value={r.expiry ?? ""}
+                    ref={(el) => {
+                      inputRefs.current[rowIdx] ||= [];
+                      inputRefs.current[rowIdx][1] = el;
+                    }}
+                    onChange={(v) =>
+                      setRow(r.id, (row) => ((row.expiry = v || null), row))
+                    }
+                    onEnterNext={(e) => handleEnter(e, rowIdx, 1)}
+                    onFinish={() => handleEnter(null, rowIdx, 1)}
+                  />
+                </td>
+              )}
 
               <td>
                 <input
@@ -74,7 +89,10 @@ export default function LineItemsTable({
                   min={0}
                   value={r.qty ?? ""}
                   onChange={(e) =>
-                    setRow(r.id, (row) => ((row.qty = parseNum(e.target.value)), row))
+                    setRow(
+                      r.id,
+                      (row) => ((row.qty = parseNum(e.target.value)), row)
+                    )
                   }
                   ref={(el) => {
                     inputRefs.current[rowIdx] ||= [];
