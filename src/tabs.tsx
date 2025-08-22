@@ -25,8 +25,8 @@ export type TabKey =
   | "productManagement";
 
 export const tabs = [
+  { key: "dashboard", label: "价值总览" },
   { key: "viewStock", label: "查看库存" },
-  { key: "dashboard", label: "价值总览" }, // not implemented yet
   { key: "addStock", label: "添加库存" },
   { key: "removeStock", label: "移除库存" },
   { key: "loanSummary", label: "借货总览" },
