@@ -250,9 +250,6 @@ export default function EditLoanPane({
         </div>
 
         <div style={{ marginLeft: "auto", display: "flex", gap: 8 }}>
-          <button onClick={onClose} style={{ padding: "8px 16px" }}>
-            取消
-          </button>
           <button className="add-btn" onClick={submit} disabled={saving}>
             {saving ? "保存中..." : "保存修改"}
           </button>
