@@ -20,6 +20,15 @@ pub struct LoanItem {
     pub expiry: Option<String>, // "YYYY-MM-DD"
 }
 
+#[derive(Debug, Serialize)]
+pub struct LoanSummary {
+    pub counterparty: String,
+    pub product_name: String,
+    pub product_type: Option<String>,
+    pub total_quantity: i64,
+    pub direction: String,
+}
+
 #[inline]
 fn dir_delta(direction: &str, qty: i64) -> Result<i64, String> {
     match direction {
@@ -427,6 +436,76 @@ pub async fn get_loan_items(loan_id: String) -> Result<Vec<LoanItem>, String> {
             }
 
             Ok(loan_items)
+        })
+    })
+    .await
+    .map_err(|e| e.to_string())?
+}
+
+// Add this command at the end of loan.rs file
+#[tauri::command]
+pub async fn get_loan_summary() -> Result<Vec<LoanSummary>, String> {
+    task::spawn_blocking(move || {
+        let rt = tokio::runtime::Runtime::new().unwrap();
+        rt.block_on(async move {
+            let config = get_db_config().await.map_err(|e| e.to_string())?;
+            let client = Client::from_config(config)
+                .await
+                .map_err(|e| e.to_string())?;
+
+            let sql = r#"
+                SELECT 
+                    lh.counterparty,
+                    li.product_name,
+                    p.type as product_type,
+                    SUM(li.quantity) as total_quantity,
+                    lh.direction
+                FROM LoanHeader lh
+                JOIN LoanItem li ON lh.id = li.loan_id
+                LEFT JOIN Product p ON li.product_name = p.name
+                GROUP BY lh.counterparty, li.product_name, p.type, lh.direction
+                ORDER BY lh.counterparty, li.product_name
+            "#;
+
+            let result = client.execute(sql).await.map_err(|e| e.to_string())?;
+
+            let mut loan_summaries = Vec::new();
+
+            for row in result.rows {
+                let counterparty = row
+                    .try_column::<&str>("counterparty")
+                    .map_err(|_| "Failed to get counterparty".to_string())?
+                    .to_string();
+
+                let product_name = row
+                    .try_column::<&str>("product_name")
+                    .map_err(|_| "Failed to get product_name".to_string())?
+                    .to_string();
+
+                let product_type = row
+                    .try_column::<&str>("product_type")
+                    .ok()
+                    .map(|s| s.to_string());
+
+                let total_quantity = row
+                    .try_column::<i64>("total_quantity")
+                    .map_err(|_| "Failed to get total_quantity".to_string())?;
+
+                let direction = row
+                    .try_column::<&str>("direction")
+                    .map_err(|_| "Failed to get direction".to_string())?
+                    .to_string();
+
+                loan_summaries.push(LoanSummary {
+                    counterparty,
+                    product_name,
+                    product_type,
+                    total_quantity,
+                    direction,
+                });
+            }
+
+            Ok(loan_summaries)
         })
     })
     .await
