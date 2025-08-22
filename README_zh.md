@@ -1,4 +1,4 @@
-<p align="center"><a href="./README.md">English<a> | 中文</p>
+<p align="center"><a href="./README.md">English</a> | 中文</p>
 
 # 库存管理系统
 
