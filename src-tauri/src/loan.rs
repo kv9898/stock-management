@@ -20,6 +20,16 @@ pub struct LoanItem {
     pub expiry: Option<String>, // "YYYY-MM-DD"
 }
 
+#[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct LoanSummary {
+    pub counterparty: String,
+    pub product_name: String,
+    pub product_type: Option<String>,
+    pub net_quantity: i64,
+    pub direction: String,
+}
+
 #[inline]
 fn dir_delta(direction: &str, qty: i64) -> Result<i64, String> {
     match direction {
@@ -427,6 +437,80 @@ pub async fn get_loan_items(loan_id: String) -> Result<Vec<LoanItem>, String> {
             }
 
             Ok(loan_items)
+        })
+    })
+    .await
+    .map_err(|e| e.to_string())?
+}
+
+// Add this command at the end of loan.rs file
+#[tauri::command]
+pub async fn get_loan_summary() -> Result<Vec<LoanSummary>, String> {
+    task::spawn_blocking(move || {
+        let rt = tokio::runtime::Runtime::new().unwrap();
+        rt.block_on(async move {
+            let config = get_db_config().await.map_err(|e| e.to_string())?;
+            let client = Client::from_config(config)
+                .await
+                .map_err(|e| e.to_string())?;
+
+            let sql = r#"
+                SELECT 
+                    counterparty,
+                    product_name,
+                    p.type as product_type,
+                    SUM(quantity * sign) as net_quantity,
+                    CASE 
+                        WHEN SUM(quantity * sign) > 0 THEN 'loan_out'
+                        WHEN SUM(quantity * sign) < 0 THEN 'loan_in'
+                        ELSE 'balanced'
+                    END as direction
+                FROM LoanLedger
+                LEFT JOIN Product p ON LoanLedger.product_name = p.name
+                GROUP BY counterparty, product_name, p.type
+                HAVING net_quantity != 0
+                ORDER BY counterparty, product_name
+            "#;
+
+            let result = client.execute(sql).await.map_err(|e| e.to_string())?;
+
+            let mut loan_summaries = Vec::new();
+
+            for row in result.rows {
+                let counterparty = row
+                    .try_column::<&str>("counterparty")
+                    .map_err(|_| "Failed to get counterparty".to_string())?
+                    .to_string();
+
+                let product_name = row
+                    .try_column::<&str>("product_name")
+                    .map_err(|_| "Failed to get product_name".to_string())?
+                    .to_string();
+
+                let product_type = row
+                    .try_column::<&str>("product_type")
+                    .ok()
+                    .map(|s| s.to_string());
+
+                let net_quantity = row
+                    .try_column::<i64>("net_quantity")
+                    .map_err(|_| "Failed to get net_quantity".to_string())?;
+
+                let direction = row
+                    .try_column::<&str>("direction")
+                    .map_err(|_| "Failed to get direction".to_string())?
+                    .to_string();
+
+                loan_summaries.push(LoanSummary {
+                    counterparty,
+                    product_name,
+                    product_type,
+                    net_quantity,
+                    direction,
+                });
+            }
+
+            Ok(loan_summaries)
         })
     })
     .await
