@@ -109,19 +109,6 @@ export default function TransactionDetailsModal({
       minWidth: 200,
       valueGetter: (value) => value || "-",
     },
-    {
-      field: "actions",
-      headerName: "操作",
-      width: 100,
-      renderCell: (params) => (
-        <Button
-          size="small"
-          onClick={() => onEditTransaction(params.row.id)}
-        >
-          编辑
-        </Button>
-      ),
-    },
   ];
 
   return (
