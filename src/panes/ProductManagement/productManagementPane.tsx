@@ -2,10 +2,14 @@ import { useEffect, useMemo, useState, useCallback } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import { filter } from "fuzzaldrin-plus";
 import { DataGrid, GridColDef } from "@mui/x-data-grid";
+import { FormControl, InputLabel, MenuItem, Select } from "@mui/material";
 
 import ProductFormModal from "./productFormModal";
 import type { Product } from "../../types/product";
 import "./productManagementPane.css";
+
+const ALL = "__ALL__";
+const UNCLASSIFIED = "__UNCLASSIFIED__";
 
 export default function ProductManagementPane({
   refreshSignal = 0,
@@ -16,6 +20,7 @@ export default function ProductManagementPane({
 }) {
   const [products, setProducts] = useState<Product[]>([]);
   const [search, setSearch] = useState("");
+  const [selectedType, setSelectedType] = useState<string>(ALL);
   const [showModal, setShowModal] = useState(false);
   const [modalMode, setModalMode] = useState<"add" | "edit">("add");
   const [selectedProduct, setSelectedProduct] = useState<Product | undefined>();
@@ -56,10 +61,35 @@ export default function ProductManagementPane({
     }
   };
 
-  // Search (fuzzaldrin) + alphabetical sort
+  // Type options from products data
+  const typeOptions = useMemo(() => {
+    const set = new Set<string>();
+    for (const p of products) {
+      if (p.type == null) set.add(UNCLASSIFIED);
+      else set.add(p.type);
+    }
+    return [
+      ALL,
+      ...Array.from(set).sort((a, b) => {
+        if (a === UNCLASSIFIED) return 1;
+        if (b === UNCLASSIFIED) return -1;
+        return a.localeCompare(b, undefined, {
+          sensitivity: "base",
+          numeric: true,
+        });
+      }),
+    ];
+  }, [products]);
+
+  // Filter by type first, then by Search (fuzzaldrin) + alphabetical sort
   const visibleProducts = useMemo(() => {
-    const q = search.trim();
     let list = products;
+    if (selectedType !== ALL) {
+      list = list.filter((p) =>
+        selectedType === UNCLASSIFIED ? !p.type : p.type === selectedType
+      );
+    }
+    const q = search.trim();
     if (q) {
       const enriched = products.map((p) => ({
         product: p,
@@ -73,7 +103,7 @@ export default function ProductManagementPane({
         numeric: true,
       })
     );
-  }, [products, search]);
+  }, [products, search, selectedType]);
 
   // DataGrid rows/cols
   const rows = useMemo(
@@ -150,6 +180,32 @@ export default function ProductManagementPane({
     <div className="product-pane">
       {/* Search bar */}
       <div style={{ marginBottom: 8, display: "flex", gap: 8 }}>
+        <FormControl size="small" style={{ minWidth: 160 }}>
+          <InputLabel id="type-filter-label">分类</InputLabel>
+          <Select
+            labelId="type-filter-label"
+            label="分类"
+            value={selectedType}
+            onChange={(e) => setSelectedType(String(e.target.value))}
+          >
+            {typeOptions.map((t) =>
+              t === ALL ? (
+                <MenuItem key={t} value={t}>
+                  (全部)
+                </MenuItem>
+              ) : t === UNCLASSIFIED ? (
+                <MenuItem key={t} value={t}>
+                  (未分类)
+                </MenuItem>
+              ) : (
+                <MenuItem key={t} value={t}>
+                  {t}
+                </MenuItem>
+              )
+            )}
+          </Select>
+        </FormControl>
+        
         <input
           type="search"
           value={search}
