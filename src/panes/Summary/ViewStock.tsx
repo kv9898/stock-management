@@ -3,6 +3,7 @@ import { useEffect, useMemo, useState, useCallback } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import { DataGrid, GridColDef } from "@mui/x-data-grid";
 import { FormControl, InputLabel, MenuItem, Select } from "@mui/material";
+import { filter } from "fuzzaldrin-plus";
 
 import StockExpiryChart, { Bucket } from "./Chart";
 
@@ -129,9 +130,14 @@ export default function ViewStockPane({
         selectedType === UNCLASSIFIED ? !r.type : r.type === selectedType
       );
     }
-    const q = search.trim().toLowerCase();
+    const q = search.trim();
     if (q) {
-      list = list.filter((r) => r.name.toLowerCase().includes(q));
+      // Use fuzzy search on product name and type
+      const enriched = list.map((r) => ({
+        stock: r,
+        key: `${r.name} ${r.type ?? ""}`,
+      }));
+      list = filter(enriched, q, { key: "key" }).map((m) => m.stock);
     }
     return list;
   }, [rows, search, selectedType]);

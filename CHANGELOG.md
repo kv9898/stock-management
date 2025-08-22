@@ -6,6 +6,7 @@ All notable changes to the USANA stock manager will be documented in this file.
 
 - Viewing and editing loan records
 - Viewing loan summary
+- Fuzzy search for stock view
 
 ## 0.1.0
 
