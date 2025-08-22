@@ -99,7 +99,7 @@ export default function LoanSummaryPane({
     () => [
       {
         field: "counterparty",
-        headerName: "对方单位",
+        headerName: "对方姓名",
         flex: 1,
         minWidth: 120,
         sortComparator: (a, b) =>
