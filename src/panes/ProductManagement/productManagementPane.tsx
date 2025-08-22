@@ -158,7 +158,7 @@ export default function ProductManagementPane({
       sortable: false,
       filterable: false,
       renderCell: (params) => (
-        <div style={{ display: "flex", gap: 8 }}>
+        <div style={{ display: "flex", gap: 8, alignItems: "center", height: "100%" }}>
           <button
             className="action-btn"
             onClick={() => openEditModal(params.row as Product)}
@@ -205,7 +205,7 @@ export default function ProductManagementPane({
             )}
           </Select>
         </FormControl>
-        
+
         <input
           type="search"
           value={search}
