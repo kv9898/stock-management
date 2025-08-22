@@ -58,13 +58,54 @@ jobs:
       - name: install frontend dependencies
         run: bun install # change this to npm, pnpm or yarn depending on which one you use.
 
+      - name: Extract release notes from CHANGELOG.md
+        id: changelog
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          # Determine version: prefer pushed tag (strip leading v), else package.json
+          if [[ "${GITHUB_REF_TYPE:-}" == "tag" && -n "${GITHUB_REF_NAME:-}" ]]; then
+            VERSION="${GITHUB_REF_NAME#v}"
+          else
+            VERSION=$(node -p "require('./package.json').version")
+          fi
+          echo "VERSION=$VERSION" >> "$GITHUB_ENV"
+
+          # Extract lines after "## <version>" until the next "## "
+          BODY=$(awk -v ver="## $VERSION" '
+            $0==ver {in=1; next}
+            /^##[[:space:]]/ && in {exit}
+            in {print}
+          ' CHANGELOG.md)
+
+          # Fallback: if not found, take the first section after the first "## "
+          if [[ -z "$BODY" ]]; then
+            BODY=$(awk '
+              /^##[[:space:]]/ { if (seen) exit; seen=1; next }
+              seen { print }
+            ' CHANGELOG.md)
+          fi
+
+          # Prefix a small title (optional)
+          {
+            echo "Changes in v$VERSION"
+            echo
+            echo "$BODY"
+          } > /tmp/release_body.md
+
+          # Expose as multiline env var for the next step
+          echo "RELEASE_BODY<<'EOF'" >> "$GITHUB_ENV"
+          cat /tmp/release_body.md >> "$GITHUB_ENV"
+          echo "EOF" >> "$GITHUB_ENV"
+
       - uses: tauri-apps/tauri-action@v0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           tagName: v__VERSION__ # the action automatically replaces \_\_VERSION\_\_ with the app version.
           releaseName: 'USANA Stock Manager v__VERSION__'
-          releaseBody: 'See the assets to download this version and install.'
+          releaseBody: ${{ env.RELEASE_BODY }}
           releaseDraft: false
           prerelease: true
           args: ${{ matrix.args }} --bundles ${{ matrix.bundles }}
