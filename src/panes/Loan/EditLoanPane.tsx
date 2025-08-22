@@ -32,17 +32,16 @@ export default function EditLoanPane({
   const [txnDate, setTxnDate] = useState<string>("");
   const [adjustStock, setAdjustStock] = useState<boolean>(true);
   const [note, setNote] = useState<string>("");
-  const [initialRows, setInitialRows] = useState<LineItem[]>([]);
 
   const {
     rows,
+    setAllRows,
     setRow,
     removeRow,
-    reset,
     inputRefs,
     nonGhostRows,
     handleEnter,
-  } = useLineItems(initialRows);
+  } = useLineItems();
 
   const fetchProducts = useCallback(async () => {
     const list = await invoke<Product[]>("get_all_products");
@@ -74,7 +73,7 @@ export default function EditLoanPane({
       }));
       console.log("Fetched loan items:", rowsData);
       // Set the initial rows for the hook
-      setInitialRows(rowsData);
+      setAllRows(rowsData);
     } catch (err) {
       console.error("Error fetching loan details:", err);
     } finally {
