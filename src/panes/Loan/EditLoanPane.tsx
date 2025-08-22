@@ -24,7 +24,6 @@ export default function EditLoanPane({
   const [products, setProducts] = useState<Product[]>([]);
   const [items, setItems] = useState<LoanItem[]>([]);
   const [loading, setLoading] = useState(false);
-  const [saving, setSaving] = useState(false);
 
   // Form fields (editable)
   const [counterparty, setCounterparty] = useState("");
@@ -250,8 +249,8 @@ export default function EditLoanPane({
         </div>
 
         <div style={{ marginLeft: "auto", display: "flex", gap: 8 }}>
-          <button className="add-btn" onClick={submit} disabled={saving}>
-            {saving ? "保存中..." : "保存修改"}
+          <button className="add-btn" onClick={submit}>
+            保存修改
           </button>
         </div>
       </div>
