@@ -8,9 +8,9 @@ import { filter } from "fuzzaldrin-plus";
 
 type LoanSummary = {
   counterparty: string;
-  product_name: string;
-  product_type: string | null;
-  total_quantity: number;
+  productName: string;
+  productType: string | null;
+  netQuantity: number;
   direction: string;
 };
 
@@ -87,7 +87,7 @@ export default function LoanSummaryPane({
     if (q) {
       const enriched = list.map((r) => ({
         loan: r,
-        key: `${r.product_name} ${r.product_type ?? ""} ${r.counterparty}`,
+        key: `${r.productName} ${r.productType ?? ""} ${r.counterparty}`,
       }));
       list = filter(enriched, q, { key: "key" }).map((m) => m.loan);
     }
@@ -109,7 +109,7 @@ export default function LoanSummaryPane({
           }),
       },
       {
-        field: "product_name",
+        field: "productName",
         headerName: "产品",
         flex: 1,
         minWidth: 160,
@@ -120,10 +120,10 @@ export default function LoanSummaryPane({
           }),
       },
       {
-        field: "product_type",
+        field: "productType",
         headerName: "类型",
         width: 100,
-        valueGetter: (_value, row) => row.product_type ?? "未分类",
+        valueGetter: (_value, row) => row.productType ?? "未分类",
         sortComparator: (a, b) =>
           (a ?? "未分类").localeCompare(b ?? "未分类", undefined, {
             sensitivity: "base",

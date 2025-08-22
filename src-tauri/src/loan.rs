@@ -21,11 +21,12 @@ pub struct LoanItem {
 }
 
 #[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
 pub struct LoanSummary {
     pub counterparty: String,
     pub product_name: String,
     pub product_type: Option<String>,
-    pub total_quantity: i64,
+    pub net_quantity: i64,
     pub direction: String,
 }
 
