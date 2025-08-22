@@ -456,16 +456,20 @@ pub async fn get_loan_summary() -> Result<Vec<LoanSummary>, String> {
 
             let sql = r#"
                 SELECT 
-                    lh.counterparty,
-                    li.product_name,
+                    counterparty,
+                    product_name,
                     p.type as product_type,
-                    SUM(li.quantity) as total_quantity,
-                    lh.direction
-                FROM LoanHeader lh
-                JOIN LoanItem li ON lh.id = li.loan_id
-                LEFT JOIN Product p ON li.product_name = p.name
-                GROUP BY lh.counterparty, li.product_name, p.type, lh.direction
-                ORDER BY lh.counterparty, li.product_name
+                    SUM(quantity * sign) as net_quantity,
+                    CASE 
+                        WHEN SUM(quantity * sign) > 0 THEN 'loan_out'
+                        WHEN SUM(quantity * sign) < 0 THEN 'loan_in'
+                        ELSE 'balanced'
+                    END as direction
+                FROM LoanLedger
+                LEFT JOIN Product p ON LoanLedger.product_name = p.name
+                GROUP BY counterparty, product_name, p.type
+                HAVING net_quantity != 0
+                ORDER BY counterparty, product_name
             "#;
 
             let result = client.execute(sql).await.map_err(|e| e.to_string())?;
@@ -488,9 +492,9 @@ pub async fn get_loan_summary() -> Result<Vec<LoanSummary>, String> {
                     .ok()
                     .map(|s| s.to_string());
 
-                let total_quantity = row
-                    .try_column::<i64>("total_quantity")
-                    .map_err(|_| "Failed to get total_quantity".to_string())?;
+                let net_quantity = row
+                    .try_column::<i64>("net_quantity")
+                    .map_err(|_| "Failed to get net_quantity".to_string())?;
 
                 let direction = row
                     .try_column::<&str>("direction")
@@ -501,7 +505,7 @@ pub async fn get_loan_summary() -> Result<Vec<LoanSummary>, String> {
                     counterparty,
                     product_name,
                     product_type,
-                    total_quantity,
+                    net_quantity,
                     direction,
                 });
             }

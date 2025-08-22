@@ -76,7 +76,7 @@ export default function LoanSummaryPane({
   // Filter locally: first by counterparty, then by fuzzy search
   const filtered = useMemo(() => {
     let list = rows;
-    
+
     // Filter by counterparty
     if (selectedCounterparty !== ALL) {
       list = list.filter((r) => r.counterparty === selectedCounterparty);
@@ -131,27 +131,21 @@ export default function LoanSummaryPane({
           }),
       },
       {
-        field: "total_quantity",
-        headerName: "数量",
+        field: "netQuantity",
+        headerName: "净数量",
         type: "number",
         width: 100,
         valueGetter: (v) => v ?? 0,
       },
       {
         field: "direction",
-        headerName: "方向",
+        headerName: "状态",
         width: 80,
         renderCell: (params) => {
-          const getDirectionLabel = (direction: string) => {
-            switch (direction) {
-              case "loan_out": return "借出";
-              case "loan_in": return "借入";
-              case "return_in": return "还入";
-              case "return_out": return "还出";
-              default: return direction;
-            }
-          };
-          return getDirectionLabel(params.value);
+          const value = params.row.netQuantity ?? 0;
+          if (value > 0) return <span style={{ color: "#d32f2f" }}>借出</span>; // We owe them
+          if (value < 0) return <span style={{ color: "#2e7d32" }}>借入</span>; // They owe us
+          return "平衡";
         },
       },
     ],
