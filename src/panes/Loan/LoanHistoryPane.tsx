@@ -8,11 +8,15 @@ import EditLoanPane from "./EditLoanPane";
 interface LoanHistoryPaneProps {
   refreshSignal?: number;
   onDidSubmit?: () => void;
+  editingLoanId?: string | null;
+  onCloseEdit?: () => void;
 }
 
 export default function LoanHistoryPane({
   refreshSignal,
   onDidSubmit,
+  editingLoanId,
+  onCloseEdit,
 }: LoanHistoryPaneProps) {
   const [loans, setLoans] = useState<LoanHeader[]>([]);
   const [loading, setLoading] = useState(false);
@@ -34,6 +38,24 @@ export default function LoanHistoryPane({
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    if (editingLoanId) {
+      // Find the loan with this ID and set it for editing
+      const findAndEditLoan = async () => {
+        try {
+          const loans = await invoke<LoanHeader[]>("get_loan_history");
+          const loanToEdit = loans.find((loan) => loan.id === editingLoanId);
+          if (loanToEdit) {
+            setEditingLoan(loanToEdit);
+          }
+        } catch (err) {
+          console.error("Error finding loan to edit:", err);
+        }
+      };
+      findAndEditLoan();
+    }
+  }, [editingLoanId]);
 
   useEffect(() => {
     fetchLoanHistory();
@@ -132,10 +154,14 @@ export default function LoanHistoryPane({
         <EditLoanPane
           loan={editingLoan}
           refreshSignal={refreshSignal}
-          onClose={() => setEditingLoan(null)}
+          onClose={() => {
+            setEditingLoan(null);
+          }}
           onSave={() => {
             fetchLoanHistory();
             onDidSubmit?.();
+            setEditingLoan(null);
+            onCloseEdit?.();
           }}
         />
       ) : (

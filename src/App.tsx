@@ -91,6 +91,7 @@ function App() {
       <main className="content">
         <RenderedTabs
           activeTab={activeTab}
+          setActiveTab={setActiveTab}
           refresh={refresh}
           triggerRefresh={triggerRefresh}
         />

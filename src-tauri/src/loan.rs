@@ -30,6 +30,15 @@ pub struct LoanSummary {
     pub direction: String,
 }
 
+#[derive(Debug, Serialize)]
+pub struct TransactionDetail {
+    pub id: String,
+    pub date: String,
+    pub direction: String,
+    pub quantity: i64,
+    pub note: Option<String>,
+}
+
 #[inline]
 fn dir_delta(direction: &str, qty: i64) -> Result<i64, String> {
     match direction {
@@ -511,6 +520,77 @@ pub async fn get_loan_summary() -> Result<Vec<LoanSummary>, String> {
             }
 
             Ok(loan_summaries)
+        })
+    })
+    .await
+    .map_err(|e| e.to_string())?
+}
+
+#[tauri::command]
+pub async fn get_transaction_details(
+    counterparty: String,
+    product_name: String,
+) -> Result<Vec<TransactionDetail>, String> {
+    task::spawn_blocking(move || {
+        let rt = tokio::runtime::Runtime::new().unwrap();
+        rt.block_on(async move {
+            let config = get_db_config().await.map_err(|e| e.to_string())?;
+            let client = Client::from_config(config)
+                .await
+                .map_err(|e| e.to_string())?;
+
+            let cp_q = sql_quote(&counterparty);
+            let pn_q = sql_quote(&product_name);
+
+            let sql = format!(
+                r#"
+                SELECT 
+                    h.id,
+                    h.date,
+                    h.direction,
+                    i.quantity,
+                    h.note
+                FROM LoanHeader h
+                JOIN LoanItem i ON h.id = i.loan_id
+                WHERE h.counterparty = '{}'
+                AND i.product_name = '{}'
+                ORDER BY h.date DESC, h.id DESC
+                "#,
+                cp_q, pn_q
+            );
+
+            let result = client.execute(sql).await.map_err(|e| e.to_string())?;
+
+            let mut transactions = Vec::new();
+
+            for row in result.rows {
+                let id = row
+                    .try_column::<&str>("id")
+                    .map_err(|s| s.to_string())?
+                    .to_string();
+                let date = row
+                    .try_column::<&str>("date")
+                    .map_err(|s| s.to_string())?
+                    .to_string();
+                let direction = row
+                    .try_column::<&str>("direction")
+                    .map_err(|s| s.to_string())?
+                    .to_string();
+                let quantity = row
+                    .try_column::<i64>("quantity")
+                    .map_err(|s| s.to_string())?;
+                let note = row.try_column::<&str>("note").ok().map(|s| s.to_string());
+
+                transactions.push(TransactionDetail {
+                    id,
+                    date,
+                    direction,
+                    quantity,
+                    note,
+                });
+            }
+
+            Ok(transactions)
         })
     })
     .await

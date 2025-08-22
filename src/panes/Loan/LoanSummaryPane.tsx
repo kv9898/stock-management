@@ -5,6 +5,7 @@ import { invoke } from "@tauri-apps/api/core";
 import { DataGrid, GridColDef } from "@mui/x-data-grid";
 import { FormControl, InputLabel, MenuItem, Select } from "@mui/material";
 import { filter } from "fuzzaldrin-plus";
+import TransactionDetailsModal from "./TransactionDetails";
 
 type LoanSummary = {
   counterparty: string;
@@ -13,6 +14,11 @@ type LoanSummary = {
   netQuantity: number;
   direction: string;
 };
+
+interface LoanSummaryPaneProps {
+  refreshSignal?: number;
+  onEditLoan?: (loanId: string) => void; // Add this line
+}
 
 const Container: FC<{ children: ReactNode }> = ({ children }) => (
   <div
@@ -33,13 +39,18 @@ const ALL = "__ALL__";
 
 export default function LoanSummaryPane({
   refreshSignal = 0,
-}: {
-  refreshSignal?: number;
-}) {
+  onEditLoan, // Add this line
+}: LoanSummaryPaneProps) {
   const [rows, setRows] = useState<LoanSummary[]>([]);
   const [search, setSearch] = useState("");
   const [selectedCounterparty, setSelectedCounterparty] = useState<string>(ALL);
   const [loading, setLoading] = useState(false);
+
+  const [selectedTransaction, setSelectedTransaction] = useState<{
+    counterparty: string;
+    productName: string;
+  } | null>(null);
+  const [editingLoanId, setEditingLoanId] = useState<string | null>(null);
 
   const fetchLoanSummary = useCallback(async () => {
     setLoading(true);
@@ -208,6 +219,12 @@ export default function LoanSummaryPane({
           loading={loading}
           disableColumnMenu
           autoPageSize
+          onRowClick={(params) => {
+            setSelectedTransaction({
+              counterparty: params.row.counterparty,
+              productName: params.row.productName,
+            });
+          }}
           sx={{
             height: "100%",
             borderRadius: 1,
@@ -223,6 +240,17 @@ export default function LoanSummaryPane({
           }}
         />
       </div>
+      <TransactionDetailsModal
+        open={!!selectedTransaction}
+        counterparty={selectedTransaction?.counterparty || ""}
+        productName={selectedTransaction?.productName || ""}
+        onClose={() => setSelectedTransaction(null)}
+        onEditTransaction={(loanId) => {
+          setEditingLoanId(loanId);
+          onEditLoan?.(loanId); // Pass the loanId to parent
+          setSelectedTransaction(null); // Close the modal
+        }}
+      />
     </Container>
   );
 }
