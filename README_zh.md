@@ -86,10 +86,10 @@ src/                    # 前端源代码
 ├── components/         # 可复用的 UI 组件
 ├── panes/              # 主应用面板
 │   ├── Dashboard/      # 产品总价仪表板
-│   ├── ViewStock/      # 库存管理
-│   ├── AddStock/       # 添加新库存
-│   ├── Product/        # 产品目录
-│   └── Settings/       # 配置
+│   ├── Loan/           # 借货管理
+│   ├── ProductManagement/ # 产品目录
+│   ├── Stock/          # 库存管理
+│   └── Summary/        # 库存查看
 ├── types/              # TypeScript 类型定义
 ├── App.css             # 全局样式
 ├── App.tsx             # 主应用组件

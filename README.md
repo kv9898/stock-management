@@ -86,10 +86,10 @@ src/                    # Frontend source code
 ├── components/         # Reusable UI components
 ├── panes/              # Main application panes
 │   ├── Dashboard/      # Value overview dashboard
-│   ├── ViewStock/      # Stock management
-│   ├── AddStock/       # Add new stock
-│   ├── Product/        # Product catalog
-│   └── Settings/       # Configuration
+│   ├── Loan/           # Loan management
+│   ├── ProductManagement/  # Product catalog
+│   ├── Stock/          # Stock management
+│   └── Summary/        # View Stock
 ├── types/              # TypeScript type definitions
 ├── App.css             # Global styles
 ├── App.tsx             # Main application component
