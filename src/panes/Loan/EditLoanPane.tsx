@@ -22,7 +22,6 @@ export default function EditLoanPane({
   onSave,
 }: EditLoanPaneProps) {
   const [products, setProducts] = useState<Product[]>([]);
-  const [loading, setLoading] = useState(false);
 
   // Form fields (editable)
   const [counterparty, setCounterparty] = useState("");
@@ -55,7 +54,6 @@ export default function EditLoanPane({
   const fetchLoanItems = async () => {
     if (!loan) return;
 
-    setLoading(true);
     try {
       const loanItems = await invoke<LoanItem[]>("get_loan_items", {
         loanId: loan.id,
@@ -72,8 +70,6 @@ export default function EditLoanPane({
       setAllRows(rowsData);
     } catch (err) {
       console.error("Error fetching loan details:", err);
-    } finally {
-      setLoading(false);
     }
   };
 
