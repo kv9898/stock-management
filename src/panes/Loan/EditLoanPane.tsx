@@ -122,24 +122,21 @@ export default function EditLoanPane({
 
     try {
       // Build payload for update
-      const itemsPayload = itemsToSave.map((r) => ({
+      const itemsPayload: LoanItem[] = itemsToSave.map((r) => ({
         id: r.id || uuidv4(),
         product_name: r.product,
         quantity: r.qty!,
       }));
 
-      const payload = {
-        loanId: loan!.id,
-        updates: {
-          date: txnDate,
-          direction,
-          counterparty: counterparty.trim(),
-          note: note.trim() || null,
-          items: itemsPayload,
-        },
+      const headerPayload: LoanHeader = {
+        id: loan!.id,
+        date: txnDate,
+        direction,
+        counterparty: counterparty.trim(),
+        note: note.trim() || null,
       };
 
-      await invoke("update_loan", payload);
+      await invoke("update_loan", {header: headerPayload, items: itemsPayload});
       onSave();
       onClose();
       alert("更新成功！");
