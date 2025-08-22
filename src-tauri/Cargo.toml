@@ -1,6 +1,6 @@
 [package]
 name = "USANA库存管理系统"
-version = "0.1.0"
+version = "0.1.1"
 description = "An app for managing USANA stock inventory"
 authors = ["Dianyi Yang"]
 edition = "2021"
