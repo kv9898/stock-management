@@ -30,7 +30,6 @@ export default function EditLoanPane({
   const [counterparty, setCounterparty] = useState("");
   const [direction, setDirection] = useState<Direction>("loan_out");
   const [txnDate, setTxnDate] = useState<string>("");
-  const [adjustStock, setAdjustStock] = useState<boolean>(true);
   const [note, setNote] = useState<string>("");
 
   const {
@@ -108,9 +107,7 @@ export default function EditLoanPane({
     qty: number | null;
     expiry: string | null;
   }) {
-    if (!r.product || r.qty == null) return false;
-    if (adjustStock) return !!r.expiry;
-    return true;
+    return !!(r.product && r.qty != null);
   }
 
   const submit = async () => {
@@ -120,23 +117,16 @@ export default function EditLoanPane({
     if (!txnDate) return alert("请选择交易日期。");
     if (itemsToSave.length === 0) return alert("请至少填写一条记录。");
     if (itemsToSave.some((r) => !isRowCompleteForLoan(r))) {
-      return alert(
-        adjustStock
-          ? "存在未填写完整的行（产品、数量、有效期均必填）。"
-          : "存在未填写完整的行（产品、数量必填）。"
-      );
+      return alert("存在未填写完整的行（产品、数量必填）。");
     }
 
     try {
       // Build payload for update
-      const itemsPayload = itemsToSave.map((r) => {
-        const base = {
-          id: r.id || uuidv4(),
-          product_name: r.product,
-          quantity: r.qty!,
-        };
-        return adjustStock && r.expiry ? { ...base, expiry: r.expiry } : base;
-      });
+      const itemsPayload = itemsToSave.map((r) => ({
+        id: r.id || uuidv4(),
+        product_name: r.product,
+        quantity: r.qty!,
+      }));
 
       const payload = {
         loanId: loan!.id,
@@ -146,7 +136,6 @@ export default function EditLoanPane({
           counterparty: counterparty.trim(),
           note: note.trim() || null,
           items: itemsPayload,
-          adjustStock,
         },
       };
 
@@ -262,27 +251,6 @@ export default function EditLoanPane({
             style={{ width: "100%" }}
           />
         </div>
-
-        <label
-          style={{
-            display: "flex",
-            alignItems: "center",
-            gap: 6,
-            marginLeft: 8,
-          }}
-          title={
-            adjustStock
-              ? "将同时调整库存（需要填写有效期）"
-              : "仅记录借还，不调整库存（有效期可留空）"
-          }
-        >
-          <input
-            type="checkbox"
-            checked={adjustStock}
-            onChange={(e) => setAdjustStock(e.target.checked)}
-          />
-          更改库存
-        </label>
 
         <div style={{ marginLeft: "auto", display: "flex", gap: 8 }}>
           <button onClick={onClose} style={{ padding: "8px 16px" }}>
