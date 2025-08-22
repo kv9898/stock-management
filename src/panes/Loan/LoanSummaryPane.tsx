@@ -160,9 +160,9 @@ export default function LoanSummaryPane({
 
   const rowsForGrid = useMemo(
     () =>
-      [...filtered].map((r, index) => ({ 
-        id: `${r.counterparty}-${r.product_name}-${index}`, 
-        ...r 
+      [...filtered].map((r, index) => ({
+        id: `${r.counterparty}-${r.productName}-${r.productType}-${index}`,
+        ...r,
       })),
     [filtered]
   );
