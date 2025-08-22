@@ -1,6 +1,6 @@
 # Stock Management System
 
-A modern desktop application built with Tauri, React, and TypeScript for managing inventory, tracking stock values, and monitoring product expiry dates.
+A modern desktop application built with Tauri, React, Rust and TypeScript for managing inventory, tracking stock values, managing loans and monitoring product expiry dates.
 
 ## 🚀 Tech Stack
 
