@@ -10,7 +10,8 @@ use config::{get_alert_period, get_config, init_config, wire_verify_on_startup, 
 use dashboard::get_dashboard_summary;
 use db::verify_credentials;
 use loan::{
-    create_loan, delete_loan, get_loan_history, get_loan_items, get_loan_summary, update_loan,
+    create_loan, delete_loan, get_loan_history, get_loan_items, get_loan_summary,
+    get_transaction_details, update_loan,
 };
 use product::{add_product, delete_product, get_all_products, get_product, update_product};
 use stock::{add_stock, edit_stock, get_in_stock_products, get_stock_lots, remove_stock};
@@ -49,6 +50,7 @@ pub fn run() {
             get_loan_history,
             get_loan_items,
             get_loan_summary,
+            get_transaction_details,
             get_dashboard_summary,
         ])
         .run(tauri::generate_context!())
