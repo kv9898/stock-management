@@ -22,7 +22,6 @@ export default function EditLoanPane({
   onSave,
 }: EditLoanPaneProps) {
   const [products, setProducts] = useState<Product[]>([]);
-  const [items, setItems] = useState<LoanItem[]>([]);
   const [loading, setLoading] = useState(false);
 
   // Form fields (editable)
@@ -61,7 +60,6 @@ export default function EditLoanPane({
       const loanItems = await invoke<LoanItem[]>("get_loan_items", {
         loanId: loan.id,
       });
-      setItems(loanItems);
 
       const rowsData: LineItem[] = loanItems.map((item) => ({
         id: item.id,
