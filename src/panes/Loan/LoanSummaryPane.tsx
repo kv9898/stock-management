@@ -248,6 +248,7 @@ export default function LoanSummaryPane({
         onEditTransaction={(loanId) => {
           setEditingLoanId(loanId);
           onEditLoan?.(loanId); // Pass the loanId to parent
+          setSelectedTransaction(null); // Close the modal
         }}
       />
     </Container>
