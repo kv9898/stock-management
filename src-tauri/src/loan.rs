@@ -231,6 +231,94 @@ pub async fn delete_loan(loan_id: String) -> Result<(), String> {
 }
 
 #[tauri::command]
+pub async fn update_loan(header: LoanHeader, items: Vec<LoanItem>) -> Result<(), String> {
+    task::spawn_blocking(move || {
+        let rt = tokio::runtime::Runtime::new().unwrap();
+        rt.block_on(async move {
+            let config = get_db_config().await.map_err(|e| e.to_string())?;
+            let client = Client::from_config(config)
+                .await
+                .map_err(|e| e.to_string())?;
+
+            // IMPORTANT: enable FKs
+            client
+                .execute("PRAGMA foreign_keys = ON;")
+                .await
+                .map_err(|e| e.to_string())?;
+
+            // Begin transaction
+            let tx = client.transaction().await.map_err(|e| e.to_string())?;
+
+            let loan_id_q = sql_quote(&header.id);
+            let date_q = sql_quote(&header.date);
+            let dir_q = sql_quote(&header.direction);
+            let cp_q = sql_quote(&header.counterparty);
+            let note_sql = to_sql_null_or_string(&header.note);
+
+            // 1. Verify direction is valid
+            if !matches!(
+                header.direction.as_str(),
+                "loan_in" | "loan_out" | "return_in" | "return_out"
+            ) {
+                return Err(format!("非法方向：{}", header.direction));
+            }
+
+            // 2. Verify all products exist
+            for it in &items {
+                let p_q = sql_quote(&it.product_name);
+                let exists = tx
+                    .execute(format!(
+                        "SELECT 1 FROM Product WHERE name='{}' LIMIT 1;",
+                        p_q
+                    ))
+                    .await
+                    .map_err(|e| e.to_string())?;
+                if exists.rows.is_empty() {
+                    return Err(format!("产品不存在：{}", it.product_name));
+                }
+            }
+
+            // 3. Update loan header
+            let update_header_sql = format!(
+                "UPDATE LoanHeader 
+                 SET date = '{}', direction = '{}', counterparty = '{}', note = {}
+                 WHERE id = '{}';",
+                date_q, dir_q, cp_q, note_sql, loan_id_q
+            );
+            tx.execute(update_header_sql)
+                .await
+                .map_err(|e| e.to_string())?;
+
+            // 4. Delete existing loan items
+            let delete_items_sql = format!("DELETE FROM LoanItem WHERE loan_id = '{}';", loan_id_q);
+            tx.execute(delete_items_sql)
+                .await
+                .map_err(|e| e.to_string())?;
+
+            // 5. Insert new loan items
+            for it in &items {
+                let it_id_q = sql_quote(&it.id);
+                let name_q = sql_quote(&it.product_name);
+                let sql_item = format!(
+                    "INSERT INTO LoanItem (id, loan_id, product_name, quantity)
+                     VALUES ('{}','{}','{}', {});",
+                    it_id_q, loan_id_q, name_q, it.quantity
+                );
+                tx.execute(sql_item).await.map_err(|e| e.to_string())?;
+            }
+
+            // Commit the transaction
+            let res = tx.commit().await;
+            ignore_empty_baton_commit(res)?;
+
+            Ok(())
+        })
+    })
+    .await
+    .map_err(|e| e.to_string())?
+}
+
+#[tauri::command]
 pub async fn get_loan_history() -> Result<Vec<LoanHeader>, String> {
     task::spawn_blocking(move || {
         let rt = tokio::runtime::Runtime::new().unwrap();
