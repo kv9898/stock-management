@@ -7,6 +7,8 @@ import DashboardPane from "./panes/Dashboard/DashboardPane";
 import LoanHistoryPane from "./panes/Loan/LoanHistoryPane";
 import LoanSummaryPane from "./panes/Loan/LoanSummaryPane";
 
+import { useState } from "react";
+
 import "./tabs.css";
 
 export const DEFAULT_TAB = "dashboard";
@@ -50,11 +52,15 @@ export function RenderedTabs({
   activeTab,
   refresh,
   triggerRefresh,
+  setActiveTab,
 }: {
   activeTab: TabKey;
   refresh: RefreshCounters;
   triggerRefresh: (...keys: (keyof typeof refresh)[]) => void;
+  setActiveTab: (tab: TabKey) => void;
 }) {
+  const [editingLoanId, setEditingLoanId] = useState<string | null>(null);
+  
   return (
     <>
       {/* boot */}
@@ -127,7 +133,13 @@ export function RenderedTabs({
           height: "100%",
         }}
       >
-        <LoanSummaryPane refreshSignal={refresh.loanSummary} />
+        <LoanSummaryPane
+          refreshSignal={refresh.loanSummary}
+          onEditLoan={(loanId) => {
+            setEditingLoanId(loanId);
+            setActiveTab("loanHistory"); // Switch to loan history tab
+          }}
+        />
       </div>
 
       {/* loan history */}
@@ -139,9 +151,16 @@ export function RenderedTabs({
       >
         <LoanHistoryPane
           refreshSignal={refresh.loanHistory}
+          editingLoanId={editingLoanId}
           onDidSubmit={() => {
-            triggerRefresh("viewStock", "loanSummary", "removeStock", "dashboard"); // loans impact stock buckets
+            triggerRefresh(
+              "viewStock",
+              "loanSummary",
+              "removeStock",
+              "dashboard"
+            ); // loans impact stock buckets
           }}
+          onCloseEdit={() => setEditingLoanId(null)}
         />
       </div>
 

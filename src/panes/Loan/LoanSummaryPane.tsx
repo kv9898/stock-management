@@ -15,6 +15,11 @@ type LoanSummary = {
   direction: string;
 };
 
+interface LoanSummaryPaneProps {
+  refreshSignal?: number;
+  onEditLoan?: (loanId: string) => void; // Add this line
+}
+
 const Container: FC<{ children: ReactNode }> = ({ children }) => (
   <div
     style={{
@@ -34,9 +39,8 @@ const ALL = "__ALL__";
 
 export default function LoanSummaryPane({
   refreshSignal = 0,
-}: {
-  refreshSignal?: number;
-}) {
+  onEditLoan, // Add this line
+}: LoanSummaryPaneProps) {
   const [rows, setRows] = useState<LoanSummary[]>([]);
   const [search, setSearch] = useState("");
   const [selectedCounterparty, setSelectedCounterparty] = useState<string>(ALL);
@@ -241,7 +245,10 @@ export default function LoanSummaryPane({
         counterparty={selectedTransaction?.counterparty || ""}
         productName={selectedTransaction?.productName || ""}
         onClose={() => setSelectedTransaction(null)}
-        onEditTransaction={setEditingLoanId}
+        onEditTransaction={(loanId) => {
+          setEditingLoanId(loanId);
+          onEditLoan?.(loanId); // Pass the loanId to parent
+        }}
       />
     </Container>
   );
