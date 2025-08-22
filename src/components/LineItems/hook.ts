@@ -32,6 +32,11 @@ export function useLineItems(initial?: LineItem[]) {
         return isItemEmpty(last) ? list : [...list, makeEmptyItem()];
     };
 
+    const setAllRows = (next: LineItem[]) => {
+        setRows(ensureTrailingBlank(next));
+        inputRefs.current = []; // optional: keep focus map consistent when replacing
+    };
+
     const setRow = (id: string, updater: (r: LineItem) => LineItem) => {
         setRows((rs) => ensureTrailingBlank(rs.map((r) => (r.id === id ? updater({ ...r }) : r))));
     };
@@ -78,6 +83,7 @@ export function useLineItems(initial?: LineItem[]) {
         setRow,
         removeRow,
         reset: () => setRows([makeEmptyItem()]),
+        setAllRows,
         inputRefs,
         nonGhostRows,
         isGhost,
