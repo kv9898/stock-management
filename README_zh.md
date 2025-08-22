@@ -1,3 +1,5 @@
+<p align="center"><a href="./README.md">English<a> | 中文</p>
+
 # 库存管理系统
 
 基于 Tauri、React、Rust 和 TypeScript 构建的现代化桌面应用程序，用于管理库存、跟踪库存价值、管理借还货和监控产品过期日期。

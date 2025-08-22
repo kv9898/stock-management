@@ -1,3 +1,5 @@
+<p align="center">English | <a href="./README_zh.md">中文</a></p>
+
 # Stock Management System
 
 A modern desktop application built with Tauri, React, Rust and TypeScript for managing inventory, tracking stock values, managing loans and monitoring product expiry dates.
