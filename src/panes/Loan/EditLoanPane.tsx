@@ -202,6 +202,7 @@ export default function EditLoanPane({
           removeRow={removeRow}
           inputRefs={inputRefs}
           handleEnter={handleEnter}
+          showExpiry={false}
         />
       </div>
 
