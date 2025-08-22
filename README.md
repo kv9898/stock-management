@@ -47,30 +47,38 @@ The application uses **Turso** (LibSQL) as its database backend. To set up:
 - **Rust toolchain (for development)**: For building the Tauri backend.
 
 1. **Clone and install dependencies**:
+
    ```bash
    git clone https://github.com/kv9898/stock-management.git
    bun install
    ```
 
 2. **Run development **:
+
    ```bash
    bun tauri dev
    ```
+
    Alternatively, if you are using a VS Code-based editor/IDE, you can use the provided launch configuration.
 
 3. **Build for production**:
+
    ```bash
    bun tauri build
    ```
+
    This will create a standalone executable for your platform in the `src-tauri/target/release` directory.
 
    If you want a bundled installer, you may append the target installer (e.g. nsis, wsi, dmg) format to your build command. For example, for Windows:
+
    ```bash
     bun tauri build --bundles nsis
    ```
+
    This will create an installer in the `src-tauri/target/release/bundle` directory. Note that bundles are platform-specific.
 
 ## 📁 Project Structure
+
 ```
 src/
 ├── components/          # Reusable UI components
