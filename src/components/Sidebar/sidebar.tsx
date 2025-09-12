@@ -95,7 +95,7 @@ export default function ResponsiveLayout({
           </Drawer>
 
           {/* Main content */}
-          <Box component="main" sx={{ flexGrow: 1, minWidth: 0, width: '100%' }}>
+          <Box component="main" sx={{ flexGrow: 1, width: '100%' }}>
             {children}
           </Box>
         </>
