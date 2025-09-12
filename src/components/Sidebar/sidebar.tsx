@@ -9,13 +9,16 @@ import {
   useMediaQuery,
   ListItemButton,
   ListItemText,
+  Box,
 } from "@mui/material";
 import { Menu as MenuIcon, Settings } from "@mui/icons-material";
 import { useTheme } from "@mui/material/styles";
-import { useState } from "react";
+import { useState, PropsWithChildren } from "react";
 import type { TabKey } from "../../tabs";
 import { sidebarStructure } from "../../tabs";
 import { SidebarList } from "./SidebarList";
+
+export const DRAWER_WIDTH = 180;
 
 type ResponsiveLayoutProps = {
   activeTab: TabKey;
@@ -27,7 +30,8 @@ export default function ResponsiveLayout({
   activeTab,
   setActiveTab,
   onOpenSettings,
-}: ResponsiveLayoutProps) {
+  children,
+}: PropsWithChildren<ResponsiveLayoutProps>) {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
 
@@ -51,7 +55,7 @@ export default function ResponsiveLayout({
   );
 
   return (
-    <>
+    <Box sx={{ display: "flex", minHeight: "100vh" }}>
       {isMobile ? (
         <>
           <AppBar position="fixed">
@@ -64,15 +68,38 @@ export default function ResponsiveLayout({
               </Typography>
             </Toolbar>
           </AppBar>
+
           <Drawer anchor="left" open={drawerOpen} onClose={() => setDrawerOpen(false)}>
             {drawerContent}
           </Drawer>
+
+          {/* Main content – push down below AppBar on mobile */}
+          <Box component="main" sx={{ flexGrow: 1, width: "100%" }}>
+            <Toolbar /> {/* spacer for AppBar height */}
+            {children}
+          </Box>
         </>
       ) : (
-        <Drawer variant="permanent" anchor="left">
-          {drawerContent}
-        </Drawer>
+        <>
+          {/* Permanent drawer on desktop */}
+          <Drawer
+            variant="permanent"
+            anchor="left"
+            sx={{
+              width: DRAWER_WIDTH,
+              flexShrink: 0,
+              "& .MuiDrawer-paper": { width: DRAWER_WIDTH, boxSizing: "border-box" },
+            }}
+          >
+            {drawerContent}
+          </Drawer>
+
+          {/* Main content */}
+          <Box component="main" sx={{ flexGrow: 1, minWidth: 0, width: '100%' }}>
+            {children}
+          </Box>
+        </>
       )}
-    </>
+    </Box>
   );
 }

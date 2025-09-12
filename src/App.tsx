@@ -61,10 +61,13 @@ function App() {
   }, []);
 
   return (
-    <div className="app-wrapper">
+    // <div className=?"app-wrapper">
       
-      <ResponsiveLayout activeTab={activeTab} setActiveTab={setActiveTab} />
-
+    <ResponsiveLayout
+      activeTab={activeTab}
+      setActiveTab={setActiveTab}
+      onOpenSettings={() => openSettings(false)}
+    >
       <main className="content">
         <RenderedTabs
           activeTab={activeTab}
@@ -80,19 +83,18 @@ function App() {
         errorText={settingsError ?? undefined}
         initial={initialConfig ?? { url: "", token: "", alert_period: 180 }}
         onClose={() => {
-          if (!lockSettings) setShowSettings(false); // block closing when locked
+          if (!lockSettings) setShowSettings(false);
         }}
         onVerified={() => {
           setLockSettings(false);
           setShowSettings(false);
           setSettingsError(null);
-          if (activeTab === "boot") {
-            // only switch if we were in boot state
-            setActiveTab(DEFAULT_TAB);
-          }
+          if (activeTab === "boot") setActiveTab(DEFAULT_TAB);
         }}
       />
-    </div>
+    </ResponsiveLayout>
+
+    // </di?v>
   );
 }
 
