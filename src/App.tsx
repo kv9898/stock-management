@@ -2,15 +2,17 @@ import { useEffect, useState } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import "./App.css";
 import "./components/Modals.css";
-import SidebarButton from "./components/sidebarButton";
-import { tabs, RenderedTabs } from "./tabs";
 
-import { Settings } from "lucide-react"; // icon
+import { RenderedTabs, DEFAULT_TAB, defaultRefreshCounters } from "./tabs";
+import type { TabKey, tabs } from "./tabs";
+
+// import { Settings } from "lucide-react"; // TODO: remove this icon
+
 import SettingsModal from "./components/SettingsModal";
 import type { Config } from "./types/Config";
 
-import type { TabKey } from "./tabs";
-import { defaultRefreshCounters, DEFAULT_TAB } from "./tabs";
+import ResponsiveLayout from "./sidebar";
+
 
 function App() {
   const [activeTab, setActiveTab] = useState<TabKey>("boot");
@@ -60,33 +62,8 @@ function App() {
 
   return (
     <div className="app-wrapper">
-      <aside className="sidebar">
-        {/* nav list */}
-        <nav className="sidebar-nav">
-          {tabs.map((tab) => (
-            <SidebarButton
-              key={tab.key}
-              label={tab.label}
-              tabKey={tab.key}
-              activeTab={activeTab}
-              setActiveTab={(k) => setActiveTab(k as TabKey)}
-            />
-          ))}
-        </nav>
-
-        {/* settings pinned to bottom */}
-        <div className="sidebar-bottom">
-          <button
-            className="icon-btn settings-btn"
-            aria-label="打开设置"
-            title="设置"
-            onClick={() => openSettings(false)}
-          >
-            <Settings size={18} />
-            <span className="settings-text">设置</span>
-          </button>
-        </div>
-      </aside>
+      
+      <ResponsiveLayout activeTab={activeTab} setActiveTab={setActiveTab} />
 
       <main className="content">
         <RenderedTabs
