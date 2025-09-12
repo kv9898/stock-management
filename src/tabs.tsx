@@ -9,6 +9,8 @@ import LoanSummaryPane from "./panes/Loan/LoanSummaryPane";
 
 import { useState } from "react";
 
+import { SidebarItem } from "./types/SidebarItem";
+
 import "./tabs.css";
 
 export const DEFAULT_TAB = "dashboard";
@@ -24,15 +26,36 @@ export type TabKey =
   | "addLoan"
   | "productManagement";
 
-export const tabs = [
-  { key: "dashboard", label: "价值总览" },
-  { key: "viewStock", label: "查看库存" },
-  { key: "addStock", label: "添加库存" },
-  { key: "removeStock", label: "移除库存" },
-  { key: "loanSummary", label: "借货总览" },
-  { key: "loanHistory", label: "借货记录" },
-  { key: "addLoan", label: "新增借货/归还" },
-  { key: "productManagement", label: "产品信息管理" },
+export const sidebarStructure: SidebarItem[] = [
+  {
+    key: "dashboard" as TabKey,
+    label: "价值总览",
+  },
+  {
+    key: null,
+    label: "库存管理",
+    children: [
+      { key: "viewStock" as TabKey, label: "查看库存" },
+      { key: "addStock" as TabKey, label: "添加库存" },
+      { key: "removeStock" as TabKey, label: "移除库存" },
+    ],
+  },
+  {
+    key: "loanSummary" as TabKey,
+    label: "借货总览",
+  },
+  {
+    key: "loanHistory" as TabKey,
+    label: "借货记录",
+  },
+  {
+    key: "addLoan" as TabKey,
+    label: "新增借货/归还",
+  },
+  {
+    key: "productManagement" as TabKey,
+    label: "产品信息管理",
+  },
 ];
 
 export const defaultRefreshCounters = {

@@ -4,14 +4,14 @@ import "./App.css";
 import "./components/Modals.css";
 
 import { RenderedTabs, DEFAULT_TAB, defaultRefreshCounters } from "./tabs";
-import type { TabKey, tabs } from "./tabs";
+import type { TabKey } from "./tabs";
 
 // import { Settings } from "lucide-react"; // TODO: remove this icon
 
 import SettingsModal from "./components/SettingsModal";
 import type { Config } from "./types/Config";
 
-import ResponsiveLayout from "./sidebar";
+import ResponsiveLayout from "./components/Sidebar/sidebar";
 
 
 function App() {
