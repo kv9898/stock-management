@@ -9,7 +9,7 @@ import LoanSummaryPane from "./panes/Loan/LoanSummaryPane";
 
 import { useState } from "react";
 
-import "./tabs.css";
+import { SidebarItem } from "./types/SidebarItem";
 
 export const DEFAULT_TAB = "dashboard";
 
@@ -24,15 +24,45 @@ export type TabKey =
   | "addLoan"
   | "productManagement";
 
-export const tabs = [
-  { key: "dashboard", label: "价值总览" },
-  { key: "viewStock", label: "查看库存" },
-  { key: "addStock", label: "添加库存" },
-  { key: "removeStock", label: "移除库存" },
-  { key: "loanSummary", label: "借货总览" },
-  { key: "loanHistory", label: "借货记录" },
-  { key: "addLoan", label: "新增借货/归还" },
-  { key: "productManagement", label: "产品信息管理" },
+export const sidebarStructure: SidebarItem[] = [
+  {
+    key: "dashboard" as TabKey,
+    label: "价值总览",
+  },
+  {
+    key: "viewStock" as TabKey,
+    label: "查看库存",
+  },
+  {
+    key: null,
+    label: "库存增减",
+    children: [
+      { key: "addStock" as TabKey, label: "添加库存" },
+      { key: "removeStock" as TabKey, label: "移除库存" },
+    ],
+  },
+  {
+    key: null,
+    label: "借货管理",
+    children: [
+      {
+        key: "loanSummary" as TabKey,
+        label: "借货总览",
+      },
+      {
+        key: "loanHistory" as TabKey,
+        label: "借货记录",
+      },
+      {
+        key: "addLoan" as TabKey,
+        label: "新增借货/归还",
+      },
+    ],
+  },
+  {
+    key: "productManagement" as TabKey,
+    label: "产品信息管理",
+  },
 ];
 
 export const defaultRefreshCounters = {
@@ -62,9 +92,9 @@ export function RenderedTabs({
   const [editingLoanId, setEditingLoanId] = useState<string | null>(null);
   
   return (
-    <>
+    <div style={{ height: "100%", display: "flex", flexDirection: "column" }}>
       {/* boot */}
-      <div style={{ display: activeTab === "boot" ? "block" : "none" }}>
+      <div style={{ display: activeTab === "boot" ? "block" : "none", height: "100%" }}>
         <div style={{ opacity: 0.7, padding: "1rem" }}>
           <h2 style={{ marginTop: 0 }}>正在载入数据…</h2>
           <div>正在检查数据库配置与连接，请稍候。</div>
@@ -207,6 +237,6 @@ export function RenderedTabs({
           }}
         />
       </div>
-    </>
+    </div>
   );
 }

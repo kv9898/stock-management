@@ -1,0 +1,107 @@
+// ResponsiveLayout.tsx
+import {
+  Drawer,
+  List,
+  AppBar,
+  Toolbar,
+  IconButton,
+  Typography,
+  useMediaQuery,
+  ListItemButton,
+  ListItemText,
+  Box,
+} from "@mui/material";
+import { Menu as MenuIcon, Settings } from "lucide-react";
+import { useTheme } from "@mui/material/styles";
+import { useState, PropsWithChildren } from "react";
+import type { TabKey } from "../../tabs";
+import { sidebarStructure } from "../../tabs";
+import { SidebarList } from "./SidebarList";
+
+export const DRAWER_WIDTH = 180;
+
+type ResponsiveLayoutProps = {
+  activeTab: TabKey;
+  setActiveTab: (tab: TabKey) => void;
+  onOpenSettings?: () => void;
+};
+
+export default function ResponsiveLayout({
+  activeTab,
+  setActiveTab,
+  onOpenSettings,
+  children,
+}: PropsWithChildren<ResponsiveLayoutProps>) {
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
+
+  const [drawerOpen, setDrawerOpen] = useState(false);
+
+  const drawerContent = (
+    <List sx={{ display: "flex", flexDirection: "column", height: "100%" }}>
+      <SidebarList
+        items={sidebarStructure}
+        activeTab={activeTab}
+        onSelect={(key) => setActiveTab(key)}
+      />
+      {/* Settings pinned at bottom */}
+      <div style={{ marginTop: "auto"}}>
+        <ListItemButton onClick={onOpenSettings} sx={{pl: 3}}>
+          <Settings size={24} style={{ marginRight: "8px" }}/>
+          <ListItemText primary="设置" />
+        </ListItemButton>
+      </div>
+    </List>
+  );
+
+  return (
+    <Box sx={{ display: "flex", minHeight: "100vh", height: "100%" }}>
+      {isMobile ? (
+        <>
+          <AppBar position="fixed">
+            <Toolbar>
+              <IconButton color="inherit" edge="start" onClick={() => setDrawerOpen(true)}>
+                <MenuIcon />
+              </IconButton>
+              <Typography variant="h6" sx={{ flexGrow: 1 }}>
+                库存管理
+              </Typography>
+            </Toolbar>
+          </AppBar>
+
+          <Drawer anchor="left" open={drawerOpen} onClose={() => setDrawerOpen(false)}>
+            {drawerContent}
+          </Drawer>
+
+          {/* Main content – push down below AppBar on mobile */}
+          <Box component="main" sx={{ flexGrow: 1, width: "100%", height: "100vh", display: "flex", flexDirection: "column" }}>
+            <Toolbar /> {/* spacer for AppBar height */}
+            <Box sx={{ flex: 1, overflow: "hidden" }}>
+              {children}
+            </Box>
+          </Box>
+        </>
+      ) : (
+        <>
+          {/* Permanent drawer on desktop */}
+          <Drawer
+            variant="permanent"
+            anchor="left"
+            sx={{
+              width: DRAWER_WIDTH,
+              flexShrink: 0,
+              "& .MuiDrawer-paper": { width: DRAWER_WIDTH, boxSizing: "border-box" },
+            }}
+          >
+            {drawerContent}
+          </Drawer>
+
+          {/* Main content */}
+          <Box component="main" sx={{ flexGrow: 1, width: '100%', height: "100vh", overflow: "hidden" }}>
+            {children}
+          </Box>
+        </>
+      )}
+    </Box>
+  );
+}
