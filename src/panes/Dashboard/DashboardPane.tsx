@@ -211,28 +211,30 @@ export default function DashboardPane({
         <h2>销售总览</h2>
       </div>
 
-      {salesCards.map((c) => (
-        <div key={c.key} className={`dash-card ${c.accentClass}`}>
-          <div className="dash-icon-left">
-            <div className="dash-icon">{c.icon}</div>
-          </div>
-          <div className="dash-right">
-            <div className="dash-top">
-              <div className="dash-title-row">
-                <div className="dash-title">{c.title}</div>
+      <div className="dash-grid-2x2">
+        {salesCards.map((c) => (
+          <div key={c.key} className={`dash-card ${c.accentClass}`}>
+            <div className="dash-icon-left">
+              <div className="dash-icon">{c.icon}</div>
+            </div>
+            <div className="dash-right">
+              <div className="dash-top">
+                <div className="dash-title-row">
+                  <div className="dash-title">{c.title}</div>
+                </div>
+              </div>
+              <div className={`dash-value ${c.valueClass}`}>
+                {salesStatsLoading ? (
+                  <span className="dash-skeleton" />
+                ) : (
+                  formatCurrency(c.value, currency)
+                )}
               </div>
             </div>
-            <div className={`dash-value ${c.valueClass}`}>
-              {salesStatsLoading ? (
-                <span className="dash-skeleton" />
-              ) : (
-                formatCurrency(c.value, currency)
-              )}
-            </div>
+            <div className="dash-bar" />
           </div>
-          <div className="dash-bar" />
-        </div>
-      ))}
+        ))}
+      </div>
     </div>
   );
 }
