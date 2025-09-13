@@ -223,8 +223,7 @@ pub async fn remove_stock(changes: Vec<StockChange>, mark_as_sale: bool) -> Resu
     .map_err(|e| e.to_string())??;
 
     if mark_as_sale {
-        // return add_sale(&changes, None).await;
-        return add_sale(&changes, None).await; // changes is still available here
+        return add_sale(changes, None).await;
     } else {
         Ok(())
     }
