@@ -153,7 +153,7 @@ pub async fn update_sale(header: SalesHeader, items: Vec<SalesItem>) -> Result<(
 
             // 1. Update sale header
             let update_header_sql = format!(
-                "UPDATE SalesHeader SET date = {}, note = {} WHERE id = {};",
+                "UPDATE SalesHeader SET date = '{}', note = {} WHERE id = '{}';",
                 date_q, note_sql, sale_id_q
             );
             tx.execute(update_header_sql)
@@ -161,7 +161,8 @@ pub async fn update_sale(header: SalesHeader, items: Vec<SalesItem>) -> Result<(
                 .map_err(|e| e.to_string())?;
 
             // 2. Delete existing sale items
-            let delete_items_sql = format!("DELETE FROM SalesItem WHERE sale_id = {};", sale_id_q);
+            let delete_items_sql =
+                format!("DELETE FROM SalesItem WHERE sale_id = '{}';", sale_id_q);
             tx.execute(delete_items_sql)
                 .await
                 .map_err(|e| e.to_string())?;
