@@ -97,6 +97,7 @@ CREATE TABLE IF NOT EXISTS SalesItem (
   sale_id      TEXT NOT NULL,
   product_name TEXT NOT NULL,
   quantity     INTEGER NOT NULL CHECK(quantity > 0),
+  expiry       TEXT NOT NULL,
 
   FOREIGN KEY (sale_id)      REFERENCES SalesHeader(id) ON DELETE CASCADE,
   FOREIGN KEY (product_name) REFERENCES Product(name)
