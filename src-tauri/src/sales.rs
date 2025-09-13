@@ -235,11 +235,12 @@ pub async fn get_sales_history() -> Result<Vec<SalesSummary>, String> {
                 // Fetch items for this sale, join with Product to get price
                 let items_sql = format!(
                     r#"
-                    SELECT i.product_name, i.quantity, p.price
+                    SELECT i.product_name, SUM(i.quantity) as quantity, p.price
                     FROM SalesItem i
                     JOIN Product p ON i.product_name = p.name
                     WHERE i.sale_id = '{}'
-                    ORDER BY i.quantity DESC
+                    GROUP BY i.product_name, p.price
+                    ORDER BY quantity DESC
                     "#,
                     id
                 );
