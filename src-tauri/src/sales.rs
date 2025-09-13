@@ -1,4 +1,4 @@
-use crate::db::sql_quote;
+use crate::db::{get_db_config, ignore_empty_baton_commit, sql_quote};
 use crate::stock::StockChange;
 use libsql_client::Client;
 use tokio::task;
@@ -8,7 +8,7 @@ pub async fn add_sale(changes: Vec<StockChange>, note: Option<String>) -> Result
     task::spawn_blocking(move || {
         let rt = tokio::runtime::Runtime::new().unwrap();
         rt.block_on(async move {
-            let config = crate::db::get_db_config()
+            let config = get_db_config()
                 .await
                 .map_err(|e| e.to_string())?;
             let client = Client::from_config(config)
@@ -32,16 +32,18 @@ pub async fn add_sale(changes: Vec<StockChange>, note: Option<String>) -> Result
 
             for change in changes {
                 let item_sql = format!(
-        "INSERT INTO SalesItem (id, sale_id, product_name, quantity) VALUES ('{}', '{}', '{}', {})",
-        sql_quote(&Uuid::new_v4().to_string()),
-        sql_quote(&sale_id),
-        sql_quote(&change.name),
-        change.qty
-    );
+                    "INSERT INTO SalesItem (id, sale_id, product_name, quantity) VALUES ('{}', '{}', '{}', {})",
+                    sql_quote(&Uuid::new_v4().to_string()),
+                    sql_quote(&sale_id),
+                    sql_quote(&change.name),
+                    change.qty
+                );
                 tx.execute(item_sql).await.map_err(|e| e.to_string())?;
             }
 
-            tx.commit().await.map_err(|e| e.to_string())?;
+            // commit using the helper
+            let res = tx.commit().await;
+            ignore_empty_baton_commit(res)?;
             Ok(())
         })
     })
