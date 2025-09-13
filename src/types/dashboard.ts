@@ -1,4 +1,4 @@
-export interface DashboardData {
+export interface DashboardValueData {
     /** 1) Total sellable value = (total - expired); includes expiringSoon */
     totalSellableValue?: number;
     /** 2) Value of products which soon expire */

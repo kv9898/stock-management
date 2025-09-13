@@ -9,7 +9,7 @@ import "./DashBoard.css";
 import type { Card } from "../../types/Card";
 import { useEffect, useState } from "react";
 import { invoke } from "@tauri-apps/api/core";
-import { DashboardData } from "../../types/dashboard";
+import { DashboardValueData } from "../../types/dashboard";
 
 type Props = {
   currency?: string;
@@ -31,25 +31,25 @@ export default function DashboardPane({
   onRefresh,
   refreshSignal,
 }: Props) {
-  const [data, setData] = useState<DashboardData | null>(null);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [valueData, setValueData] = useState<DashboardValueData | null>(null);
+  const [valueLoading, setValueLoading] = useState(false);
+  const [valueError, setValueError] = useState<string | null>(null);
 
   const [salesStats, setSalesStats] = useState<{ this_month_total: number; last_month_same_period_total: number } | null>(null);
   const [salesStatsLoading, setSalesStatsLoading] = useState(false);
   const [salesStatsError, setSalesStatsError] = useState<string | null>(null);
 
   const fetchDashboardData = async () => {
-    setLoading(true);
-    setError(null);
+    setValueLoading(true);
+    setValueError(null);
     try {
-      const result = await invoke<DashboardData>("get_dashboard_summary");
-      setData(result);
+      const result = await invoke<DashboardValueData>("get_dashboard_summary");
+      setValueData(result);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "未能获取总览数据");
+      setValueError(err instanceof Error ? err.message : "未能获取总览数据");
       console.error("Error fetching dashboard:", err);
     } finally {
-      setLoading(false);
+      setValueLoading(false);
     }
   };
 
@@ -78,9 +78,9 @@ export default function DashboardPane({
   };
 
   // decide loan color by sign (asset vs liability)
-  const loanPositive = (data?.netLoanValue ?? 0) >= 0;
+  const loanPositive = (valueData?.netLoanValue ?? 0) >= 0;
 
-  if (error) {
+  if (valueError) {
     return (
       <div className="dash-wrap">
         <div className="dash-header">
@@ -91,17 +91,17 @@ export default function DashboardPane({
           </button>
         </div>
         <div style={{ padding: "2rem", textAlign: "center", color: "#666" }}>
-          <p>加载失败: {error}</p>
+          <p>加载失败: {valueError}</p>
         </div>
       </div>
     );
   }
 
-  const cards: Card[] = [
+  const valueCards: Card[] = [
     {
       key: "sellable",
       title: "可售总价值",
-      value: data?.totalSellableValue,
+      value: valueData?.totalSellableValue,
       icon: <DollarSign size={50} strokeWidth={2.4} />,
       accentClass: "accent-sellable",
       valueClass: "value-sellable",
@@ -116,7 +116,7 @@ export default function DashboardPane({
     {
       key: "soon",
       title: "即将过期价值",
-      value: data?.expiringSoonValue,
+      value: valueData?.expiringSoonValue,
       icon: <Clock8 size={50} strokeWidth={2.4} />,
       accentClass: "accent-soon",
       valueClass: "value-soon",
@@ -124,7 +124,7 @@ export default function DashboardPane({
     {
       key: "expired",
       title: "已过期价值",
-      value: data?.expiredValue,
+      value: valueData?.expiredValue,
       icon: <AlertTriangle size={50} strokeWidth={2.4} />,
       accentClass: "accent-expired",
       valueClass: "value-expired",
@@ -132,7 +132,7 @@ export default function DashboardPane({
     {
       key: "loan",
       title: "借/还净值",
-      value: data?.netLoanValue,
+      value: valueData?.netLoanValue,
       icon: <ArrowLeftRight size={50} strokeWidth={2.4} />,
       accentClass: loanPositive ? "accent-loan-pos" : "accent-loan-neg",
       valueClass: loanPositive ? "value-loan-pos" : "value-loan-neg",
@@ -171,7 +171,7 @@ export default function DashboardPane({
       </div>
 
       <div className="dash-grid-2x2">
-        {cards.map((c) => (
+        {valueCards.map((c) => (
           <div key={c.key} className={`dash-card ${c.accentClass}`}>
             {/* LEFT ICON + PATTERN */}
             <div className="dash-icon-left">
@@ -193,7 +193,7 @@ export default function DashboardPane({
               {"chips" in c && c.chips}
 
               <div className={`dash-value ${c.valueClass}`}>
-                {loading ? (
+                {valueLoading ? (
                   <span className="dash-skeleton" />
                 ) : (
                   formatCurrency(c.value, currency)
