@@ -55,7 +55,7 @@ export default function ResponsiveLayout({
   );
 
   return (
-    <Box sx={{ display: "flex", minHeight: "100vh" }}>
+    <Box sx={{ display: "flex", minHeight: "100vh", height: "100%" }}>
       {isMobile ? (
         <>
           <AppBar position="fixed">
@@ -74,9 +74,11 @@ export default function ResponsiveLayout({
           </Drawer>
 
           {/* Main content – push down below AppBar on mobile */}
-          <Box component="main" sx={{ flexGrow: 1, width: "100%" }}>
+          <Box component="main" sx={{ flexGrow: 1, width: "100%", height: "100vh", display: "flex", flexDirection: "column" }}>
             <Toolbar /> {/* spacer for AppBar height */}
-            {children}
+            <Box sx={{ flex: 1, overflow: "hidden" }}>
+              {children}
+            </Box>
           </Box>
         </>
       ) : (
@@ -95,7 +97,7 @@ export default function ResponsiveLayout({
           </Drawer>
 
           {/* Main content */}
-          <Box component="main" sx={{ flexGrow: 1, width: '100%' }}>
+          <Box component="main" sx={{ flexGrow: 1, width: '100%', height: "100vh", overflow: "hidden" }}>
             {children}
           </Box>
         </>

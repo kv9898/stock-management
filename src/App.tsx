@@ -68,7 +68,7 @@ function App() {
       setActiveTab={setActiveTab}
       onOpenSettings={() => openSettings(false)}
     >
-      <main className="content">
+      <main className="content" style={{ height: "100%" }}>
         <RenderedTabs
           activeTab={activeTab}
           setActiveTab={setActiveTab}

@@ -85,9 +85,9 @@ export function RenderedTabs({
   const [editingLoanId, setEditingLoanId] = useState<string | null>(null);
   
   return (
-    <>
+    <div style={{ height: "100%", display: "flex", flexDirection: "column" }}>
       {/* boot */}
-      <div style={{ display: activeTab === "boot" ? "block" : "none" }}>
+      <div style={{ display: activeTab === "boot" ? "block" : "none", height: "100%" }}>
         <div style={{ opacity: 0.7, padding: "1rem" }}>
           <h2 style={{ marginTop: 0 }}>正在载入数据…</h2>
           <div>正在检查数据库配置与连接，请稍候。</div>
@@ -230,6 +230,6 @@ export function RenderedTabs({
           }}
         />
       </div>
-    </>
+    </div>
   );
 }

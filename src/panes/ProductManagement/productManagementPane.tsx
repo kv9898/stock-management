@@ -229,6 +229,7 @@ export default function ProductManagementPane({
           disableColumnMenu
           autoPageSize
           sx={{
+            height: "100%",
             borderRadius: 1,
             bgcolor: "background.default",
             "& .MuiDataGrid-row:hover": { backgroundColor: "action.hover" },
