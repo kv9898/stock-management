@@ -26,6 +26,7 @@ export default function RemoveStockPane({
   refreshSignal?: number;
   onDidSubmit?: () => void;
 }) {
+  const [markAsSale, setMarkAsSale] = useState(true);
   const [products, setProducts] = useState<string[]>([]);
   const [rows, setRows] = useState<Row[]>([makeEmptyRow()]);
   const [lotsByProduct, setLotsByProduct] = useState<Record<string, StockLot[]>>({});
@@ -190,7 +191,7 @@ export default function RemoveStockPane({
     }));
 
     try {
-      await invoke("remove_stock", { changes: payload });
+      await invoke("remove_stock", { changes: payload, markAsSale: markAsSale });
       alert("移除成功！");
       // notify parent (e.g. to refresh viewStock)
       onDidSubmit?.();
@@ -326,6 +327,14 @@ export default function RemoveStockPane({
 
       <div className="footer-bar">
         <button className="add-btn" onClick={submit}>提交出库</button>
+        <label style={{ marginRight: 16 }}>
+          <input
+            type="checkbox"
+            checked={markAsSale}
+            onChange={(e) => setMarkAsSale(e.target.checked)}
+          />
+          记为销售
+        </label>
       </div>
     </div>
   );

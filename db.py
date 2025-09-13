@@ -78,6 +78,53 @@ await client.execute(stock_sql)
   ## make sure that the pair (name, expiry) is unique in this table.
 await client.execute("CREATE UNIQUE INDEX IF NOT EXISTS stock_name_expiry_uq ON Stock(name, expiry);")
 
+# Sales Tracking
+
+# Create the SalesHeader table
+create_sales_header = """
+CREATE TABLE IF NOT EXISTS SalesHeader (
+  id   TEXT PRIMARY KEY NOT NULL,  -- e.g. UUID
+  date TEXT NOT NULL,              -- YYYY-MM-DD
+  note TEXT                        -- optional
+);
+"""
+await client.execute(create_sales_header)
+
+# Create the SalesItem table
+create_sales_item = """
+CREATE TABLE IF NOT EXISTS SalesItem (
+  id           TEXT PRIMARY KEY NOT NULL,  -- e.g. UUID
+  sale_id      TEXT NOT NULL,
+  product_name TEXT NOT NULL,
+  quantity     INTEGER NOT NULL CHECK(quantity > 0),
+
+  FOREIGN KEY (sale_id)      REFERENCES SalesHeader(id) ON DELETE CASCADE,
+  FOREIGN KEY (product_name) REFERENCES Product(name)
+);
+"""
+await client.execute(create_sales_item)
+
+# Helpful indexes to speed up queries
+sales_indexes = [
+    "CREATE INDEX IF NOT EXISTS idx_salesheader_date    ON SalesHeader(date)",
+    "CREATE INDEX IF NOT EXISTS idx_salesitem_sale_id   ON SalesItem(sale_id)",
+    "CREATE INDEX IF NOT EXISTS idx_salesitem_product_name ON SalesItem(product_name)"
+]
+await client.batch(sales_indexes)
+
+# Create the SalesLedger view
+create_sales_ledger = """
+CREATE VIEW IF NOT EXISTS SalesLedger AS
+SELECT
+  h.id           AS sale_id,
+  h.date         AS date,
+  i.product_name AS product_name,
+  i.quantity     AS quantity
+FROM SalesItem i
+JOIN SalesHeader h ON h.id = i.sale_id;
+"""
+await client.execute(create_sales_ledger)
+
 # Borrowing / Lending
 
 ## Header table

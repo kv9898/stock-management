@@ -3,6 +3,7 @@ mod dashboard;
 mod db;
 mod loan;
 mod product;
+mod sales;
 mod stock;
 mod summary;
 

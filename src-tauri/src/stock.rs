@@ -4,6 +4,7 @@ use tokio::task;
 use uuid::Uuid;
 
 use crate::db::{ignore_empty_baton_commit, sql_quote};
+use crate::sales::add_sale;
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct StockChange {
@@ -140,8 +141,8 @@ pub async fn add_stock(changes: Vec<StockChange>) -> Result<(), String> {
 }
 
 #[tauri::command]
-pub async fn remove_stock(changes: Vec<StockChange>) -> Result<(), String> {
-    task::spawn_blocking(move || {
+pub async fn remove_stock(changes: Vec<StockChange>, mark_as_sale: bool) -> Result<(), String> {
+    let changes = task::spawn_blocking(move || {
         let rt = tokio::runtime::Runtime::new().unwrap();
         rt.block_on(async move {
             // 1) Connect
@@ -215,11 +216,17 @@ pub async fn remove_stock(changes: Vec<StockChange>) -> Result<(), String> {
             // 4) Commit, note we need to handle potential empty baton error message gracefully
             let commit_res = tx.commit().await;
             ignore_empty_baton_commit(commit_res)?;
-            Ok(())
+            Ok(changes)
         })
     })
     .await
-    .map_err(|e| e.to_string())?
+    .map_err(|e| e.to_string())??;
+
+    if mark_as_sale {
+        return add_sale(changes, None).await;
+    } else {
+        Ok(())
+    }
 }
 
 #[tauri::command]
