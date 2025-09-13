@@ -40,11 +40,12 @@ pub async fn add_sale(changes: Vec<StockChange>, note: Option<String>) -> Result
 
             for change in changes {
                 let item_sql = format!(
-                    "INSERT INTO SalesItem (id, sale_id, product_name, quantity) VALUES ('{}', '{}', '{}', {})",
+                    "INSERT INTO SalesItem (id, sale_id, product_name, quantity, expiry) VALUES ('{}', '{}', '{}', {}, '{}')",
                     sql_quote(&Uuid::new_v4().to_string()),
                     sql_quote(&sale_id),
                     sql_quote(&change.name),
-                    change.qty
+                    change.qty,
+                    sql_quote(&change.expiry_date)
                 );
                 tx.execute(item_sql).await.map_err(|e| e.to_string())?;
             }
