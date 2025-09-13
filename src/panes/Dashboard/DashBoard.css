@@ -176,7 +176,7 @@
 .accent-sales-this .dash-bar { background: rgba(59,130,246,.9); }
 .value-sales-this { color: #2563eb; } /* blue */
 
-accent-sales-last { --accent: rgba(100, 59, 246, 1); }
+.accent-sales-last { --accent: rgba(100, 59, 246, 1); }
 .accent-sales-last .dash-bar { background: rgba(100, 59, 246, .9); }
 .value-sales-last { color: #4f46e5; } /* indigo */
 
