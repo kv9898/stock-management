@@ -273,13 +273,12 @@ export default function StockExpiryChart({
         onClose={handleEditCancel} 
         maxWidth="sm" 
         fullWidth
-        PaperProps={{
-          sx: {
-            borderRadius: 2,
-            padding: 1,
-            minWidth: { xs: '90vw', sm: '400px' },
-            maxWidth: { xs: '95vw', sm: '500px' }
-          }
+        sx={{
+          borderRadius: 2,
+          padding: 1,
+          minWidth: { xs: '90vw', sm: '400px' },
+          maxWidth: { xs: '95vw', sm: '500px' },
+          margin: 'auto'
         }}
       >
         <DialogTitle sx={{ pb: 1, fontSize: '1.25rem', fontWeight: 600 }}>
