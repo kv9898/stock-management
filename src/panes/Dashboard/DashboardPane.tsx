@@ -9,7 +9,7 @@ import "./DashBoard.css";
 import type { Card } from "../../types/Card";
 import { useEffect, useState } from "react";
 import { invoke } from "@tauri-apps/api/core";
-import { DashboardValueData } from "../../types/dashboard";
+import { DashboardValueData, DashboardSalesData } from "../../types/dashboard";
 
 type Props = {
   currency?: string;
@@ -35,7 +35,7 @@ export default function DashboardPane({
   const [valueLoading, setValueLoading] = useState(false);
   const [valueError, setValueError] = useState<string | null>(null);
 
-  const [salesStats, setSalesStats] = useState<{ this_month_total: number; last_month_same_period_total: number } | null>(null);
+  const [salesStats, setSalesStats] = useState<DashboardSalesData | null>(null);
   const [salesStatsLoading, setSalesStatsLoading] = useState(false);
   const [salesStatsError, setSalesStatsError] = useState<string | null>(null);
 
