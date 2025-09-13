@@ -15,6 +15,7 @@ use loan::{
     get_transaction_details, update_loan,
 };
 use product::{add_product, delete_product, get_all_products, get_product, update_product};
+use sales::get_sales_history;
 use stock::{add_stock, edit_stock, get_in_stock_products, get_stock_lots, remove_stock};
 use summary::{get_stock_histogram, get_stock_overview};
 
@@ -48,6 +49,7 @@ pub fn run() {
             create_loan,
             delete_loan,
             update_loan,
+            get_sales_history,
             get_loan_history,
             get_loan_items,
             get_loan_summary,

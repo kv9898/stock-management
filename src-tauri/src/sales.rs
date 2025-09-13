@@ -58,3 +58,47 @@ pub async fn add_sale(changes: Vec<StockChange>, note: Option<String>) -> Result
     .await
     .map_err(|e| e.to_string())?
 }
+
+#[tauri::command]
+pub async fn get_sales_history() -> Result<Vec<SalesHeader>, String> {
+    task::spawn_blocking(move || {
+        let rt = tokio::runtime::Runtime::new().unwrap();
+        rt.block_on(async move {
+            let config = get_db_config().await.map_err(|e| e.to_string())?;
+            let client = Client::from_config(config)
+                .await
+                .map_err(|e| e.to_string())?;
+
+            // Query to get all sales headers ordered by date (newest first)
+            let sql = r#"
+                SELECT id, date, note
+                FROM SalesHeader
+                ORDER BY date DESC, id DESC
+            "#;
+
+            let result = client.execute(sql).await.map_err(|e| e.to_string())?;
+
+            let mut sales_headers = Vec::new();
+
+            for row in result.rows {
+                let id = row
+                    .try_column::<&str>("id")
+                    .map_err(|_| "Failed to get id from sales header".to_string())?
+                    .to_string();
+
+                let date = row
+                    .try_column::<&str>("date")
+                    .map_err(|_| "Failed to get date from sales header".to_string())?
+                    .to_string();
+
+                let note = row.try_column::<&str>("note").ok().map(|s| s.to_string());
+
+                sales_headers.push(SalesHeader { id, date, note });
+            }
+
+            Ok(sales_headers)
+        })
+    })
+    .await
+    .map_err(|e| e.to_string())?
+}
