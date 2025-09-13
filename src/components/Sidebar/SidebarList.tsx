@@ -36,7 +36,9 @@ export function SidebarList({ items, activeTab, onSelect, depth = 0 }: SidebarLi
     items.forEach(item => {
       if (item.children && containsActiveTab(item.children, activeTab)) {
         newOpenGroups[item.label] = true;
-      }
+      } else {
+      newOpenGroups[item.label] = false;
+    }
     });
     
     setOpenGroups(prev => ({ ...prev, ...newOpenGroups }));
