@@ -20,6 +20,13 @@ pub struct SalesItem {
     pub expiry: String,
 }
 
+#[derive(Debug, Deserialize, Serialize)]
+pub struct SalesSummary {
+    pub header: SalesHeader,
+    pub top_products: Vec<String>,
+    pub total_value: i64,
+}
+
 pub async fn add_sale(changes: Vec<StockChange>, note: Option<String>) -> Result<(), String> {
     task::spawn_blocking(move || {
         let rt = tokio::runtime::Runtime::new().unwrap();
@@ -192,7 +199,7 @@ pub async fn update_sale(header: SalesHeader, items: Vec<SalesItem>) -> Result<(
 }
 
 #[tauri::command]
-pub async fn get_sales_history() -> Result<Vec<SalesHeader>, String> {
+pub async fn get_sales_history() -> Result<Vec<SalesSummary>, String> {
     task::spawn_blocking(move || {
         let rt = tokio::runtime::Runtime::new().unwrap();
         rt.block_on(async move {
@@ -210,7 +217,7 @@ pub async fn get_sales_history() -> Result<Vec<SalesHeader>, String> {
 
             let result = client.execute(sql).await.map_err(|e| e.to_string())?;
 
-            let mut sales_headers = Vec::new();
+            let mut sales_summary: Vec<SalesSummary> = Vec::new();
 
             for row in result.rows {
                 let id = row
@@ -225,10 +232,54 @@ pub async fn get_sales_history() -> Result<Vec<SalesHeader>, String> {
 
                 let note = row.try_column::<&str>("note").ok().map(|s| s.to_string());
 
-                sales_headers.push(SalesHeader { id, date, note });
+                // Fetch items for this sale, join with Product to get price
+                let items_sql = format!(
+                    r#"
+                    SELECT i.product_name, i.quantity, p.price
+                    FROM SalesItem i
+                    JOIN Product p ON i.product_name = p.name
+                    WHERE i.sale_id = '{}'
+                    ORDER BY i.quantity DESC
+                    "#,
+                    id
+                );
+                let items_result = client.execute(items_sql).await.map_err(|e| e.to_string())?;
+
+                // Calculate total value and top 3 products
+                let mut total_value = 0i64;
+                let mut products: Vec<(String, i64)> = Vec::new();
+
+                for item_row in items_result.rows {
+                    let product_name = item_row
+                        .try_column::<&str>("product_name")
+                        .map_err(|_| "Failed to get product_name".to_string())?
+                        .to_string();
+                    let quantity = item_row
+                        .try_column::<i64>("quantity")
+                        .map_err(|_| "Failed to get quantity".to_string())?;
+                    let price = item_row
+                        .try_column::<i64>("price")
+                        .map_err(|_| "Failed to get price".to_string())?;
+
+                    total_value += quantity * price;
+                    products.push((product_name, quantity));
+                }
+
+                // take top 3;
+                let top_products: Vec<String> = products
+                    .iter()
+                    .take(3)
+                    .map(|(name, _)| name.clone())
+                    .collect();
+
+                sales_summary.push(SalesSummary {
+                    header: SalesHeader { id, date, note },
+                    top_products,
+                    total_value,
+                });
             }
 
-            Ok(sales_headers)
+            Ok(sales_summary)
         })
     })
     .await
