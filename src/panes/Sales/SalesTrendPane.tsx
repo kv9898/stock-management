@@ -5,6 +5,13 @@ import { CircularProgress } from "@mui/material";
 
 type MonthlySales = { month: string; total: number }; // month: "2025-01"
 
+// Extend window type for Plotly
+declare global {
+  interface Window {
+    Plotly: any;
+  }
+}
+
 // System dark-mode hook (no MUI)
 function usePrefersDark() {
   const [dark, setDark] = useState(false);
@@ -34,6 +41,7 @@ function cssVar(name: string, fallback: string) {
 export default function SalesTrendPane({ refreshSignal }: { refreshSignal: number }) {
   const [data, setData] = useState<MonthlySales[]>([]);
   const [loading, setLoading] = useState(true);
+  const [plotKey, setPlotKey] = useState(0);
   const isDark = usePrefersDark();
 
   useEffect(() => {
@@ -43,6 +51,16 @@ export default function SalesTrendPane({ refreshSignal }: { refreshSignal: numbe
       .catch(() => setData([]))
       .finally(() => setLoading(false));
   }, [refreshSignal]);
+
+  // Force plot re-render when data changes to ensure proper sizing
+  useEffect(() => {
+    if (!loading && data.length > 0) {
+      const timer = setTimeout(() => {
+        setPlotKey(prev => prev + 1);
+      }, 100);
+      return () => clearTimeout(timer);
+    }
+  }, [loading, data.length]);
 
   if (loading) {
     return <div style={{ padding: 32, textAlign: "center" }}><CircularProgress /></div>;
@@ -63,8 +81,9 @@ export default function SalesTrendPane({ refreshSignal }: { refreshSignal: numbe
   const barColor = cssVar("--accent", "#1976d2");
 
   return (
-    <div style={{ width: "100%", height: "100%" }}>
+    <div style={{ width: "100%", height: "100%", minHeight: "400px" }}>
       <Plot
+        key={plotKey}
         data={[
           {
             type: "bar",
@@ -96,6 +115,7 @@ export default function SalesTrendPane({ refreshSignal }: { refreshSignal: numbe
               ticks: "outside",
               tickfont: { color: textColor },
               titlefont: { color: textColor },
+              automargin: true,
             },
             yaxis: {
               title: "销售额",
@@ -106,9 +126,11 @@ export default function SalesTrendPane({ refreshSignal }: { refreshSignal: numbe
               zerolinecolor: borderColor,
               tickfont: { color: textColor },
               titlefont: { color: textColor },
+              automargin: true,
             },
             margin: { t: 64, r: 32, b: 80, l: 80 },
-            bargap: 0.3
+            bargap: 0.3,
+            autosize: true,
           } as Partial<Plotly.Layout>
         }
         config={{
@@ -123,6 +145,20 @@ export default function SalesTrendPane({ refreshSignal }: { refreshSignal: numbe
         }}
         style={{ width: "100%", height: "100%" }}
         useResizeHandler
+        onInitialized={(_figure: any, graphDiv: any) => {
+          // Force resize after initialization
+          if (graphDiv && window.Plotly) {
+            setTimeout(() => {
+              window.Plotly.Plots.resize(graphDiv);
+            }, 50);
+          }
+        }}
+        onUpdate={(_figure: any, graphDiv: any) => {
+          // Ensure proper sizing on updates
+          if (graphDiv && window.Plotly) {
+            window.Plotly.Plots.resize(graphDiv);
+          }
+        }}
       />
     </div>
   );
