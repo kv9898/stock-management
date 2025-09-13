@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import Plot from "react-plotly.js";
-import { Dialog, DialogTitle, DialogContent, DialogActions, TextField, Button } from "@mui/material";
+import { Dialog, DialogTitle, DialogContent, DialogActions, TextField, Button, FormHelperText } from "@mui/material";
 
 import { invoke } from "@tauri-apps/api/core";
 
@@ -345,15 +345,16 @@ export default function StockExpiryChart({
                     fontSize: '1rem'
                   }
                 }}
-                helperText="输入 0 将删除此到期日的所有库存"
-                FormHelperTextProps={{
-                  sx: { 
-                    fontSize: '0.875rem',
-                    mt: 1,
-                    mx: 0
-                  }
-                }}
               />
+              <FormHelperText
+                sx={{
+                  fontSize: '0.875rem',
+                  mt: 1,
+                  mx: 0,
+                }}
+              >
+                输入 0 将删除此到期日的所有库存
+              </FormHelperText>
             </div>
           )}
         </DialogContent>
