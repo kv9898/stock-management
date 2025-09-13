@@ -6,7 +6,7 @@ import {
   Collapse,
 } from "@mui/material";
 import { ExpandLess, ExpandMore } from "@mui/icons-material";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import type { TabKey } from "../../tabs";
 import type { SidebarItem } from "../../types/SidebarItem";
 
@@ -19,6 +19,28 @@ type SidebarListProps = {
 
 export function SidebarList({ items, activeTab, onSelect, depth = 0 }: SidebarListProps) {
   const [openGroups, setOpenGroups] = useState<Record<string, boolean>>({});
+
+  // Helper function to check if any child contains the active tab
+  const containsActiveTab = (items: SidebarItem[], activeTab: TabKey): boolean => {
+    return items.some(item => {
+      if (item.key === activeTab) return true;
+      if (item.children) return containsActiveTab(item.children, activeTab);
+      return false;
+    });
+  };
+
+  // Auto-expand groups that contain the active tab
+  useEffect(() => {
+    const newOpenGroups: Record<string, boolean> = {};
+    
+    items.forEach(item => {
+      if (item.children && containsActiveTab(item.children, activeTab)) {
+        newOpenGroups[item.label] = true;
+      }
+    });
+    
+    setOpenGroups(prev => ({ ...prev, ...newOpenGroups }));
+  }, [activeTab, items]);
 
   const toggleGroup = (label: string) => {
     setOpenGroups((prev) => ({ ...prev, [label]: !prev[label] }));
