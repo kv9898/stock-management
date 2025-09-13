@@ -46,7 +46,7 @@ export default function DashboardPane({
       const result = await invoke<DashboardValueData>("get_dashboard_summary");
       setValueData(result);
     } catch (err) {
-      setValueError(err instanceof Error ? err.message : "未能获取总览数据");
+      setValueError(err instanceof Error ? err.message : "价值总览获取失败");
       console.error("Error fetching dashboard:", err);
     } finally {
       setValueLoading(false);
@@ -79,23 +79,6 @@ export default function DashboardPane({
 
   // decide loan color by sign (asset vs liability)
   const loanPositive = (valueData?.netLoanValue ?? 0) >= 0;
-
-  if (valueError) {
-    return (
-      <div className="dash-wrap">
-        <div className="dash-header">
-          <h2>价值总览</h2>
-          <button className="dash-refresh" onClick={handleRefresh}>
-            <RefreshCw size={16} />
-            <span>重试</span>
-          </button>
-        </div>
-        <div style={{ padding: "2rem", textAlign: "center", color: "#666" }}>
-          <p>加载失败: {valueError}</p>
-        </div>
-      </div>
-    );
-  }
 
   const valueCards: Card[] = [
     {
@@ -195,6 +178,8 @@ export default function DashboardPane({
               <div className={`dash-value ${c.valueClass}`}>
                 {valueLoading ? (
                   <span className="dash-skeleton" />
+                ) : valueError ? (
+                  <span style={{ color: '#c00', fontSize: 14 }}>{valueError}</span>
                 ) : (
                   formatCurrency(c.value, currency)
                 )}
@@ -226,6 +211,8 @@ export default function DashboardPane({
               <div className={`dash-value ${c.valueClass}`}>
                 {salesStatsLoading ? (
                   <span className="dash-skeleton" />
+                ) : salesStatsError ? (
+                  <span style={{ color: '#c00', fontSize: 14 }}>{salesStatsError}</span>
                 ) : (
                   formatCurrency(c.value, currency)
                 )}
