@@ -172,6 +172,14 @@
 .accent-loan-neg .dash-bar { background: rgba(239,68,68,.9); }
 .value-loan-neg { color: #dc2626; } /* red */
 
+.accent-sales-this { --accent: rgba(59,130,246,1); }
+.accent-sales-this .dash-bar { background: rgba(59,130,246,.9); }
+.value-sales-this { color: #2563eb; } /* blue */
+
+.accent-sales-last { --accent: rgba(100, 59, 246, 1); }
+.accent-sales-last .dash-bar { background: rgba(100, 59, 246, .9); }
+.value-sales-last { color: #4f46e5; } /* indigo */
+
 /* Respect dark theme — keep readable but still tinted */
 @media (prefers-color-scheme: dark) {
   .value-sellable { color: #34d399; }   /* green-400 */

@@ -9,7 +9,7 @@ import "./DashBoard.css";
 import type { Card } from "../../types/Card";
 import { useEffect, useState } from "react";
 import { invoke } from "@tauri-apps/api/core";
-import { DashboardData } from "../../types/dashboard";
+import { DashboardValueData, DashboardSalesData } from "../../types/dashboard";
 
 type Props = {
   currency?: string;
@@ -31,26 +31,45 @@ export default function DashboardPane({
   onRefresh,
   refreshSignal,
 }: Props) {
-  const [data, setData] = useState<DashboardData | null>(null);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [valueData, setValueData] = useState<DashboardValueData | null>(null);
+  const [valueLoading, setValueLoading] = useState(false);
+  const [valueError, setValueError] = useState<string | null>(null);
+
+  const [salesStats, setSalesStats] = useState<DashboardSalesData | null>(null);
+  const [salesStatsLoading, setSalesStatsLoading] = useState(false);
+  const [salesStatsError, setSalesStatsError] = useState<string | null>(null);
 
   const fetchDashboardData = async () => {
-    setLoading(true);
-    setError(null);
+    setValueLoading(true);
+    setValueError(null);
     try {
-      const result = await invoke<DashboardData>("get_dashboard_summary");
-      setData(result);
+      const result = await invoke<DashboardValueData>("get_dashboard_summary");
+      setValueData(result);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "未能获取总览数据");
+      setValueError(err instanceof Error ? err.message : "价值总览获取失败");
       console.error("Error fetching dashboard:", err);
     } finally {
-      setLoading(false);
+      setValueLoading(false);
     }
   };
 
+  const fetchSalesStats = async () => {
+  setSalesStatsLoading(true);
+  setSalesStatsError(null);
+  try {
+    const result = await invoke<{ this_month_total: number; last_month_same_period_total: number }>("get_monthly_sales_stats");
+    setSalesStats(result);
+  } catch {
+    setSalesStatsError("销售业绩获取失败");
+    setSalesStats(null);
+  } finally {
+    setSalesStatsLoading(false);
+  }
+};
+
   useEffect(() => {
     fetchDashboardData();
+    fetchSalesStats();
   }, [refreshSignal]);
 
   const handleRefresh = () => {
@@ -59,30 +78,13 @@ export default function DashboardPane({
   };
 
   // decide loan color by sign (asset vs liability)
-  const loanPositive = (data?.netLoanValue ?? 0) >= 0;
+  const loanPositive = (valueData?.netLoanValue ?? 0) >= 0;
 
-  if (error) {
-    return (
-      <div className="dash-wrap">
-        <div className="dash-header">
-          <h2>价值总览</h2>
-          <button className="dash-refresh" onClick={handleRefresh}>
-            <RefreshCw size={16} />
-            <span>重试</span>
-          </button>
-        </div>
-        <div style={{ padding: "2rem", textAlign: "center", color: "#666" }}>
-          <p>加载失败: {error}</p>
-        </div>
-      </div>
-    );
-  }
-
-  const cards: Card[] = [
+  const valueCards: Card[] = [
     {
       key: "sellable",
       title: "可售总价值",
-      value: data?.totalSellableValue,
+      value: valueData?.totalSellableValue,
       icon: <DollarSign size={50} strokeWidth={2.4} />,
       accentClass: "accent-sellable",
       valueClass: "value-sellable",
@@ -97,7 +99,7 @@ export default function DashboardPane({
     {
       key: "soon",
       title: "即将过期价值",
-      value: data?.expiringSoonValue,
+      value: valueData?.expiringSoonValue,
       icon: <Clock8 size={50} strokeWidth={2.4} />,
       accentClass: "accent-soon",
       valueClass: "value-soon",
@@ -105,7 +107,7 @@ export default function DashboardPane({
     {
       key: "expired",
       title: "已过期价值",
-      value: data?.expiredValue,
+      value: valueData?.expiredValue,
       icon: <AlertTriangle size={50} strokeWidth={2.4} />,
       accentClass: "accent-expired",
       valueClass: "value-expired",
@@ -113,7 +115,7 @@ export default function DashboardPane({
     {
       key: "loan",
       title: "借/还净值",
-      value: data?.netLoanValue,
+      value: valueData?.netLoanValue,
       icon: <ArrowLeftRight size={50} strokeWidth={2.4} />,
       accentClass: loanPositive ? "accent-loan-pos" : "accent-loan-neg",
       valueClass: loanPositive ? "value-loan-pos" : "value-loan-neg",
@@ -121,6 +123,25 @@ export default function DashboardPane({
       subtitle: loanPositive ? "（净资产）" : "（净负债）",
     },
   ] as const;
+
+  const salesCards = [
+    {
+      key: "this_month_sales",
+      title: "本月销售额",
+      value: salesStats?.this_month_total,
+      icon: <DollarSign size={50} strokeWidth={2.4} />,
+      accentClass: "accent-sales-this",
+      valueClass: "value-sales-this",
+    },
+    {
+      key: "last_month_sales",
+      title: "上月同期",
+      value: salesStats?.last_month_same_period_total,
+      icon: <Clock8 size={50} strokeWidth={2.4} />,
+      accentClass: "accent-sales-last",
+      valueClass: "value-sales-last",
+    },
+  ];
 
   return (
     <div className="dash-wrap">
@@ -133,7 +154,7 @@ export default function DashboardPane({
       </div>
 
       <div className="dash-grid-2x2">
-        {cards.map((c) => (
+        {valueCards.map((c) => (
           <div key={c.key} className={`dash-card ${c.accentClass}`}>
             {/* LEFT ICON + PATTERN */}
             <div className="dash-icon-left">
@@ -155,8 +176,10 @@ export default function DashboardPane({
               {"chips" in c && c.chips}
 
               <div className={`dash-value ${c.valueClass}`}>
-                {loading ? (
+                {valueLoading ? (
                   <span className="dash-skeleton" />
+                ) : valueError ? (
+                  <span style={{ color: '#c00', fontSize: 14 }}>{valueError}</span>
                 ) : (
                   formatCurrency(c.value, currency)
                 )}
@@ -164,6 +187,37 @@ export default function DashboardPane({
             </div>
 
             {/* decorative bottom bar (kept) */}
+            <div className="dash-bar" />
+          </div>
+        ))}
+      </div>
+
+      <div className="dash-header">
+        <h2>销售总览</h2>
+      </div>
+
+      <div className="dash-grid-2x2">
+        {salesCards.map((c) => (
+          <div key={c.key} className={`dash-card ${c.accentClass}`}>
+            <div className="dash-icon-left">
+              <div className="dash-icon">{c.icon}</div>
+            </div>
+            <div className="dash-right">
+              <div className="dash-top">
+                <div className="dash-title-row">
+                  <div className="dash-title">{c.title}</div>
+                </div>
+              </div>
+              <div className={`dash-value ${c.valueClass}`}>
+                {salesStatsLoading ? (
+                  <span className="dash-skeleton" />
+                ) : salesStatsError ? (
+                  <span style={{ color: '#c00', fontSize: 14 }}>{salesStatsError}</span>
+                ) : (
+                  formatCurrency(c.value, currency)
+                )}
+              </div>
+            </div>
             <div className="dash-bar" />
           </div>
         ))}

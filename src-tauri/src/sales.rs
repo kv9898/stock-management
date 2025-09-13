@@ -33,6 +33,12 @@ pub struct MonthlySales {
     pub total: i64,
 }
 
+#[derive(Debug, Deserialize, Serialize)]
+pub struct MonthlySalesStats {
+    pub this_month_total: i64,
+    pub last_month_same_period_total: i64,
+}
+
 pub async fn add_sale(changes: Vec<StockChange>, note: Option<String>) -> Result<(), String> {
     task::spawn_blocking(move || {
         let rt = tokio::runtime::Runtime::new().unwrap();
@@ -400,6 +406,91 @@ pub async fn get_monthly_sales(months: Option<u32>) -> Result<Vec<MonthlySales>,
                 out.push(MonthlySales { month, total });
             }
             Ok(out)
+        })
+    })
+    .await
+    .map_err(|e| e.to_string())?
+}
+
+#[tauri::command]
+pub async fn get_monthly_sales_stats() -> Result<MonthlySalesStats, String> {
+    use chrono::{Datelike, Local, NaiveDate};
+    use std::cmp::min;
+    tokio::task::spawn_blocking(move || {
+        let rt = tokio::runtime::Runtime::new().unwrap();
+        rt.block_on(async move {
+            let config = get_db_config().await.map_err(|e| e.to_string())?;
+            let client = Client::from_config(config)
+                .await
+                .map_err(|e| e.to_string())?;
+
+            let today = Local::now().date_naive();
+            let year = today.year();
+            let month = today.month();
+            let day = today.day();
+
+            // This month: from 1st to today
+            let this_month_start = NaiveDate::from_ymd_opt(year, month, 1).unwrap();
+            let this_month_end = today;
+
+            // Last month: from 1st to same day (or last day if last month is shorter)
+            let (last_month_year, last_month) = if month == 1 {
+                (year - 1, 12)
+            } else {
+                (year, month - 1)
+            };
+            let last_month_start = NaiveDate::from_ymd_opt(last_month_year, last_month, 1).unwrap();
+            let last_month_days = NaiveDate::from_ymd_opt(last_month_year, last_month + 1, 1)
+                .unwrap_or_else(|| NaiveDate::from_ymd_opt(last_month_year + 1, 1, 1).unwrap())
+                .signed_duration_since(last_month_start)
+                .num_days();
+            let last_month_end = NaiveDate::from_ymd_opt(
+                last_month_year,
+                last_month,
+                min(day, last_month_days as u32),
+            )
+            .unwrap();
+
+            // Query for this month
+            let sql_this = format!(
+                r#"
+                SELECT SUM(i.quantity * p.price) as total
+                FROM SalesHeader h
+                JOIN SalesItem i ON h.id = i.sale_id
+                JOIN Product p ON i.product_name = p.name
+                WHERE h.date >= '{}' AND h.date <= '{}'
+                "#,
+                this_month_start, this_month_end
+            );
+            let result_this = client.execute(sql_this).await.map_err(|e| e.to_string())?;
+            let this_month_total = result_this
+                .rows
+                .get(0)
+                .and_then(|row| row.try_column::<i64>("total").ok())
+                .unwrap_or(0);
+
+            // Query for last month same period
+            let sql_last = format!(
+                r#"
+                SELECT SUM(i.quantity * p.price) as total
+                FROM SalesHeader h
+                JOIN SalesItem i ON h.id = i.sale_id
+                JOIN Product p ON i.product_name = p.name
+                WHERE h.date >= '{}' AND h.date <= '{}'
+                "#,
+                last_month_start, last_month_end
+            );
+            let result_last = client.execute(sql_last).await.map_err(|e| e.to_string())?;
+            let last_month_same_period_total = result_last
+                .rows
+                .get(0)
+                .and_then(|row| row.try_column::<i64>("total").ok())
+                .unwrap_or(0);
+
+            Ok(MonthlySalesStats {
+                this_month_total,
+                last_month_same_period_total,
+            })
         })
     })
     .await
