@@ -74,6 +74,7 @@ export default function DashboardPane({
 
   const handleRefresh = () => {
     fetchDashboardData();
+    fetchSalesStats();
     onRefresh?.();
   };
 
