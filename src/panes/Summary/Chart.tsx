@@ -25,11 +25,9 @@ function usePrefersDark() {
     const update = () => setDark(mq.matches);
     update();
     // Safari support
-    mq.addEventListener?.("change", update);
-    mq.addListener?.(update as any);
+    mq.addEventListener("change", update);
     return () => {
-      mq.removeEventListener?.("change", update);
-      mq.removeListener?.(update as any);
+      mq.removeEventListener("change", update);
     };
   }, []);
   return dark;
