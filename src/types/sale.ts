@@ -10,3 +10,9 @@ export interface SalesItem {
     quantity: number;
     expiry: string;
 }
+
+export interface SalesSummary {
+    header: SalesHeader;
+    top_products: string[];
+    total_value: number;
+}
