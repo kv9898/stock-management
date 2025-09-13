@@ -173,7 +173,7 @@ export default function StockExpiryChart({
             paper_bgcolor: "rgba(0,0,0,0)",
             plot_bgcolor: "rgba(0,0,0,0)",
             font: { color: textColor },
-            margin: { t: 8, r: 16, b: 56, l: 56 },
+            margin: { t: 8, r: 24, b: 80, l: 64 },
             bargap: 0.35,
             xaxis: {
               type: "date",
@@ -190,6 +190,8 @@ export default function StockExpiryChart({
               gridcolor: borderColor,
               linecolor: borderColor,
               zerolinecolor: borderColor,
+              automargin: true,
+              tickfont: { size: 11 },
             },
             yaxis: {
               title: "数量",
@@ -197,6 +199,7 @@ export default function StockExpiryChart({
               gridcolor: borderColor,
               linecolor: borderColor,
               zerolinecolor: borderColor,
+              automargin: true,
             },
             shapes: showTodayLine
               ? [

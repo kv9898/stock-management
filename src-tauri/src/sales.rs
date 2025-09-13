@@ -27,6 +27,12 @@ pub struct SalesSummary {
     pub total_value: i64,
 }
 
+#[derive(Debug, Deserialize, Serialize)]
+pub struct MonthlySales {
+    pub month: String, // "YYYY-MM"
+    pub total: i64,
+}
+
 pub async fn add_sale(changes: Vec<StockChange>, note: Option<String>) -> Result<(), String> {
     task::spawn_blocking(move || {
         let rt = tokio::runtime::Runtime::new().unwrap();
@@ -341,6 +347,59 @@ pub async fn get_sales_items(sale_id: String) -> Result<Vec<SalesItem>, String> 
             }
 
             Ok(sales_items)
+        })
+    })
+    .await
+    .map_err(|e| e.to_string())?
+}
+
+#[tauri::command]
+pub async fn get_monthly_sales(months: Option<u32>) -> Result<Vec<MonthlySales>, String> {
+    use chrono::{Datelike, Duration, Local};
+    let months = months.unwrap_or(12);
+    task::spawn_blocking(move || {
+        let rt = tokio::runtime::Runtime::new().unwrap();
+        rt.block_on(async move {
+            let config = get_db_config().await.map_err(|e| e.to_string())?;
+            let client = Client::from_config(config)
+                .await
+                .map_err(|e| e.to_string())?;
+
+            // Calculate the first day of the earliest month to include
+            let today = Local::now();
+            let first_month = today
+                .with_day(1)
+                .unwrap()
+                .checked_sub_signed(Duration::days(31 * (months as i64 - 1)))
+                .unwrap();
+            let first_month_str = first_month.format("%Y-%m-01").to_string();
+
+            // Query: sum of quantity * price per month
+            let sql = format!(
+                r#"
+                SELECT strftime('%Y-%m', h.date) as month,
+                       SUM(i.quantity * p.price) as total
+                FROM SalesHeader h
+                JOIN SalesItem i ON h.id = i.sale_id
+                JOIN Product p ON i.product_name = p.name
+                WHERE h.date >= '{}'
+                GROUP BY month
+                ORDER BY month ASC
+                "#,
+                first_month_str
+            );
+
+            let result = client.execute(sql).await.map_err(|e| e.to_string())?;
+            let mut out = Vec::new();
+            for row in result.rows {
+                let month = row
+                    .try_column::<&str>("month")
+                    .map_err(|_| "Failed to get month".to_string())?
+                    .to_string();
+                let total = row.try_column::<i64>("total").unwrap_or(0);
+                out.push(MonthlySales { month, total });
+            }
+            Ok(out)
         })
     })
     .await
