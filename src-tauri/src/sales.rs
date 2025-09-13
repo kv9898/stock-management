@@ -12,6 +12,14 @@ pub struct SalesHeader {
     pub note: Option<String>,
 }
 
+#[derive(Debug, Deserialize, Serialize)]
+pub struct SalesItem {
+    pub id: String,
+    pub product_name: String,
+    pub quantity: i64,
+    pub expiry: String,
+}
+
 pub async fn add_sale(changes: Vec<StockChange>, note: Option<String>) -> Result<(), String> {
     task::spawn_blocking(move || {
         let rt = tokio::runtime::Runtime::new().unwrap();
@@ -143,6 +151,66 @@ pub async fn get_sales_history() -> Result<Vec<SalesHeader>, String> {
             }
 
             Ok(sales_headers)
+        })
+    })
+    .await
+    .map_err(|e| e.to_string())?
+}
+
+#[tauri::command]
+pub async fn get_sales_items(sale_id: String) -> Result<Vec<SalesItem>, String> {
+    task::spawn_blocking(move || {
+        let rt = tokio::runtime::Runtime::new().unwrap();
+        rt.block_on(async move {
+            let config = get_db_config().await.map_err(|e| e.to_string())?;
+            let client = Client::from_config(config)
+                .await
+                .map_err(|e| e.to_string())?;
+
+            // Query to get all items for a specific sale
+            let sql = format!(
+                r#"
+                SELECT id, product_name, quantity, expiry
+                FROM SalesItem
+                WHERE sale_id = '{}'
+                ORDER BY product_name
+                "#,
+                sql_quote(&sale_id)
+            );
+
+            let result = client.execute(sql).await.map_err(|e| e.to_string())?;
+
+            let mut sales_items = Vec::new();
+
+            for row in result.rows {
+                let id = row
+                    .try_column::<&str>("id")
+                    .map_err(|_| "Failed to get id from sales item".to_string())?
+                    .to_string();
+
+                let product_name = row
+                    .try_column::<&str>("product_name")
+                    .map_err(|_| "Failed to get product_name from sales item".to_string())?
+                    .to_string();
+
+                let quantity = row
+                    .try_column::<i64>("quantity")
+                    .map_err(|_| "Failed to get quantity from sales item".to_string())?;
+
+                let expiry = row
+                    .try_column::<&str>("expiry")
+                    .map_err(|_| "Failed to get expiry from sales item".to_string())?
+                    .to_string();
+
+                sales_items.push(SalesItem {
+                    id,
+                    product_name,
+                    quantity,
+                    expiry,
+                });
+            }
+
+            Ok(sales_items)
         })
     })
     .await
