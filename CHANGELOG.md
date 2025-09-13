@@ -7,6 +7,7 @@ USANA 库存管理器的所有主要变更将记录在此文件中。
 ## 0.1.2
 
 - Collapsible sidebar 可折叠侧边栏
+- Sales tracking 销售业绩跟踪
 
 ## 0.1.1
 
