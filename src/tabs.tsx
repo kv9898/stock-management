@@ -5,6 +5,7 @@ import ViewStockPane from "./panes/Summary/ViewStock";
 import AddLoanPane from "./panes/Loan/AddLoanPane";
 import DashboardPane from "./panes/Dashboard/DashboardPane";
 import SalesHistoryPane from "./panes/Sales/SalesHistoryPane";
+import SalesTrendPane from "./panes/Sales/SalesTrendPane";
 import LoanHistoryPane from "./panes/Loan/LoanHistoryPane";
 import LoanSummaryPane from "./panes/Loan/LoanSummaryPane";
 
@@ -20,6 +21,7 @@ export type TabKey =
   | "viewStock"
   | "addStock"
   | "removeStock"
+  | "salesTrend"
   | "salesHistory"
   | "loanSummary"
   | "loanHistory"
@@ -47,8 +49,9 @@ export const sidebarStructure: SidebarItem[] = [
     key: null,
     label: "销售管理",
     children: [
-      {key: "salesHistory" as TabKey, label: "销售记录" },
-    ]
+      { key: "salesTrend" as TabKey, label: "销售趋势" },
+      { key: "salesHistory" as TabKey, label: "销售记录" },
+    ],
   },
   {
     key: null,
@@ -80,6 +83,7 @@ export const defaultRefreshCounters = {
   addStock: 0,
   removeStock: 0,
   salesHistory: 0,
+  salesTrend: 0,
   loanSummary: 0,
   loanHistory: 0,
   addLoan: 0,
@@ -100,11 +104,16 @@ export function RenderedTabs({
   setActiveTab: (tab: TabKey) => void;
 }) {
   const [editingLoanId, setEditingLoanId] = useState<string | null>(null);
-  
+
   return (
     <div style={{ height: "100%", display: "flex", flexDirection: "column" }}>
       {/* boot */}
-      <div style={{ display: activeTab === "boot" ? "block" : "none", height: "100%" }}>
+      <div
+        style={{
+          display: activeTab === "boot" ? "block" : "none",
+          height: "100%",
+        }}
+      >
         <div style={{ opacity: 0.7, padding: "1rem" }}>
           <h2 style={{ marginTop: 0 }}>正在载入数据…</h2>
           <div>正在检查数据库配置与连接，请稍候。</div>
@@ -121,7 +130,17 @@ export function RenderedTabs({
         <DashboardPane
           refreshSignal={refresh.dashboard}
           onRefresh={() =>
-            triggerRefresh("viewStock", "addStock", "removeStock", "addLoan")
+            triggerRefresh(
+              "viewStock",
+              "addStock",
+              "removeStock",
+              "salesTrend",
+              "salesHistory",
+              "loanSummary",
+              "loanHistory",
+              "addLoan",
+              "productManagement"
+            )
           }
         />
       </div>
@@ -161,9 +180,24 @@ export function RenderedTabs({
         <RemoveStockPane
           refreshSignal={refresh.removeStock}
           onDidSubmit={() => {
-            triggerRefresh("viewStock", "dashboard","salesHistory");
+            triggerRefresh(
+              "viewStock",
+              "dashboard",
+              "salesTrend",
+              "salesHistory"
+            );
           }}
         />
+      </div>
+
+      {/* sales trend */}
+      <div
+        style={{
+          display: activeTab === "salesTrend" ? "block" : "none",
+          height: "100%",
+        }}
+      >
+        <SalesTrendPane refreshSignal={refresh.salesTrend} />
       </div>
 
       {/* sales history */}
@@ -176,9 +210,7 @@ export function RenderedTabs({
         <SalesHistoryPane
           refreshSignal={refresh.salesHistory}
           onDidSubmit={() => {
-            triggerRefresh(
-              "dashboard"
-            ); // sales history may impact dashboard?
+            triggerRefresh("dashboard", "salesTrend"); // sales history may impact dashboard?
           }}
         />
       </div>
@@ -210,10 +242,7 @@ export function RenderedTabs({
           refreshSignal={refresh.loanHistory}
           editingLoanId={editingLoanId}
           onDidSubmit={() => {
-            triggerRefresh(
-              "loanSummary",
-              "dashboard"
-            );
+            triggerRefresh("loanSummary", "dashboard");
           }}
           onCloseEdit={() => setEditingLoanId(null)}
         />
@@ -254,6 +283,7 @@ export function RenderedTabs({
               "viewStock",
               "addStock",
               "removeStock",
+              "salesTrend",
               "salesHistory",
               "loanSummary",
               "loanHistory",
