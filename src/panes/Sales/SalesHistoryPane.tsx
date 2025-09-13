@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import { DataGrid, GridColDef } from "@mui/x-data-grid";
 import { Button, Typography, Box } from "@mui/material";
-import type { SalesHeader } from "../../types/sale";
+import type { SalesHeader, SalesSummary } from "../../types/sale";
 import EditSalesPane from "./EditSalesPane";
 
 interface SalesHistoryPaneProps {
@@ -14,7 +14,7 @@ export default function SalesHistoryPane({
   refreshSignal,
   onDidSubmit,
 }: SalesHistoryPaneProps) {
-  const [sales, setSales] = useState<SalesHeader[]>([]);
+  const [sales, setSales] = useState<SalesSummary[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [editingSale, setEditingSale] = useState<SalesHeader | null>(null);
@@ -23,7 +23,7 @@ export default function SalesHistoryPane({
     setLoading(true);
     setError(null);
     try {
-      const result = await invoke<SalesHeader[]>("get_sales_history");
+      const result = await invoke<SalesSummary[]>("get_sales_history");
       setSales(result);
     } catch (err) {
       setError(
@@ -45,13 +45,28 @@ export default function SalesHistoryPane({
       headerName: "日期",
       flex: 1,
       minWidth: 120,
+      valueGetter: (_, row: SalesSummary) => row.header.date
+    },
+    {
+      field: "top_products",
+      headerName: "畅销商品",
+      flex: 1,
+      minWidth: 300,
+      valueGetter: (_, row: SalesSummary) => row.top_products.join("、") || "-",
+    },
+    {
+      field: "total_value",
+      headerName: "总金额",
+      type: "number",
+      flex: 1,
+      minWidth: 60,
     },
     {
       field: "note",
       headerName: "备注",
       flex: 1,
       minWidth: 200,
-      valueGetter: (value) => value || "-",
+      valueGetter: (_, row: SalesSummary) => row.header.note || "-",
     },
     {
       field: "actions",
@@ -119,12 +134,13 @@ export default function SalesHistoryPane({
 
           <Box sx={{ flex: 1, minHeight: 0 }}>
             <DataGrid
-              rows={sales.map((sale) => ({ ...sale }))}
+              rows={sales}
               columns={columns}
+              getRowId={(row: SalesSummary) => row.header.id}
               loading={loading}
               disableColumnMenu
               autoPageSize
-              onRowClick={(params) => setEditingSale(params.row)}
+              onRowClick={(params) => setEditingSale(params.row.header)}
               sx={{
                 height: "100%",
                 borderRadius: 1,
