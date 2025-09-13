@@ -140,7 +140,9 @@ pub async fn add_stock(changes: Vec<StockChange>) -> Result<(), String> {
 }
 
 #[tauri::command]
-pub async fn remove_stock(changes: Vec<StockChange>) -> Result<(), String> {
+pub async fn remove_stock(changes: Vec<StockChange>, mark_as_sale: bool) -> Result<(), String> {
+    // TODO: mark_as_sale
+    println!("Mark as sale: {}", mark_as_sale);
     task::spawn_blocking(move || {
         let rt = tokio::runtime::Runtime::new().unwrap();
         rt.block_on(async move {
