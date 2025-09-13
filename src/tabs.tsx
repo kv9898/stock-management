@@ -4,6 +4,7 @@ import RemoveStockPane from "./panes/Stock/RemoveStockPane";
 import ViewStockPane from "./panes/Summary/ViewStock";
 import AddLoanPane from "./panes/Loan/AddLoanPane";
 import DashboardPane from "./panes/Dashboard/DashboardPane";
+import SalesHistoryPane from "./panes/Sales/SalesHistoryPane";
 import LoanHistoryPane from "./panes/Loan/LoanHistoryPane";
 import LoanSummaryPane from "./panes/Loan/LoanSummaryPane";
 
@@ -78,6 +79,7 @@ export const defaultRefreshCounters = {
   dashboard: 0,
   addStock: 0,
   removeStock: 0,
+  salesHistory: 0,
   loanSummary: 0,
   loanHistory: 0,
   addLoan: 0,
@@ -159,8 +161,27 @@ export function RenderedTabs({
         <RemoveStockPane
           refreshSignal={refresh.removeStock}
           onDidSubmit={() => {
-            triggerRefresh("viewStock", "dashboard");
+            triggerRefresh("viewStock", "dashboard","salesHistory");
           }}
+        />
+      </div>
+
+      {/* sales history */}
+      <div
+        style={{
+          display: activeTab === "salesHistory" ? "block" : "none",
+          height: "100%",
+        }}
+      >
+        <SalesHistoryPane
+          refreshSignal={refresh.salesHistory}
+          editingLoanId={editingLoanId}
+          onDidSubmit={() => {
+            triggerRefresh(
+              "dashboard"
+            ); // sales history may impact dashboard?
+          }}
+          onCloseEdit={() => setEditingLoanId(null)}
         />
       </div>
 
@@ -237,6 +258,7 @@ export function RenderedTabs({
               "viewStock",
               "addStock",
               "removeStock",
+              "salesHistory",
               "loanSummary",
               "loanHistory",
               "addLoan",
