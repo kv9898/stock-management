@@ -53,8 +53,7 @@ export default function SalesTrendPane({ refreshSignal }: { refreshSignal: numbe
               rangemode: "tozero",
             },
             margin: { t: 48, r: 24, b: 56, l: 64 },
-            bargap: 0.3,
-            height: 420,
+            bargap: 0.3
           } as Partial<Plotly.Layout>
         }
         config={{
