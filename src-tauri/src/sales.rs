@@ -60,6 +60,51 @@ pub async fn add_sale(changes: Vec<StockChange>, note: Option<String>) -> Result
 }
 
 #[tauri::command]
+pub async fn delete_sale(sale_id: String) -> Result<(), String> {
+    task::spawn_blocking(move || {
+        let rt = tokio::runtime::Runtime::new().unwrap();
+        rt.block_on(async move {
+            let config = get_db_config().await.map_err(|e| e.to_string())?;
+            let client = Client::from_config(config)
+                .await
+                .map_err(|e| e.to_string())?;
+
+            // IMPORTANT: enable FKs to ensure proper cascade behavior
+            client
+                .execute("PRAGMA foreign_keys = ON;")
+                .await
+                .map_err(|e| e.to_string())?;
+
+            // Begin transaction
+            let tx = client.transaction().await.map_err(|e| e.to_string())?;
+
+            let sale_id_q = sql_quote(&sale_id);
+
+            // 1. First delete the sale items (child records)
+            let delete_items_sql =
+                format!("DELETE FROM SalesItem WHERE sale_id = '{}';", sale_id_q);
+            tx.execute(delete_items_sql)
+                .await
+                .map_err(|e| e.to_string())?;
+
+            // 2. Then delete the sale header (parent record)
+            let delete_header_sql = format!("DELETE FROM SalesHeader WHERE id = '{}';", sale_id_q);
+            tx.execute(delete_header_sql)
+                .await
+                .map_err(|e| e.to_string())?;
+
+            // Commit the transaction
+            let res = tx.commit().await;
+            ignore_empty_baton_commit(res)?;
+
+            Ok(())
+        })
+    })
+    .await
+    .map_err(|e| e.to_string())?
+}
+
+#[tauri::command]
 pub async fn get_sales_history() -> Result<Vec<SalesHeader>, String> {
     task::spawn_blocking(move || {
         let rt = tokio::runtime::Runtime::new().unwrap();
