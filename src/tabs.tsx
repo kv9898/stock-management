@@ -4,6 +4,7 @@ import RemoveStockPane from "./panes/Stock/RemoveStockPane";
 import ViewStockPane from "./panes/Summary/ViewStock";
 import AddLoanPane from "./panes/Loan/AddLoanPane";
 import DashboardPane from "./panes/Dashboard/DashboardPane";
+import SalesHistoryPane from "./panes/Sales/SalesHistoryPane";
 import LoanHistoryPane from "./panes/Loan/LoanHistoryPane";
 import LoanSummaryPane from "./panes/Loan/LoanSummaryPane";
 
@@ -19,6 +20,7 @@ export type TabKey =
   | "viewStock"
   | "addStock"
   | "removeStock"
+  | "salesHistory"
   | "loanSummary"
   | "loanHistory"
   | "addLoan"
@@ -40,6 +42,13 @@ export const sidebarStructure: SidebarItem[] = [
       { key: "addStock" as TabKey, label: "添加库存" },
       { key: "removeStock" as TabKey, label: "移除库存" },
     ],
+  },
+  {
+    key: null,
+    label: "销售管理",
+    children: [
+      {key: "salesHistory" as TabKey, label: "销售记录" },
+    ]
   },
   {
     key: null,
@@ -70,6 +79,7 @@ export const defaultRefreshCounters = {
   dashboard: 0,
   addStock: 0,
   removeStock: 0,
+  salesHistory: 0,
   loanSummary: 0,
   loanHistory: 0,
   addLoan: 0,
@@ -151,7 +161,24 @@ export function RenderedTabs({
         <RemoveStockPane
           refreshSignal={refresh.removeStock}
           onDidSubmit={() => {
-            triggerRefresh("viewStock", "dashboard");
+            triggerRefresh("viewStock", "dashboard","salesHistory");
+          }}
+        />
+      </div>
+
+      {/* sales history */}
+      <div
+        style={{
+          display: activeTab === "salesHistory" ? "block" : "none",
+          height: "100%",
+        }}
+      >
+        <SalesHistoryPane
+          refreshSignal={refresh.salesHistory}
+          onDidSubmit={() => {
+            triggerRefresh(
+              "dashboard"
+            ); // sales history may impact dashboard?
           }}
         />
       </div>
@@ -184,11 +211,9 @@ export function RenderedTabs({
           editingLoanId={editingLoanId}
           onDidSubmit={() => {
             triggerRefresh(
-              "viewStock",
               "loanSummary",
-              "removeStock",
               "dashboard"
-            ); // loans impact stock buckets
+            );
           }}
           onCloseEdit={() => setEditingLoanId(null)}
         />
@@ -229,6 +254,7 @@ export function RenderedTabs({
               "viewStock",
               "addStock",
               "removeStock",
+              "salesHistory",
               "loanSummary",
               "loanHistory",
               "addLoan",

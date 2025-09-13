@@ -42,7 +42,7 @@ export default function DashboardPane({
       const result = await invoke<DashboardData>("get_dashboard_summary");
       setData(result);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to fetch dashboard data");
+      setError(err instanceof Error ? err.message : "未能获取总览数据");
       console.error("Error fetching dashboard:", err);
     } finally {
       setLoading(false);

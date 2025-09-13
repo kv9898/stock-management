@@ -31,7 +31,7 @@ export default function LoanHistoryPane({
       setLoans(result);
     } catch (err) {
       setError(
-        err instanceof Error ? err.message : "Failed to fetch loan history"
+        err instanceof Error ? err.message : "未能获取借贷记录"
       );
       console.error("Error fetching loan history:", err);
     } finally {
