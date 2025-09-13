@@ -73,31 +73,25 @@ jobs:
           echo "VERSION=$VERSION" >> "$GITHUB_ENV"
 
           # Extract lines after "## <version>" until the next "## "
-          BODY=$(awk -v ver="## $VERSION" '
-            $0==ver {in=1; next}
-            /^##[[:space:]]/ && in {exit}
-            in {print}
-          ' CHANGELOG.md)
+          # Use sed instead of awk for better shell compatibility with bilingual content
+          BODY=$(sed -n "/^## $VERSION$/,/^## /p" CHANGELOG.md | sed '$d' | tail -n +2)
 
           # Fallback: if not found, take the first section after the first "## "
           if [[ -z "$BODY" ]]; then
-            BODY=$(awk '
-              /^##[[:space:]]/ { if (seen) exit; seen=1; next }
-              seen { print }
-            ' CHANGELOG.md)
+            BODY=$(sed -n '/^## /,/^## /p' CHANGELOG.md | head -n -1 | tail -n +2)
           fi
 
-          # Prefix a small title (optional)
-          {
-            echo "Changes in v$VERSION"
-            echo
-            echo "$BODY"
-          } > /tmp/release_body.md
+          # Create release body with title
+          echo "Changes in v$VERSION" > /tmp/release_body.md
+          echo "" >> /tmp/release_body.md
+          echo "$BODY" >> /tmp/release_body.md
 
-          # Expose as multiline env var for the next step
-          echo "RELEASE_BODY<<'EOF'" >> "$GITHUB_ENV"
-          cat /tmp/release_body.md >> "$GITHUB_ENV"
-          echo "EOF" >> "$GITHUB_ENV"
+          # Use GitHub's built-in multiline syntax
+          {
+            echo "RELEASE_BODY<<EOF"
+            cat /tmp/release_body.md
+            echo "EOF"
+          } >> "$GITHUB_ENV"
 
       - uses: tauri-apps/tauri-action@v0
         env:
