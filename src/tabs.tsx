@@ -31,7 +31,7 @@ export type TabKey =
 export const sidebarStructure: SidebarItem[] = [
   {
     key: "dashboard" as TabKey,
-    label: "价值总览",
+    label: "概况总览",
   },
   {
     key: "viewStock" as TabKey,
