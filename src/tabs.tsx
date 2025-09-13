@@ -213,11 +213,9 @@ export function RenderedTabs({
           editingLoanId={editingLoanId}
           onDidSubmit={() => {
             triggerRefresh(
-              "viewStock",
               "loanSummary",
-              "removeStock",
               "dashboard"
-            ); // loans impact stock buckets
+            );
           }}
           onCloseEdit={() => setEditingLoanId(null)}
         />
