@@ -15,11 +15,15 @@ A modern desktop application built with Tauri, React, Rust and TypeScript for ma
 ## 📋 Features
 
 - **Inventory Management**: Track stock quantities, expiry dates, and product details
-- **Value Dashboard**: Real-time financial overview with categorized stock values
+- **Dashboard**: Real-time financial overview with categorized stock values and sales statistics
 - **Expiry Monitoring**: Automatic alerts for expiring and expired products
 - **Product Catalog**: Manage product information and pricing
 - **Loan Tracking**: Track borrow/return transactions (net loan value)
+- **Sales Management**: Add, edit, and view sales records
+- **Sales History**: Monthly sales statistics, trends, and top products
 - **Responsive UI**: Clean, modern interface with real-time updates
+- **Collapsible Sidebar**: Improved navigation
+- **Multilingual Docs**: English and Chinese README/Changelog
 
 ## 🛠️ Configuration
 
