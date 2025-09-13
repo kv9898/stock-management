@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import Plot from "react-plotly.js";
+import { Dialog, DialogTitle, DialogContent, DialogActions, TextField, Button } from "@mui/material";
 
 import { invoke } from "@tauri-apps/api/core";
 
@@ -53,6 +54,9 @@ export default function StockExpiryChart({
   todayColor,
 }: Props) {
   const [alertPeriod, setAlertPeriod] = useState<number>(0);
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [editData, setEditData] = useState<{expiry: string, quantity: number} | null>(null);
+  const [newQuantity, setNewQuantity] = useState<string>("");
   const isDark = usePrefersDark();
 
   useEffect(() => {
@@ -78,32 +82,44 @@ export default function StockExpiryChart({
   const handleInternalBarClick = useCallback(
     async (expiry: string, quantity: number) => {
       if (!productName) return; // nothing to save against
-      const input = window.prompt(
-        `编辑数量：\n产品：${productName}\n到期日：${expiry}\n当前数量：${quantity}\n\n请输入新的数量（0 = 删除该批次）：`,
-        String(quantity)
-      );
-      if (input == null) return; // cancelled
-
-      const newQty = Number(input);
-      if (!Number.isInteger(newQty) || newQty < 0) {
-        alert("请输入非负整数。");
-        return;
-      }
-
-      try {
-        await invoke("edit_stock", {
-          name: productName,
-          expiryDate: expiry,
-          quantity: newQty,
-        });
-        onUpdated?.(); // let parent refresh buckets & overview
-      } catch (e: any) {
-        console.error(e);
-        alert(String(e));
-      }
+      
+      // Open the Material-UI dialog
+      setEditData({ expiry, quantity });
+      setNewQuantity(String(quantity));
+      setEditDialogOpen(true);
     },
-    [productName, onUpdated]
+    [productName]
   );
+
+  const handleEditConfirm = useCallback(async () => {
+    if (!editData || !productName) return;
+    
+    const newQty = Number(newQuantity);
+    if (!Number.isInteger(newQty) || newQty < 0) {
+      alert("请输入非负整数。");
+      return;
+    }
+
+    try {
+      await invoke("edit_stock", {
+        name: productName,
+        expiryDate: editData.expiry,
+        quantity: newQty,
+      });
+      setEditDialogOpen(false);
+      setEditData(null);
+      onUpdated?.(); // let parent refresh buckets & overview
+    } catch (e: any) {
+      console.error(e);
+      alert(String(e));
+    }
+  }, [editData, productName, newQuantity, onUpdated]);
+
+  const handleEditCancel = useCallback(() => {
+    setEditDialogOpen(false);
+    setEditData(null);
+    setNewQuantity("");
+  }, []);
 
   if (loading) return <div style={{ opacity: 0.7, padding: 12 }}>加载中…</div>;
   if (!data.length)
@@ -137,7 +153,9 @@ export default function StockExpiryChart({
   const accentColor = todayColor || cssVar("--accent", textColor);
 
   return (
-    <div style={{ width: "100%", height }}>
+    <div 
+      style={{ width: "100%", height, pointerEvents: "auto", position: "relative" }}
+    >
       <Plot
         data={[
           {
@@ -146,7 +164,9 @@ export default function StockExpiryChart({
             y,
             width: barWidthMs,
             hovertemplate: "到期日：%{x}<br>数量：%{y}<extra></extra>",
-            marker: {color: colors}
+            marker: {color: colors},
+            hoverinfo: "x+y",
+            hoverlabel: { bgcolor: "white", bordercolor: "black" }
           } as Partial<Plotly.PlotData>,
         ]}
         layout={
@@ -210,17 +230,168 @@ export default function StockExpiryChart({
               : [],
           } as Partial<Plotly.Layout>
         }
-        config={{ responsive: true, displayModeBar: false }}
-        style={{ width: "100%", height: "100%" }}
+        config={{ 
+          responsive: true, 
+          displayModeBar: false,
+          staticPlot: false,
+          editable: false,
+          scrollZoom: false,
+          doubleClick: false,
+          showTips: false,
+          displaylogo: false,
+          modeBarButtonsToRemove: ['toImage']
+        }}
+        style={{ width: "100%", height: "100%", pointerEvents: "auto" }}
         useResizeHandler
-        onClick={(ev: any) => {
-          const pt = ev?.points?.[0];
-          if (!pt) return;
-          const expiry = String(pt.x);
-          const qty = Number(pt.y);
-          handleInternalBarClick(expiry, qty); // chart handles it
+        onInitialized={(_figure: any, graphDiv: any) => {
+          // Add Plotly event listeners for click interactions
+          if (graphDiv) {
+            graphDiv.on('plotly_click', (data: any) => {
+              if (data.points && data.points.length > 0) {
+                const pt = data.points[0];
+                const expiry = String(pt.x);
+                const qty = Number(pt.y);
+                handleInternalBarClick(expiry, qty);
+              }
+            });
+          }
+        }}
+        onUpdate={(_figure: any, _graphDiv: any) => {
+          // Plot updated - could add logic here if needed
+        }}
+        onHover={(_data: any) => {
+          // Optional: could add hover effects here if needed
+        }}
+        onClick={(_ev: any) => {
+          // Using direct Plotly events instead
         }}
       />
+      
+      {/* Edit Stock Dialog */}
+      <Dialog 
+        open={editDialogOpen} 
+        onClose={handleEditCancel} 
+        maxWidth="sm" 
+        fullWidth
+        PaperProps={{
+          sx: {
+            borderRadius: 2,
+            padding: 1,
+            minWidth: { xs: '90vw', sm: '400px' },
+            maxWidth: { xs: '95vw', sm: '500px' }
+          }
+        }}
+      >
+        <DialogTitle sx={{ pb: 1, fontSize: '1.25rem', fontWeight: 600 }}>
+          编辑库存数量
+        </DialogTitle>
+        <DialogContent sx={{ pb: 2 }}>
+          {editData && (
+            <div style={{ paddingTop: 8 }}>
+              <div style={{ 
+                background: 'rgba(0,0,0,0.05)', 
+                padding: '16px 20px', 
+                borderRadius: '8px', 
+                marginBottom: '20px',
+                border: '1px solid rgba(0,0,0,0.1)'
+              }}>
+                <div style={{ marginBottom: '10px', display: 'flex', alignItems: 'center' }}>
+                  <strong style={{ color: '#1976d2', minWidth: '70px' }}>产品：</strong> 
+                  <span style={{ marginLeft: '12px', fontSize: '1rem' }}>{productName}</span>
+                </div>
+                <div style={{ marginBottom: '10px', display: 'flex', alignItems: 'center' }}>
+                  <strong style={{ color: '#1976d2', minWidth: '70px' }}>到期日：</strong> 
+                  <span style={{ marginLeft: '12px', fontSize: '1rem' }}>{editData.expiry}</span>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center' }}>
+                  <strong style={{ color: '#1976d2', minWidth: '70px' }}>当前数量：</strong> 
+                  <span style={{ 
+                    marginLeft: '12px', 
+                    fontWeight: 600, 
+                    fontSize: '1.1rem',
+                    color: '#2e7d32'
+                  }}>{editData.quantity}</span>
+                </div>
+              </div>
+              <TextField
+                label="新数量（0 = 删除该批次）"
+                type="number"
+                value={newQuantity}
+                onChange={(e) => setNewQuantity(e.target.value)}
+                fullWidth
+                variant="outlined"
+                margin="normal"
+                autoFocus
+                size="medium"
+                inputProps={{ 
+                  min: 0, 
+                  step: 1,
+                  style: { 
+                    fontSize: '1.1rem',
+                    padding: '12px 14px',
+                    height: 'auto'
+                  }
+                }}
+                sx={{
+                  mt: 0,
+                  '& .MuiOutlinedInput-root': {
+                    borderRadius: 2,
+                    minHeight: '56px'
+                  },
+                  '& .MuiInputBase-input': {
+                    fontSize: '1.1rem',
+                    lineHeight: '1.5'
+                  },
+                  '& .MuiInputLabel-root': {
+                    fontSize: '1rem'
+                  }
+                }}
+                helperText="输入 0 将删除此到期日的所有库存"
+                FormHelperTextProps={{
+                  sx: { 
+                    fontSize: '0.875rem',
+                    mt: 1,
+                    mx: 0
+                  }
+                }}
+              />
+            </div>
+          )}
+        </DialogContent>
+        <DialogActions sx={{ px: 3, pb: 2, pt: 1, gap: 2 }}>
+          <Button 
+            onClick={handleEditCancel}
+            variant="outlined"
+            size="large"
+            sx={{ 
+              borderRadius: 2,
+              px: 4,
+              py: 1.5,
+              textTransform: 'none',
+              minWidth: '100px',
+              fontSize: '1rem'
+            }}
+          >
+            取消
+          </Button>
+          <Button 
+            onClick={handleEditConfirm} 
+            variant="contained"
+            size="large"
+            sx={{ 
+              borderRadius: 2,
+              px: 4,
+              py: 1.5,
+              textTransform: 'none',
+              boxShadow: '0 2px 8px rgba(25, 118, 210, 0.3)',
+              minWidth: '120px',
+              fontSize: '1rem'
+            }}
+          >
+            确认修改
+          </Button>
+        </DialogActions>
+      </Dialog>
     </div>
   );
 }
