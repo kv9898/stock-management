@@ -35,6 +35,10 @@ export default function DashboardPane({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  const [salesStats, setSalesStats] = useState<{ this_month_total: number; last_month_same_period_total: number } | null>(null);
+  const [salesStatsLoading, setSalesStatsLoading] = useState(false);
+  const [salesStatsError, setSalesStatsError] = useState<string | null>(null);
+
   const fetchDashboardData = async () => {
     setLoading(true);
     setError(null);
@@ -49,8 +53,23 @@ export default function DashboardPane({
     }
   };
 
+  const fetchSalesStats = async () => {
+  setSalesStatsLoading(true);
+  setSalesStatsError(null);
+  try {
+    const result = await invoke<{ this_month_total: number; last_month_same_period_total: number }>("get_monthly_sales_stats");
+    setSalesStats(result);
+  } catch {
+    setSalesStatsError("销售业绩获取失败");
+    setSalesStats(null);
+  } finally {
+    setSalesStatsLoading(false);
+  }
+};
+
   useEffect(() => {
     fetchDashboardData();
+    fetchSalesStats();
   }, [refreshSignal]);
 
   const handleRefresh = () => {
@@ -122,6 +141,25 @@ export default function DashboardPane({
     },
   ] as const;
 
+  const salesCards = [
+    {
+      key: "this_month_sales",
+      title: "本月销售额",
+      value: salesStats?.this_month_total,
+      icon: <DollarSign size={50} strokeWidth={2.4} />,
+      accentClass: "accent-sales-this",
+      valueClass: "value-sales-this",
+    },
+    {
+      key: "last_month_sales",
+      title: "上月同期",
+      value: salesStats?.last_month_same_period_total,
+      icon: <Clock8 size={50} strokeWidth={2.4} />,
+      accentClass: "accent-sales-last",
+      valueClass: "value-sales-last",
+    },
+  ];
+
   return (
     <div className="dash-wrap">
       <div className="dash-header">
@@ -168,6 +206,33 @@ export default function DashboardPane({
           </div>
         ))}
       </div>
+
+      <div className="dash-header">
+        <h2>销售总览</h2>
+      </div>
+
+      {salesCards.map((c) => (
+        <div key={c.key} className={`dash-card ${c.accentClass}`}>
+          <div className="dash-icon-left">
+            <div className="dash-icon">{c.icon}</div>
+          </div>
+          <div className="dash-right">
+            <div className="dash-top">
+              <div className="dash-title-row">
+                <div className="dash-title">{c.title}</div>
+              </div>
+            </div>
+            <div className={`dash-value ${c.valueClass}`}>
+              {salesStatsLoading ? (
+                <span className="dash-skeleton" />
+              ) : (
+                formatCurrency(c.value, currency)
+              )}
+            </div>
+          </div>
+          <div className="dash-bar" />
+        </div>
+      ))}
     </div>
   );
 }
