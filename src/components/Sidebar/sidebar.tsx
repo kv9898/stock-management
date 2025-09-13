@@ -11,7 +11,8 @@ import {
   ListItemText,
   Box,
 } from "@mui/material";
-import { Menu as MenuIcon, Settings } from "@mui/icons-material";
+// import { Menu as MenuIcon, Settings } from "@mui/icons-material";
+import { Menu as MenuIcon, Settings } from "lucide-react";
 import { useTheme } from "@mui/material/styles";
 import { useState, PropsWithChildren } from "react";
 import type { TabKey } from "../../tabs";
@@ -47,7 +48,7 @@ export default function ResponsiveLayout({
       {/* Settings pinned at bottom */}
       <div style={{ marginTop: "auto"}}>
         <ListItemButton onClick={onOpenSettings} sx={{pl: 3}}>
-          <Settings sx={{ mr: 1}} />
+          <Settings size={24} style={{ marginRight: "8px" }}/>
           <ListItemText primary="设置" />
         </ListItemButton>
       </div>

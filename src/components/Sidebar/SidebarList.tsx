@@ -5,7 +5,7 @@ import {
   ListItemText,
   Collapse,
 } from "@mui/material";
-import { ExpandLess, ExpandMore } from "@mui/icons-material";
+import { ChevronUp, ChevronDown } from "lucide-react";
 import { useState, useEffect } from "react";
 import type { TabKey } from "../../tabs";
 import type { SidebarItem } from "../../types/SidebarItem";
@@ -55,7 +55,7 @@ export function SidebarList({ items, activeTab, onSelect, depth = 0 }: SidebarLi
             <div key={item.label}>
               <ListItemButton onClick={() => toggleGroup(item.label)} sx={{ pl: 3 + depth * 2 }}>
                 <ListItemText primary={item.label} />
-                {groupOpen ? <ExpandLess /> : <ExpandMore />}
+                {groupOpen ? <ChevronUp size={24} /> : <ChevronDown size={24} />}
               </ListItemButton>
               <Collapse in={groupOpen} timeout="auto" unmountOnExit>
                 <SidebarList
