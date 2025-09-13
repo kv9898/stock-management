@@ -80,7 +80,7 @@ export default function SalesHistoryPane({
           onClick={(e) => {
             e.stopPropagation();
             if (confirm("确定要删除这条销售记录吗？")) {
-              handleDeleteSale(params.row.id);
+              handleDeleteSale(params.row.header.id);
             }
           }}
           sx={{ minWidth: "auto", px: 1, fontSize: "0.75rem" }}
