@@ -31,7 +31,7 @@ export function SidebarList({ items, activeTab, onSelect, depth = 0 }: SidebarLi
           const groupOpen = openGroups[item.label] ?? false;
           return (
             <div key={item.label}>
-              <ListItemButton onClick={() => toggleGroup(item.label)} sx={{ pl: depth * 2 }}>
+              <ListItemButton onClick={() => toggleGroup(item.label)} sx={{ pl: 3 + depth * 2 }}>
                 <ListItemText primary={item.label} />
                 {groupOpen ? <ExpandLess /> : <ExpandMore />}
               </ListItemButton>
@@ -50,7 +50,7 @@ export function SidebarList({ items, activeTab, onSelect, depth = 0 }: SidebarLi
         return (
           <ListItemButton
             key={item.key!}
-            sx={{ pl: depth * 2 }}
+            sx={{ pl: 3 + depth * 2 }}
             selected={activeTab === item.key}
             onClick={() => onSelect(item.key!)}
           >
