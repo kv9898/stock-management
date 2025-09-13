@@ -97,7 +97,6 @@ CREATE TABLE IF NOT EXISTS SalesItem (
   sale_id      TEXT NOT NULL,
   product_name TEXT NOT NULL,
   quantity     INTEGER NOT NULL CHECK(quantity > 0),
-  price        INTEGER NOT NULL CHECK(price >= 0),
 
   FOREIGN KEY (sale_id)      REFERENCES SalesHeader(id) ON DELETE CASCADE,
   FOREIGN KEY (product_name) REFERENCES Product(name)
@@ -120,9 +119,7 @@ SELECT
   h.id           AS sale_id,
   h.date         AS date,
   i.product_name AS product_name,
-  i.quantity     AS quantity,
-  i.price        AS price,
-  (i.quantity * i.price) AS total_price
+  i.quantity     AS quantity
 FROM SalesItem i
 JOIN SalesHeader h ON h.id = i.sale_id;
 """
