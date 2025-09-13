@@ -1,8 +1,16 @@
 use crate::db::{get_db_config, ignore_empty_baton_commit, sql_quote};
 use crate::stock::StockChange;
 use libsql_client::Client;
+use serde::{Deserialize, Serialize};
 use tokio::task;
 use uuid::Uuid;
+
+#[derive(Debug, Deserialize, Serialize)]
+pub struct SalesHeader {
+    pub id: String,   // UUID from frontend
+    pub date: String, // "YYYY-MM-DD"
+    pub note: Option<String>,
+}
 
 pub async fn add_sale(changes: Vec<StockChange>, note: Option<String>) -> Result<(), String> {
     task::spawn_blocking(move || {
