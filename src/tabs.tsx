@@ -11,8 +11,6 @@ import { useState } from "react";
 
 import { SidebarItem } from "./types/SidebarItem";
 
-import "./tabs.css";
-
 export const DEFAULT_TAB = "dashboard";
 
 export type TabKey =
