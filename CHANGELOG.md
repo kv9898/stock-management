@@ -4,6 +4,10 @@ All notable changes to the USANA stock manager will be documented in this file.
 
 USANA 库存管理器的所有主要变更将记录在此文件中。
 
+## 0.1.2
+
+- Collapsible sidebar 可折叠侧边栏
+
 ## 0.1.1
 
 - Viewing and editing loan records 查看和编辑借出记录
