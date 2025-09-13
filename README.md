@@ -92,6 +92,7 @@ src/                    # Frontend source code
 │   ├── Dashboard/      # Value overview dashboard
 │   ├── Loan/           # Loan management
 │   ├── ProductManagement/  # Product catalog
+│   ├── Sales/          # Sales management
 │   ├── Stock/          # Stock management
 │   └── Summary/        # View Stock
 ├── types/              # TypeScript type definitions
@@ -114,6 +115,7 @@ src-tauri/              # Tauri backend source code
 │   ├── loan.rs         # Loan management
 │   ├── main.rs         # Tauri entry point (do not edit)
 │   ├── product.rs      # Product management
+│   ├── sales.rs        # Sales management
 │   ├── stock.rs        # Add/remove stock
 │   └── summary.rs      # View stock calculations
 ├── target/             # Rust build output (do not edit)

@@ -92,6 +92,7 @@ src/                    # 前端源代码
 │   ├── Dashboard/      # 产品总价仪表板
 │   ├── Loan/           # 借货管理
 │   ├── ProductManagement/ # 产品目录
+│   ├── Sales/          # 销售管理
 │   ├── Stock/          # 库存管理
 │   └── Summary/        # 库存查看
 ├── types/              # TypeScript 类型定义
@@ -114,6 +115,7 @@ src-tauri/              # Tauri 后端源代码
 │   ├── loan.rs         # 借出管理
 │   ├── main.rs         # Tauri 入口点（请勿编辑）
 │   ├── product.rs      # 产品管理
+│   ├── sales.rs        # 销售管理
 │   ├── stock.rs        # 库存管理
 │   └── summary.rs      # 查看库存计算
 ├── target/             # 编译输出目录
