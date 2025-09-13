@@ -1,4 +1,4 @@
-use crate::db::{get_db_config, ignore_empty_baton_commit, sql_quote};
+use crate::db::{get_db_config, ignore_empty_baton_commit, sql_quote, to_sql_null_or_string};
 use crate::stock::StockChange;
 use libsql_client::Client;
 use serde::{Deserialize, Serialize};
@@ -101,6 +101,83 @@ pub async fn delete_sale(sale_id: String) -> Result<(), String> {
             tx.execute(delete_header_sql)
                 .await
                 .map_err(|e| e.to_string())?;
+
+            // Commit the transaction
+            let res = tx.commit().await;
+            ignore_empty_baton_commit(res)?;
+
+            Ok(())
+        })
+    })
+    .await
+    .map_err(|e| e.to_string())?
+}
+
+#[tauri::command]
+pub async fn update_sale(header: SalesHeader, items: Vec<SalesItem>) -> Result<(), String> {
+    task::spawn_blocking(move || {
+        let rt = tokio::runtime::Runtime::new().unwrap();
+        rt.block_on(async move {
+            let config = get_db_config().await.map_err(|e| e.to_string())?;
+            let client = Client::from_config(config)
+                .await
+                .map_err(|e| e.to_string())?;
+
+            // Enable foreign keys
+            client
+                .execute("PRAGMA foreign_keys = ON;")
+                .await
+                .map_err(|e| e.to_string())?;
+
+            // Begin transaction
+            let tx = client.transaction().await.map_err(|e| e.to_string())?;
+
+            let sale_id_q = sql_quote(&header.id);
+            let date_q = sql_quote(&header.date);
+            let note_sql = to_sql_null_or_string(&header.note);
+
+            // 0. Verify all products exist
+            for it in &items {
+                let p_q = sql_quote(&it.product_name);
+                let exists = tx
+                    .execute(format!(
+                        "SELECT 1 FROM Product WHERE name='{}' LIMIT 1;",
+                        p_q
+                    ))
+                    .await
+                    .map_err(|e| e.to_string())?;
+                if exists.rows.is_empty() {
+                    return Err(format!("产品不存在：{}", it.product_name));
+                }
+            }
+
+            // 1. Update sale header
+            let update_header_sql = format!(
+                "UPDATE SalesHeader SET date = {}, note = {} WHERE id = {};",
+                date_q, note_sql, sale_id_q
+            );
+            tx.execute(update_header_sql)
+                .await
+                .map_err(|e| e.to_string())?;
+
+            // 2. Delete existing sale items
+            let delete_items_sql = format!("DELETE FROM SalesItem WHERE sale_id = {};", sale_id_q);
+            tx.execute(delete_items_sql)
+                .await
+                .map_err(|e| e.to_string())?;
+
+            // 3. Insert new sale items
+            for it in &items {
+                let it_id_q = sql_quote(&it.id);
+                let name_q = sql_quote(&it.product_name);
+                let expiry_q = sql_quote(&it.expiry);
+                let sql_item = format!(
+                    "INSERT INTO SalesItem (id, sale_id, product_name, quantity, expiry)
+                     VALUES ('{}', '{}', '{}', {}, '{}');",
+                    it_id_q, sale_id_q, name_q, it.quantity, expiry_q
+                );
+                tx.execute(sql_item).await.map_err(|e| e.to_string())?;
+            }
 
             // Commit the transaction
             let res = tx.commit().await;
