@@ -175,13 +175,11 @@ export function RenderedTabs({
       >
         <SalesHistoryPane
           refreshSignal={refresh.salesHistory}
-          editingLoanId={editingLoanId}
           onDidSubmit={() => {
             triggerRefresh(
               "dashboard"
             ); // sales history may impact dashboard?
           }}
-          onCloseEdit={() => setEditingLoanId(null)}
         />
       </div>
 
