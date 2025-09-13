@@ -45,9 +45,9 @@ export default function ResponsiveLayout({
         onSelect={(key) => setActiveTab(key)}
       />
       {/* Settings pinned at bottom */}
-      <div style={{ marginTop: "auto", padding: "1rem" }}>
-        <ListItemButton onClick={onOpenSettings}>
-          <Settings sx={{ mr: 1 }} />
+      <div style={{ marginTop: "auto"}}>
+        <ListItemButton onClick={onOpenSettings} sx={{pl: 3}}>
+          <Settings sx={{ mr: 1}} />
           <ListItemText primary="设置" />
         </ListItemButton>
       </div>
