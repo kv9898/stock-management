@@ -30,25 +30,34 @@ export const sidebarStructure: SidebarItem[] = [
     label: "价值总览",
   },
   {
+    key: "viewStock" as TabKey,
+    label: "查看库存",
+  },
+  {
     key: null,
-    label: "库存管理",
+    label: "库存增减",
     children: [
-      { key: "viewStock" as TabKey, label: "查看库存" },
       { key: "addStock" as TabKey, label: "添加库存" },
       { key: "removeStock" as TabKey, label: "移除库存" },
     ],
   },
   {
-    key: "loanSummary" as TabKey,
-    label: "借货总览",
-  },
-  {
-    key: "loanHistory" as TabKey,
-    label: "借货记录",
-  },
-  {
-    key: "addLoan" as TabKey,
-    label: "新增借货/归还",
+    key: null,
+    label: "借货管理",
+    children: [
+      {
+        key: "loanSummary" as TabKey,
+        label: "借货总览",
+      },
+      {
+        key: "loanHistory" as TabKey,
+        label: "借货记录",
+      },
+      {
+        key: "addLoan" as TabKey,
+        label: "新增借货/归还",
+      },
+    ],
   },
   {
     key: "productManagement" as TabKey,
