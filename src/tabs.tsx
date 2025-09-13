@@ -19,6 +19,7 @@ export type TabKey =
   | "viewStock"
   | "addStock"
   | "removeStock"
+  | "salesHistory"
   | "loanSummary"
   | "loanHistory"
   | "addLoan"
@@ -40,6 +41,13 @@ export const sidebarStructure: SidebarItem[] = [
       { key: "addStock" as TabKey, label: "添加库存" },
       { key: "removeStock" as TabKey, label: "移除库存" },
     ],
+  },
+  {
+    key: null,
+    label: "销售管理",
+    children: [
+      {key: "salesHistory" as TabKey, label: "销售记录" },
+    ]
   },
   {
     key: null,
