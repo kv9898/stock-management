@@ -59,6 +59,20 @@ function App() {
 
         // verify (your Rust command runs in spawn_blocking)
         await invoke("verify_credentials", { url: cfg.url, token: cfg.token });
+
+        // Valid config -> Refresh all data & switch to default tab
+        triggerRefresh(
+              "viewStock",
+              "dashboard",
+              "addStock",
+              "removeStock",
+              "salesHistory",
+              "salesTrend",
+              "loanSummary",
+              "loanHistory",
+              "addLoan",
+              "productManagement",
+          )
         setActiveTab(DEFAULT_TAB);
       } catch (e: any) {
         // Missing/invalid config -> force modal open & lock
