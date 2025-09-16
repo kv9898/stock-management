@@ -72,6 +72,7 @@ export default function SalesTrendPane({ refreshSignal }: { refreshSignal: numbe
 
   const x = data.map(d => d.month); // e.g. "2025-01"
   const y = data.map(d => d.total);
+  const maxY = Math.max(...y);
 
   // Theme-aware colors from your CSS vars (with sensible fallbacks)
   const textColor = cssVar("--text", isDark ? "#e6e6e6" : "#222");
@@ -104,6 +105,7 @@ export default function SalesTrendPane({ refreshSignal }: { refreshSignal: numbe
               text: "近一年每月销售额趋势",
               font: { color: textColor }
             },
+            dragmode: 'pan',
             xaxis: {
               title: "月份",
               type: "category",
@@ -117,6 +119,7 @@ export default function SalesTrendPane({ refreshSignal }: { refreshSignal: numbe
               tickfont: { color: textColor },
               titlefont: { color: textColor },
               automargin: true,
+              fixedrange: false,
             },
             yaxis: {
               title: "销售额",
@@ -128,6 +131,8 @@ export default function SalesTrendPane({ refreshSignal }: { refreshSignal: numbe
               tickfont: { color: textColor },
               titlefont: { color: textColor },
               automargin: true,
+              fixedrange: true,
+              range: [0, maxY * 1.1], // Fixed range with bottom at 0
             },
             margin: { t: 64, r: 32, b: 80, l: 80 },
             bargap: 0.3,
@@ -136,13 +141,15 @@ export default function SalesTrendPane({ refreshSignal }: { refreshSignal: numbe
         }
         config={{
           responsive: true,
-          displayModeBar: false,
+          displayModeBar: true,
           staticPlot: false,
           editable: false,
-          scrollZoom: false,
-          doubleClick: false,
+          scrollZoom: true,
+          doubleClick: 'reset+autosize',
+          doubleClickDelay: 1000,
           showTips: false,
           displaylogo: false,
+          modeBarButtonsToRemove: ['toImage', 'lasso2d', 'select2d']
         }}
         style={{ width: "100%", height: "100%" }}
         useResizeHandler
