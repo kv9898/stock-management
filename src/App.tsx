@@ -48,6 +48,9 @@ function App() {
       try {
         const cfg = await invoke<Config>("get_config");
         setInitialConfig(cfg);
+        
+        if (!cfg.url || !cfg.token) throw "配置不完整，请检查。"; // No need to verify empty config
+
         // verify (your Rust command runs in spawn_blocking)
         await invoke("verify_credentials", { url: cfg.url, token: cfg.token });
         setActiveTab(DEFAULT_TAB);
