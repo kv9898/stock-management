@@ -34,7 +34,7 @@ function App() {
   const openSettings = async (lock = false, errorMsg?: string) => {
     // only fetch config if not locked (user open)
     if (lock) {
-      setInitialConfig({ url: "", token: "", alert_period: 180 })
+      setInitialConfig({ url: "", token: "", alert_period: 180 });
     } else {
       try {
         const cfg = await invoke<Config>("get_config");
