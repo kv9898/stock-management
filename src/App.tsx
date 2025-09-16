@@ -31,11 +31,14 @@ function App() {
 
   // helper to open modal and prefill current config
   const openSettings = async (lock = false, errorMsg?: string) => {
-    try {
-      const cfg = await invoke<Config>("get_config");
-      setInitialConfig(cfg);
-    } catch {
-      setInitialConfig({ url: "", token: "", alert_period: 180 });
+    // only fetch config if not locked (user open)
+    if (!lock) {
+      try {
+        const cfg = await invoke<Config>("get_config");
+        setInitialConfig(cfg);
+      } catch {
+        setInitialConfig({ url: "", token: "", alert_period: 180 });
+      }
     }
     setSettingsError(errorMsg ?? null);
     setLockSettings(lock);
