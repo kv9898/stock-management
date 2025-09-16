@@ -6,7 +6,7 @@ USANA 库存管理器的所有主要变更将记录在此文件中。
 
 ## 0.1.4
 
-- Enable pan/zoom on stock expiry chart 启用库存到期图表的平移/缩放功能
+- Enabled pan and zoom on the stock expiry and sales trend charts 启用库存到期图和销售趋势图的平移/缩放功能
 
 ## 0.1.3
 
