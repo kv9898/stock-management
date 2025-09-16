@@ -95,6 +95,18 @@ function App() {
           if (!lockSettings) setShowSettings(false);
         }}
         onVerified={() => {
+          triggerRefresh(
+              "viewStock",
+              "dashboard",
+              "addStock",
+              "removeStock",
+              "salesHistory",
+              "salesTrend",
+              "loanSummary",
+              "loanHistory",
+              "addLoan",
+              "productManagement",
+          )
           setLockSettings(false);
           setShowSettings(false);
           setSettingsError(null);
