@@ -57,7 +57,9 @@ export default function LoanHistoryPane({
     }
   }, [editingLoanId]);
 
+  // Do not load until refreshSignal changes
   useEffect(() => {
+    if (refreshSignal === 0) return; // Skip initial load if signal is 0
     fetchLoanHistory();
   }, [refreshSignal]);
 
