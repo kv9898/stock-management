@@ -64,14 +64,10 @@ export default function LoanSummaryPane({
     }
   }, []);
 
+  // Do not load until refreshSignal is set (skip initial 0)
   useEffect(() => {
+    if (refreshSignal === 0) return;
     fetchLoanSummary();
-  }, [fetchLoanSummary]);
-
-  useEffect(() => {
-    if (refreshSignal > 0) {
-      fetchLoanSummary();
-    }
   }, [refreshSignal, fetchLoanSummary]);
 
   // Distinct counterparties from data
