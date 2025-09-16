@@ -45,6 +45,7 @@ export default function SalesTrendPane({ refreshSignal }: { refreshSignal: numbe
   const isDark = usePrefersDark();
 
   useEffect(() => {
+    if (refreshSignal === 0) return; // Skip initial
     setLoading(true);
     invoke<MonthlySales[]>("get_monthly_sales", { months: 12 })
       .then(setData)
