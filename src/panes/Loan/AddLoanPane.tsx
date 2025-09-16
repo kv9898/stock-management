@@ -46,12 +46,9 @@ export default function AddLoanPane({
     );
   }, []);
 
-  // initial + on refreshSignal
+  // Do not load until refreshSignal changes
   useEffect(() => {
-    fetchProducts().catch((e) => console.error(e));
-  }, [fetchProducts]);
-
-  useEffect(() => {
+    if (refreshSignal === 0) return;
     fetchProducts().catch((e) => console.error(e));
   }, [refreshSignal, fetchProducts]);
 
