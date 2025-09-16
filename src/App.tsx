@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import "./App.css";
 import "./components/Modals.css";
+import "./panes/ProductManagement/productFormModal.css";
 
 import { RenderedTabs, DEFAULT_TAB, defaultRefreshCounters } from "./tabs";
 import type { TabKey } from "./tabs";
@@ -32,7 +33,9 @@ function App() {
   // helper to open modal and prefill current config
   const openSettings = async (lock = false, errorMsg?: string) => {
     // only fetch config if not locked (user open)
-    if (!lock) {
+    if (lock) {
+      setInitialConfig({ url: "", token: "", alert_period: 180 })
+    } else {
       try {
         const cfg = await invoke<Config>("get_config");
         setInitialConfig(cfg);
@@ -51,7 +54,7 @@ function App() {
       try {
         const cfg = await invoke<Config>("get_config");
         setInitialConfig(cfg);
-        
+
         if (!cfg.url || !cfg.token) throw "配置不完整，请检查。"; // No need to verify empty config
 
         // verify (your Rust command runs in spawn_blocking)
