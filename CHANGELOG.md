@@ -4,6 +4,10 @@ All notable changes to the USANA stock manager will be documented in this file.
 
 USANA 库存管理器的所有主要变更将记录在此文件中。
 
+## 0.1.3
+
+- Fix error popping before settings page 修复在设置页面之前弹出错误的问题
+
 ## 0.1.2
 
 - Collapsible sidebar 可折叠侧边栏
