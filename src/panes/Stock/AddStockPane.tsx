@@ -37,12 +37,10 @@ export default function AddStockPane({
     );
   }, []);
 
-  // initial + on refreshSignal
-  useEffect(() => {
-    fetchProducts().catch((e) => alert(String(e)));
-  }, [fetchProducts]);
+  // fetch on refreshSignal
 
   useEffect(() => {
+    if (refreshSignal === 0) return; // skip initial
     fetchProducts().catch((e) => alert(String(e)));
   }, [refreshSignal, fetchProducts]);
 

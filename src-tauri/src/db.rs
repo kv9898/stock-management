@@ -9,12 +9,22 @@ use tokio::task;
 pub async fn get_db_config() -> Result<Config> {
     let conf = config()?;
 
+    // Check if URL is empty or invalid before trying to parse it
+    if conf.url.trim().is_empty() {
+        return Err(anyhow::anyhow!("未设置数据库登录信息"));
+    }
+
     let client_config = Config::new(conf.url.as_str())?.with_auth_token(&conf.token);
     Ok(client_config)
 }
 
 #[tauri::command]
 pub async fn verify_credentials(url: String, token: String) -> Result<(), String> {
+    // Check if URL is empty before trying to parse it
+    if url.trim().is_empty() {
+        return Err("未设置数据库链接".to_string());
+    }
+
     task::spawn_blocking(move || {
         let rt = tokio::runtime::Runtime::new().unwrap();
         rt.block_on(async {

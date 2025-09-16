@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import "./App.css";
 import "./components/Modals.css";
+import "./panes/ProductManagement/productFormModal.css";
 
 import { RenderedTabs, DEFAULT_TAB, defaultRefreshCounters } from "./tabs";
 import type { TabKey } from "./tabs";
@@ -31,11 +32,16 @@ function App() {
 
   // helper to open modal and prefill current config
   const openSettings = async (lock = false, errorMsg?: string) => {
-    try {
-      const cfg = await invoke<Config>("get_config");
-      setInitialConfig(cfg);
-    } catch {
+    // only fetch config if not locked (user open)
+    if (lock) {
       setInitialConfig({ url: "", token: "", alert_period: 180 });
+    } else {
+      try {
+        const cfg = await invoke<Config>("get_config");
+        setInitialConfig(cfg);
+      } catch {
+        setInitialConfig({ url: "", token: "", alert_period: 180 });
+      }
     }
     setSettingsError(errorMsg ?? null);
     setLockSettings(lock);
@@ -48,8 +54,25 @@ function App() {
       try {
         const cfg = await invoke<Config>("get_config");
         setInitialConfig(cfg);
+
+        if (!cfg.url || !cfg.token) throw new Error("配置不完整，请检查。"); // No need to verify empty config
+
         // verify (your Rust command runs in spawn_blocking)
         await invoke("verify_credentials", { url: cfg.url, token: cfg.token });
+
+        // Valid config -> Refresh all data & switch to default tab
+        triggerRefresh(
+              "viewStock",
+              "dashboard",
+              "addStock",
+              "removeStock",
+              "salesHistory",
+              "salesTrend",
+              "loanSummary",
+              "loanHistory",
+              "addLoan",
+              "productManagement",
+          )
         setActiveTab(DEFAULT_TAB);
       } catch (e: any) {
         // Missing/invalid config -> force modal open & lock
@@ -86,6 +109,18 @@ function App() {
           if (!lockSettings) setShowSettings(false);
         }}
         onVerified={() => {
+          triggerRefresh(
+              "viewStock",
+              "dashboard",
+              "addStock",
+              "removeStock",
+              "salesHistory",
+              "salesTrend",
+              "loanSummary",
+              "loanHistory",
+              "addLoan",
+              "productManagement",
+          )
           setLockSettings(false);
           setShowSettings(false);
           setSettingsError(null);

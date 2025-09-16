@@ -38,14 +38,10 @@ export default function RemoveStockPane({
     setProducts(list);
   }, []);
 
-  // initial load
-  useEffect(() => {
-    fetchInStockProducts().catch((e) => alert(String(e)));
-  }, [fetchInStockProducts]);
-
   // refresh on signal: refresh the products and clear lot cache to force re-load
   useEffect(() => {
     (async () => {
+      if (refreshSignal === 0) return; // skip initial
       try {
         await fetchInStockProducts();
         reloadAllLotsAndRevalidate();

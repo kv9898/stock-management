@@ -68,6 +68,7 @@ export default function DashboardPane({
 };
 
   useEffect(() => {
+    if (refreshSignal === 0) return; // skip initial
     fetchDashboardData();
     fetchSalesStats();
   }, [refreshSignal]);
