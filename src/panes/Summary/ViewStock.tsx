@@ -67,16 +67,9 @@ export default function ViewStockPane({
     }
   }, []);
 
-  // initial load
+  // refresh on signal (ignoring initial); also keep detail view in sync if it’s open
   useEffect(() => {
-    fetchOverview().catch((err) => {
-      console.error(err);
-      alert(String(err));
-    });
-  }, [fetchOverview]);
-
-  // refresh on signal; also keep detail view in sync if it’s open
-  useEffect(() => {
+    if (refreshSignal === 0) return; // skip initial
     (async () => {
       try {
         await fetchOverview();
