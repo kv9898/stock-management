@@ -36,6 +36,7 @@ export default function SalesHistoryPane({
   };
 
   useEffect(() => {
+    if (!refreshSignal) return; // Skip initial
     fetchSalesHistory();
   }, [refreshSignal]);
 
