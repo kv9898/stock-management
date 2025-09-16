@@ -131,13 +131,23 @@ export default function StockExpiryChart({
   const toMsUTC = (d: string) => Date.parse(`${d}T00:00:00Z`);
   const xsMs = [...x].map(toMsUTC).sort((a, b) => a - b);
 
-  // Bar width: 60% of min gap, or 20 days
-  let barWidthMs = 20 * 24 * 3600 * 1000;
+  // Bar width: adaptive based on data range and count
+  let barWidthMs = 20 * 24 * 3600 * 1000; // default: 20 days
+  
   if (xsMs.length > 1) {
     let minGap = Infinity;
     for (let i = 1; i < xsMs.length; i++)
       minGap = Math.min(minGap, xsMs[i] - xsMs[i - 1]);
-    if (isFinite(minGap)) barWidthMs = Math.floor(minGap * 0.6);
+    
+    if (isFinite(minGap)) {
+      // Use a more generous percentage for bar width to prevent overly thin bars
+      // For large time ranges, ensure minimum bar width is reasonable
+      const calculatedWidth = Math.floor(minGap * 0.8);
+      const minBarWidth = 5 * 24 * 3600 * 1000; // minimum 5 days
+      const maxBarWidth = 45 * 24 * 3600 * 1000; // maximum 45 days
+      
+      barWidthMs = Math.max(minBarWidth, Math.min(maxBarWidth, calculatedWidth));
+    }
   }
 
   const todayISO = new Date().toISOString().slice(0, 10);
@@ -175,6 +185,7 @@ export default function StockExpiryChart({
             font: { color: textColor },
             margin: { t: 8, r: 24, b: 80, l: 64 },
             bargap: 0.35,
+            dragmode: 'pan', // Enable panning by default
             xaxis: {
               type: "date",
               tickformat: "%Y-%m-%d",
@@ -192,6 +203,7 @@ export default function StockExpiryChart({
               zerolinecolor: borderColor,
               automargin: true,
               tickfont: { size: 11 },
+              fixedrange: false, // Allow zooming on x-axis
             },
             yaxis: {
               title: "数量",
@@ -200,6 +212,7 @@ export default function StockExpiryChart({
               linecolor: borderColor,
               zerolinecolor: borderColor,
               automargin: true,
+              fixedrange: false, // Allow zooming on y-axis
             },
             shapes: showTodayLine
               ? [
@@ -233,14 +246,14 @@ export default function StockExpiryChart({
         }
         config={{ 
           responsive: true, 
-          displayModeBar: false,
+          displayModeBar: true,
           staticPlot: false,
           editable: false,
-          scrollZoom: false,
-          doubleClick: false,
+          scrollZoom: true, // Enable scroll to zoom
+          doubleClick: 'reset+autosize', // Double click to reset zoom
           showTips: false,
           displaylogo: false,
-          modeBarButtonsToRemove: ['toImage']
+          modeBarButtonsToRemove: ['toImage', 'lasso2d', 'select2d']
         }}
         style={{ width: "100%", height: "100%", pointerEvents: "auto" }}
         useResizeHandler
