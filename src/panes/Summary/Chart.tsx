@@ -212,7 +212,8 @@ export default function StockExpiryChart({
               linecolor: borderColor,
               zerolinecolor: borderColor,
               automargin: true,
-              fixedrange: false, // Allow zooming on y-axis
+              fixedrange: true,
+              range: [0, maxY * 1.1], // Fixed range with bottom at 0
             },
             shapes: showTodayLine
               ? [
@@ -251,6 +252,7 @@ export default function StockExpiryChart({
           editable: false,
           scrollZoom: true, // Enable scroll to zoom
           doubleClick: 'reset+autosize', // Double click to reset zoom
+          doubleClickDelay: 1000, // Enable pinch-to-zoom on touch devices
           showTips: false,
           displaylogo: false,
           modeBarButtonsToRemove: ['toImage', 'lasso2d', 'select2d']
