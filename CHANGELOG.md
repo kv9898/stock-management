@@ -4,6 +4,10 @@ All notable changes to the USANA stock manager will be documented in this file.
 
 USANA 库存管理器的所有主要变更将记录在此文件中。
 
+## 0.1.5
+
+- Fixed overflow issue on sale/loan edit page 修复销售/借出编辑页面的溢出问题
+
 ## 0.1.4
 
 - Enabled pan and zoom on the stock expiry and sales trend charts 启用库存到期图和销售趋势图的平移/缩放功能
